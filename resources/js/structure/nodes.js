@@ -1,4 +1,5 @@
 function makeNodeText(person) {
+
     // Parses the date and place into a string
     function parseDatePlace(date) {
         var str = date[0];
@@ -7,7 +8,6 @@ function makeNodeText(person) {
         }
         return str.trim();
     }
-
 
     var birthStr = parseDatePlace(person["birth"]);
     var deathStr = parseDatePlace(person["death"]);

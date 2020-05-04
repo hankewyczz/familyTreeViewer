@@ -73,7 +73,6 @@ def main():
 	# Data filenames
 	structureOutput = "{0}structure.json".format(dataFolder)
 	detailsOutput = "{0}details.json".format(dataFolder)
-	configOutput = "{0}config.json".format(dataFolder)
 
 	# Initialize the structure and details containers
 	structure = []
@@ -144,11 +143,11 @@ def main():
 	# Sort the structure file
 	structure.sort(key=sortByNames)
 	# Generate the structure file
-	with open(structureOutput, "w", encoding="utf8") as f:
+	with open(structureOutput, "w+", encoding="utf8") as f:
 		json.dump(structure, f, **jsonStyling)
 
 	# Generate the details file
-	with open(detailsOutput,"w", encoding="utf8") as f:
+	with open(detailsOutput,"w+", encoding="utf8") as f:
 		json.dump(details, f, **jsonStyling)
 
 if __name__ == "__main__":

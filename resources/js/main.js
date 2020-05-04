@@ -27,7 +27,18 @@ function getDetails(canvasView, data, curPerson) {
         var nameDiv = document.createElement('div');
         nameDiv.className = 'detailTitle';
         // Parse the name
-        var name = (i == 0 ? "" : 'AKA ') + displayName(curPerson.names[i]);
+        if (i != 0) {
+            if (curPerson.names[i] = "\/\/") {
+                // A weird case we see with the English monarcy example file
+                break;
+            }
+            else {
+                var name = "AKA " + displayName(curPerson.names[i]);
+            }
+        }
+        else {
+            var name = displayName(curPerson.names[i]);
+        }
         nameDiv.appendChild(document.createTextNode(name));
         names.appendChild(nameDiv);
     }
@@ -844,7 +855,7 @@ function main() {
         fadeOut(document.getElementById("loadingwindow"), 0.07); // fade out once we load all the data
 
         if (data == null) {
-            showError("Data could not be loaded", fatal=true);
+            showError("Data could not be loaded", true);
             return;
         }
 

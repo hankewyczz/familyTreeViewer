@@ -23,7 +23,10 @@ def exclude(value, lst):
 
 # Parses the date
 def dateParse(dateStr):
-	return parser.parse(dateStr, default=datetime.datetime.min) # If we can't get a date, we go to min
+	try:
+		return parser.parse(dateStr)
+	except:
+		return datetime.datetime.min# If we can't get a date, we go to min
 
 # cleans up the date string
 def cleanDate(x):
@@ -66,7 +69,7 @@ def sortByDate(lst):
 		try:
 			dateParse(cleanDate(date[0]))
 		except:
-			raise ValueError("Could not parse date")
+			raise ValueError("Could not parse date", dateParse(""))
 	
 	lst.sort(key=dateKey)
 	return lst
