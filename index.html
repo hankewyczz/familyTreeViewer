@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="robots" content="noindex,follow">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <!-- Utilities -->
+        <script src="resources/js/utils.js" type="text/javascript"></script>
+        <!-- Graphics and drawing -->
+        <script src="resources/js/graphics/text.js" type="text/javascript"></script>
+        <script src="resources/js/graphics/anim.js" type="text/javascript"></script>
+        <script src="resources/js/graphics/draw.js" type="text/javascript"></script>
+        <!-- Structural -->
+        <script src="resources/js/structure/nodes.js" type="text/javascript"></script>
+        <script src="resources/js/structure/trees.js" type="text/javascript"></script>
+        <!-- Load data -->
+        <script src="resources/js/loadData.js" type="text/javascript"></script>
+        <!-- Main -->
+        <script src="resources/js/main.js" type="text/javascript"></script>
+
+        <!-- Image box -->
+        <!-- https://github.com/krittanon-w/IMG-BOX -->
+        <script src="resources/js/img_box.js" type="text/javascript"></script>
+
+
+        <!-- Styling -->
+        <link rel="stylesheet" type="text/css" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+        <link rel="stylesheet" type="text/css" href="resources/main.css">
+
+        <title>Родовід Тарнавських</title>
+    </head>
+
+
+    <body onload="main()">
+        <canvas id="canvas" width=1000 height=1000 tabindex="1"></canvas>
+
+        <div id="navbar">
+            <div class="button circle-button" id="zoomin"><i class="fas fa-search-plus"></i></div>
+            <div class="button circle-button" id="zoomout"><i class="fas fa-search-minus"></i></div>
+            <div class="button" id="indexbutton">Index</div>
+            <div class="button" id="helpbutton">Help</div><br>
+
+            <div id="searchArea" class="search">
+                <input type="text" id="searchtext" class="searchTerm" autocomplete="off" placeholder="Пошук (Search)">
+                <div id="searchlist"></div>
+            </div>
+            <br/>
+            <div id="message"></div>
+        </div>
+
+
+        <div id="infowindow" class="common-window">
+            <div id="textinfo" class="viewarea infoarea"></div>
+        </div>
+        <div id="loadingwindow" class="panel-class">
+            <div>Loading, please wait</div>
+        </div>
+
+        <div id="helpDivHidden">
+            <div class="detailTitleDiv">
+                <div class="detailTitle">Help</div>
+            </div>
+            <div class="detailRowcontainer">
+                <div class="detailRow" style="display: table; text-align: center; padding-bottom: 5px">
+                    <h3 style="margin: 5px 0">General</h3>
+                    <p class="helpText">This family tree viewer is web and mobile compatible. It works on most <strong>
+                    modern</strong> browsers (if you're using Internet Explorer, good luck).</p>
+                    <br>
+                    <p class="helpText" style="margin-bottom: 10px">To move, just use your mouse to drag the tree. To see more detailed information,
+                     just click on a person. However, some family members are hidden. This will be marked with an arrow,
+                    which will look something like this:</p>
+                    <img src="resources/images/uparrow.png" />&nbsp;&nbsp;<img src="resources/images/downarrow.png" />&nbsp;
+                    <img src="resources/images/doublearrow.png" />
+                    <br>
+                    <p class="helpText">You can click on people with these arrows, and the hidden tree (parents or children)
+                     will expand</p>
+                </div>
+                <div class="detailRow" style="display: table; text-align: center; padding-bottom: 5px">
+                    <h3 style="margin: 5px 0">Menu</h3>
+                    <p class="helpText">The menu can be found in the top-left (where the <strong>Help</strong> button is).
+                    The first two buttons (<i class="fas fa-search-plus"></i> and <i class="fas fa-search-minus"></i>) 
+                    allow us to zoom in and out.</p>
+                    <br>
+                    <p class="helpText">The <strong>Index</strong> button opens up a list of all the family members, 
+                    sorted alphabetically by surname. To go to a family member, just click on their name</p>
+                    <br>
+                    <p class="helpText">(Since you're reading this, I assume you know what the <strong>Help</strong> 
+                    button does)</p>
+                    <br>
+                    <p class="helpText">The search bar can be used to find family members. Just start typing, and 
+                    results will drop down as soon as you have typed at least 3 letters.</p>
+                </div>
+                <div class="detailRow" style="display: table; text-align: center; padding-bottom: 5px">
+                    <h3 style="margin: 5px 0">Shortcuts</h3>
+                    <p class="helpText">There are a couple shortcuts you can use to make life easier:</p>
+                    <h4 style="margin: 5px 0">Zoom</h4>
+                    <p class="helpText">
+                        Zoom in:&nbsp;&nbsp;<span class="kbd">+</span><br><br>
+                        Zoom out:&nbsp;&nbsp;<span class="kbd">-</span><br><br>
+                        Reset zoom:&nbsp;&nbsp;<span class="kbd">0</span><br><br>
+                    </p>
+                    <h4 style="margin: 5px 0">Navigation</h4>
+                    <p class="helpText">
+                        Up a generation:&nbsp;&nbsp;<span class="kbd">&#x2191;</span>&nbsp;&nbsp;or
+                            &nbsp;&nbsp;<span class="kbd">W</span><br><br>
+                        Previous sibling:&nbsp;&nbsp;<span class="kbd">&#x2190;</span>&nbsp;&nbsp;or
+                            &nbsp;&nbsp;<span class="kbd">A</span><br><br>
+                        Next sibling:&nbsp;&nbsp;<span class="kbd">&#x2192;</span>&nbsp;&nbsp;or
+                            &nbsp;&nbsp;<span class="kbd">S</span><br><br>
+                        Down a generation:&nbsp;&nbsp;<span class="kbd">&#x2193;</span>&nbsp;&nbsp;or
+                            &nbsp;&nbsp;<span class="kbd">D</span><br><br>
+                        Switch to spouse:&nbsp;&nbsp;<span class="kbd">Tab</span><br><br>
+                    </p>
+                </div>
+                <div class="detailRow1" style="display: table; text-align: center">
+                    <h3 style="margin: 5px 0">About</h3>
+                    <p class="helpText">Захар Ганкевич, 2020</p>
+                    <br>
+                </div>
+                
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,302 @@
+/* Use Open Sans */
+@import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
+
+html, body {
+    /* General settings*/
+    font-family: 'Open Sans', sans-serif;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    border: 0;
+    overflow: hidden;
+    display: block;
+
+    /* So we don't accidentally select text while trying to move */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    cursor: default;
+}
+
+a {
+    text-decoration: underline;
+}
+
+/* We make an exception for the info area and the search bar */
+#searchtext, .infoarea {
+    user-select: text;
+    -webkit-user-select: text; 
+    -moz-user-select: text; 
+    -ms-user-select: text; 
+    cursor: text;
+}
+
+#canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    min-height: 100%;
+    min-width: 100%;
+    background: #cbefe9;
+}
+
+
+#message {
+    position: absolute;
+    display: none;
+    border: 4px solid #FFFF39;
+    margin: 20px 0 0 10px;
+    padding: 20px;
+    padding-left: 70px; /* We override padding-left to make space for the icon */
+    /* Icon */
+    background-repeat: no-repeat;
+    background-position: 10px center;
+    background-color: #FEEFB3;
+    color: #9F6018;
+    background-image: url('images/error.png');
+}
+
+
+#infowindow {
+    display: block;
+    position: absolute;
+    top: 10px; 
+    right: 10px;
+    max-width: 25%;
+    height: 50%;
+    padding: 0;
+    border: 3px solid #2D89EF;
+    background-color: #dadada;
+}
+
+
+#textinfo {
+    background-color:#fefefe;
+    display:block;
+    position:relative;
+    height: 100%;
+    width: 100%;
+    margin-left: 0;
+    padding-left: 0;
+    overflow-x: hidden;
+    font-size: 18px;
+    display: block;
+}
+
+#textinfo::-webkit-scrollbar {
+    width: 10px;
+    background-color: #F5F5F5;
+}
+
+#textinfo::-webkit-scrollbar-thumb {
+    background-color: #999;
+}
+
+.detailTitle {
+    font-size: 120%;
+    color: #fff;
+    font-weight:bold;
+}
+
+.detailTitleDiv {
+    background-color: #2D89EF;
+    padding: 10px 30px 15px 10px;
+}
+
+.detailRowContainer {
+    width: 100%;
+}
+
+.detailRow, .detailRow1 {
+    display: table-row;
+    width: 100%;
+    margin-bottom: 2px;
+    border-bottom: solid 2px #2D89EF;
+    color: #fff;
+    color: #6c6c6c;
+}
+
+.detailRow1 {
+    background: #eee;
+    color: #6c6c6c;
+}
+
+.rowDate {
+    font-size: 80%;
+    width: 100%;
+    font-weight: bold;
+    vertical-align: top;
+    display: table-cell;
+    padding: 3px 10px 5px 3px;
+    display: inline-block;
+}
+
+.rowContent {
+    font-size: 95%;
+    color: #494949;
+    display: table-cell;
+    width: 80%;
+    text-align: left;
+    padding-left: 7px;
+    padding-bottom: 5px;
+    padding-right: 5px
+    border-collapse: collapse;
+    border-left: solid 1px #2D89EF;
+}
+
+.rowPicture {
+    display: table-cell;
+    width: 80%;
+    padding: 5px;
+}
+
+/* For familial loading */
+.loadingpanel {
+    font-size: 150%;
+    padding-top: 20px;
+    padding-left: 10px;
+    background-color: #EEE;
+}
+
+#loadingwindow {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* Margins */
+    margin-top: -25px;
+    margin-left: -100px;
+    width: 200px;
+    height: 75; 
+    font-size: 150%;
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid #000;
+    padding: 20px 0;
+    background-color: #fff;
+}
+
+
+@media (max-width:925px) {
+    #infowindow {
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 0;
+        top: auto;
+        max-height: 30%;
+        max-width: initial; 
+    }
+    .panel-class{
+        padding: 1px 2px;
+    }
+    .button {
+         padding: 4px 5px;
+    }
+}
+
+@-ms-viewport{
+    zoom: 1.0;
+    width: device-width;
+}
+
+
+/**/
+/* BUTTONS */
+/**/
+.button {
+    border: 1px solid #bbb;
+    color: #888;
+    background-color: #eee;
+    font-size: 110%;
+    padding: 5px;
+    display: inline-block;
+    width: auto;
+    height: 25px;
+}
+
+.button:hover, .button:active{
+    border: 1px solid #888;
+}
+
+.button:active {
+    position: relative;
+    top: 1px; 
+    left:1px;
+}
+
+.circle-button {
+    width: 25px;
+    height: 25px;
+    text-align: center;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+#searchtext {
+    border: 1px solid #bbb;
+    color: #888;
+    background-color: #eee;
+    width: 100%;
+    padding: 5px 0 5px 7px;
+    height: 20px;
+    font-size: 90%;
+}
+
+#navbar {
+    background-color: #2D89EF;
+    padding: 10px;
+    position: absolute;
+    top:10px; 
+    left:10px;
+}
+
+#searchArea {
+    margin-top: 10px;
+    display: inline-block;
+}
+
+.searchresult {
+    white-space: nowrap;
+    padding: 2px;
+}
+
+.searchresult:hover {
+    background-color: #2D89EF;
+    color: #FFF;
+}
+
+#searchlist {
+    height: 200px;
+    display: none;
+    position: absolute;
+    background-color: #FFF;
+    border: 2px solid #2D89EF;
+    width: 150%;
+    overflow: auto;
+    overflow-x: hidden;
+    padding: 2px;
+}
+
+
+/* Help */
+.helpText, .fas, .helpText strong {
+    margin: 0;
+    font-size: 90%;
+    line-height: 100%;
+}
+
+
+/* Keyboard style keys */
+.kbd {
+    border: 1px solid gray;
+    font-size: 1em;
+    box-shadow: 1px 0 1px 0 #eee, 0 2px 0 2px #ccc, 0 2px 0 3px #444;
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    padding: 0 2px;
+    margin-bottom: 5px;
+    
+}
