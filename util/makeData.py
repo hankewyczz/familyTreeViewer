@@ -10,6 +10,34 @@ from gedcom.element.object import ObjectElement
 from gedcom.element.family import FamilyElement
 from gedcom.parser import Parser
 
+
+def ukrSort(part):
+	'''
+	We do this due to how the Ukrainian language is represented in Unicode. The basic Cyrillic alphabet
+	covers the range of U+0400–U+04FF. However, the letter "I" is not part of the basic Cyrillic alphabet. 
+	It's part of the Cyrillic extensions (U+0406). Therefore, when trying to alphabetize, the I becomes the first
+	letter in this alphabet. 
+
+	SO, to counter this, we replace any instances of "I" with "И" (the preceeding letter), and two "Я"'s, the last
+	letter. This way, we are almost certain that this will come AFTER all words beginning with "И", but before 
+	any starting with "Ї" (the next letter). 
+
+	It's not perfect, but seeing as very few words begin with "И" to begin with, and none (that I know of) have a
+	"ияя" letter combination, it does the job well. 
+
+	Since we just use this function to determine the keys, it doesn't affect the name anywhere else, which is perfect
+
+
+	Quick Wiki link for unicode reference:
+	https://en.wikipedia.org/wiki/Cyrillic_script_in_Unicode#Basic_Cyrillic_alphabet
+
+	'''
+	originalI = ["і", "І"]
+	for i in range(0, len(originalI)):
+		part = re.sub(originalI[i], ["ияя", "ИЯЯ"][i], part)
+
+	return part
+
 def sortByNames(x):
 	surnames = []
 	nonSurnames = []
@@ -17,30 +45,7 @@ def sortByNames(x):
 
 
 	for part in x["name"].split(" "):
-		'''
-		We do this due to how the Ukrainian language is represented in Unicode. The basic Cyrillic alphabet
-		covers the range of U+0400–U+04FF. However, the letter "I" is not part of the basic Cyrillic alphabet. 
-		It's part of the Cyrillic extensions (U+0406). Therefore, when trying to alphabetize, the I becomes the first
-		letter in this alphabet. 
-
-		SO, to counter this, we replace any instances of "I" with "И" (the preceeding letter), and two "Я"'s, the last
-		letter. This way, we are almost certain that this will come AFTER all words beginning with "И", but before 
-		any starting with "Ї" (the next letter). 
-
-		It's not perfect, but seeing as very few words begin with "И" to begin with, and none (that I know of) have a
-		"ияя" letter combination, it does the job well. 
-
-		Since we just use this function to determine the keys, it doesn't affect the name anywhere else, which is perfect
-
-
-		Quick Wiki link for unicode reference:
-		https://en.wikipedia.org/wiki/Cyrillic_script_in_Unicode#Basic_Cyrillic_alphabet
-
-		'''
-		originalI = ["і", "І"]
-		for i in range(0, len(originalI)):
-			part = re.sub(originalI[i], ["ияя", "ИЯЯ"][i], part)
-
+		part = ukrSort(part)
 		inSurname = True if part.startswith("/") else inSurname
 
 		# Check if in surname

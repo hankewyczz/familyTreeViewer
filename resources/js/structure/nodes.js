@@ -179,10 +179,7 @@ function Node(_person) {
 
             var isHit = (x <= x2 && x >= x1) && (y <= y2 && y >= y1); // Checks if within bounds
             var hitResult = [isHit, ["goto", this]];
-            
-            if (x < x1 + sidePadding || x > x2 - sidePadding) {
-                hitResult = [isHit, ["info", this]];
-            }
+
             return hitResult;
         },
 
