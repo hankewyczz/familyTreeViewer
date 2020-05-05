@@ -617,185 +617,159 @@ function View(data) {
             this.setFocus(intialPerson);
 
             // Event listeners
-            this.canvas.addEventListener("mousedown", 
-                function(mEvent) { 
-                    curView.mouseDown(mEvent.buttons, curView.getMousePosition(mEvent)); 
-                }, false);
-            this.canvas.addEventListener("mouseup", 
-                function(mEvent){ 
-                    curView.mouseUp(mEvent.buttons, curView.getMousePosition(mEvent)); 
-                }, false);
-            this.canvas.addEventListener("mousemove", 
-                function(mEvent){ 
-                    curView.mouseMove(mEvent.buttons, curView.getMousePosition(mEvent));
-                }, false);
-            this.canvas.addEventListener("touchstart", 
-                function(mEvent){ 
+            this.canvas.addEventListener("mousedown", function(mEvent) { 
+                    curView.mouseDown(mEvent.buttons, curView.getMousePosition(mEvent)); }, false);
+            
+            this.canvas.addEventListener("mouseup", function(mEvent){ 
+                    curView.mouseUp(mEvent.buttons, curView.getMousePosition(mEvent)); }, false);
+            
+            this.canvas.addEventListener("mousemove", function(mEvent){ 
+                    curView.mouseMove(mEvent.buttons, curView.getMousePosition(mEvent)); }, false);
+            
+            this.canvas.addEventListener("touchstart", function(mEvent){ 
                     curView.mouseDown(1, curView.getTouchPosition(mEvent));
                     mEvent.preventDefault(); // just to be safe
-                    mEvent.stopPropagation(); // ditto
-                }, false);
-            this.canvas.addEventListener("touchend",
-                function(mEvent){ 
+                    mEvent.stopPropagation(); }, false);
+
+            this.canvas.addEventListener("touchend", function(mEvent){ 
                     curView.mouseUp(1, curView.getTouchPosition(mEvent)); 
                     mEvent.preventDefault();
-                    mEvent.stopPropagation();
-                }, false);
-            this.canvas.addEventListener("touchmove", 
-                function(mEvent){ 
+                    mEvent.stopPropagation(); }, false);
+
+            this.canvas.addEventListener("touchmove", function(mEvent){ 
                     curView.mouseMove(1, curView.getTouchPosition(mEvent)); 
                     mEvent.stopPropagation();
-                    mEvent.preventDefault();
-                }, false);
+                    mEvent.preventDefault(); }, false);
 
             // KEY EVENT LISTENERS //
-            this.canvas.addEventListener("keydown", 
-                function(keyEvent){
-                    var target = null;
+            // Finds the next relation in the groups given
+            function upDown(relations, groupRelations) {
+                if (relations.length > 0) {
+                    return relations[0]; // If we can go up/down, target is the first one
+                }
+                else if (groupRelations && groupRelations.length > 0) {
+                    return groupRelations[0]; // If they're grouped, the group has them
+                }
+            }
 
-                    // Don't mess w/ any system shortcuts (we use metaKey in case of macs)
-                    if (keyEvent.ctrlKey || keyEvent.altKey || keyEvent.metaKey) {
-                        return;
-                    }
+            function keyEventListeners(keyEvent){
+                var target = null;
 
-                    switch (keyEvent.keyCode) {
-                        case 189: // Minus
-                        case 173: // Why does Firefox have a seperate minus keyCode?
-                            curView.zoomOut();
-                            keyEvent.preventDefault();
-                            break;
+                // Don't mess w/ any system shortcuts (we use metaKey in case of macs)
+                if (keyEvent.ctrlKey || keyEvent.altKey || keyEvent.metaKey) { return; }
 
-                        case 187: // plus
-                        case 61: // is firefox trying to be like IE by breaking keycodes?
-                            curView.zoomIn();
-                            keyEvent.preventDefault();
-                            break
+                switch (keyEvent.keyCode) {
+                    case 189: case 173: // MINUS (and the seperate FireFox minus keycode)
+                        curView.zoomOut();
+                        keyEvent.preventDefault();
+                        break;
 
-                        case 48: // Zero
-                            curView.zeroOut();
-                            keyEvent.preventDefault();
-                            break
+                    case 187: case 61: // PLUS (and FireFox's plus)
+                        curView.zoomIn();
+                        keyEvent.preventDefault();
+                        break;
 
-                        case 38: // Up arrow
-                        case 87: // We're adding WASD as well here
-                            var currentNode = curView.tree.lookupNodeById(curView.focusId);
-                            if (currentNode.ancestorsUp.length > 0) {
-                                target = currentNode.ancestorsUp[0]; // If we can go up, target is first parent
+                    case 48: // Zero
+                        curView.zeroOut();
+                        keyEvent.preventDefault();
+                        break
+
+                    case 38: case 87: // up arrow and W
+                        var node = curView.tree.lookupNodeById(curView.focusId);
+                        var groupUp = node.group ? node.group.ancestorsUp : null;
+                        target = upDown(node.ancestorsUp, groupUp);
+                        keyEvent.preventDefault();
+                        break;
+
+                    case 40: case 83: // Down arrow and S key
+                        var node = curView.tree.lookupNodeById(curView.focusId);
+                        var groupDown = node.group ? node.group.descendentsDown : null;
+                        target = upDown(node.descendentsDown, groupDown);
+                        keyEvent.preventDefault();
+                        break;
+
+                    case 37: case 65: // Left arrow and A key
+                        var node = curView.tree.lookupNodeById(curView.focusId);
+                        var groupUp = node.group ? node.group.ancestorsUp : null;
+                        var parentNode = upDown(node.ancestorsUp, groupUp) || null;
+
+
+                        if (parentNode) {
+                            var siblings = parentNode.descendentsDown;
+                            var index = siblings.indexOf(node);
+
+                            if (index < 0 && node.group) { // Group case
+                                index = siblings.indexOf(node.group);
                             }
-                            else if (currentNode.group && currentNode.group.ancestorsUp.length > 0) {
-                                target = currentNode.group.ancestorsUp[0]; // If they're grouped, the group has them
+                            if (index > 0) {
+                                target = siblings[index - 1]; // Get prev sibling
                             }
+                        }
+                        
+                        keyEvent.preventDefault();
+                        break;
 
-                            keyEvent.preventDefault();
-                            break;
+                    case 39: case 68: //  Right arrow and D key
+                        var node = curView.tree.lookupNodeById(curView.focusId);
+                        var groupUp = node.group ? node.group.ancestorsUp : null;
+                        var parentNode = upDown(node.ancestorsUp, groupUp) || null;
 
-                        case 40: // Down arrow
-                        case 83: // S key
-                            var currentNode = curView.tree.lookupNodeById(curView.focusId);
-                            if (currentNode.descendentsDown.length > 0) {
-                                target = currentNode.descendentsDown[0];
+
+                        if (parentNode) {
+                            var siblings = parentNode.descendentsDown;
+                            var index = siblings.indexOf(node);
+
+                            if (index < 0 && node.group) {
+                                index = siblings.indexOf(node.group);
                             }
-                            else if (currentNode.group && currentNode.group.descendentsDown.length > 0) {
-                                target = currentNode.group.descendentsDown[0];
+                            if (index < siblings.length - 1) {
+                                target = siblings[index + 1];
                             }
+                        }
 
-                            keyEvent.preventDefault();
-                            break;
+                        keyEvent.preventDefault();
+                        break;
 
-                        case 37: // Left arrow
-                        case 65: // A key
-                            var currentNode = curView.tree.lookupNodeById(curView.focusId);
-                            var parentNode = null;
-
-                            if (currentNode.ancestorsUp.length > 0) {
-                                parentNode = currentNode.ancestorsUp[0]; // First parent
+                    case 9: // Tab
+                        // Switch spouses                            
+                        var node = curView.tree.lookupNodeById(curView.focusId);
+                        if (node.group) {
+                            var spouses = node.group.getMembers();
+                            var currentIndex = spouses.indexOf(node);
+                            if (currentIndex + 1 < spouses.length) {
+                                target = spouses[currentIndex + 1];
                             }
-                            else if (currentNode.group && currentNode.group.ancestorsUp.length > 0) {
-                                parentNode = currentNode.group.ancestorsUp[0]; // Group ancestor
-                            }
+                        }
+                        
+                        keyEvent.preventDefault();
+                        break;
+                }
 
-                            if (parentNode) {
-                                var siblings = parentNode.descendentsDown;
-                                var index = siblings.indexOf(currentNode);
+                if (target != null) {
+                    var x = target.getX() + curView.scrollx;
+                    var y = target.getY() + curView.scrolly
+                    curView.setFocusPosition(target.getId(), x, y);
+                }
+            }
 
-                                if (index < 0 && currentNode.group) { // Group case
-                                    index = siblings.indexOf(currentNode.group);
-                                }
-                                if (index > 0) {
-                                    target = siblings[index - 1]; // Get prev sibling
-                                }
-                            }
-                            
-                            keyEvent.preventDefault();
-                            break;
 
-                        case 39: // Right
-                        case 68: // D key
-                            var currentNode = curView.tree.lookupNodeById(curView.focusId);
-                            var parentNode = null;
+            this.canvas.addEventListener("keydown", function(keyEvent) {
+                keyEventListeners(keyEvent); }, false);
 
-                            // Same as for right key
-                            if (currentNode.ancestorsUp.length > 0) {
-                                parentNode = currentNode.ancestorsUp[0];
-                            }
-                            else if (currentNode.group && currentNode.group.ancestorsUp.length > 0) {
-                                parentNode = currentNode.group.ancestorsUp[0];
-                            }
+            window.addEventListener("resize", function(_){
+                curView.setCanvasSize(); 
+                curView.adjustVisibleArea();
+                curView.redraw(); }, false);
 
-                            if (parentNode) {
-                                var siblings = parentNode.descendentsDown;
-                                var index = siblings.indexOf(currentNode);
-
-                                if (index < 0 && currentNode.group) {
-                                    index = siblings.indexOf(currentNode.group);
-                                }
-                                if (index < siblings.length - 1) {
-                                    target = siblings[index + 1];
-                                }
-                            }
-
-                            keyEvent.preventDefault();
-                            break;
-
-                        case 9: // Tab
-                            // Switch spouses                            
-                            var currentNode = curView.tree.lookupNodeById(curView.focusId);
-                            if (currentNode.group) {
-                                var spouses = currentNode.group.getMembers();
-                                var currentIndex = spouses.indexOf(currentNode);
-                                if (currentIndex + 1 < spouses.length) {
-                                    target = spouses[currentIndex + 1];
-                                }
-                            }
-                            
-                            keyEvent.preventDefault();
-                            break;
-                    }
-
-                    if (target != null) {
-                        var x = target.getX() + curView.scrollx;
-                        var y = target.getY() + curView.scrolly
-                        curView.setFocusPosition(target.getId(), x, y);
-                    }
-            }, false);
-
-            window.addEventListener("resize", 
-                function(_){
-                    curView.setCanvasSize(); 
-                    curView.adjustVisibleArea();
-                    curView.redraw();
-                }, false);
-            window.addEventListener("hashchange", 
-                function(_) {
-                    var hash = getHashString();
-                    if (hash == "") {
-                        hash = intialPerson;
-                    }
-                    if (curView.focusId == hash) {
-                        return;
-                    }
-                    curView.setFocus(hash);
-                });
+            window.addEventListener("hashchange", function(_) {
+                var hash = getHashString();
+                if (hash == "") {
+                    hash = intialPerson;
+                }
+                if (curView.focusId == hash) {
+                    return;
+                }
+                curView.setFocus(hash); });
         },
 
         adjustVisibleArea: function() {
