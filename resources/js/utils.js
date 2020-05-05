@@ -257,50 +257,64 @@ function personSearch(data, view) {
         searchText.value = displayName(structure[event.currentTarget["data-search_id"]]["name"]);
     }
 
+    // Clears the list of any children
+    function clearList(lst) {
+        while (lst.firstChild) { // Empty the list and begin anew
+            lst.removeChild(lst.firstChild); 
+        }
+    }
+
+    // Checks if the names match
+    function namesMatch(query, name) {
+        var nameMatches = true; // Assume true, show false for all cases
+        
+        map(function(q) {
+            if (name.indexOf(q) < 0) {
+                nameMatches = false;
+            }
+        }, query);
+        return nameMatches;
+    }
+
+    // SHows the result
+    function showResult(person) {
+        var result = document.createElement('div');
+        result.className = "searchresult";
+
+        // add life dates (if we have any)
+        var birth = person["birth"][0];
+        var death = person["death"][0];
+        var range = (birth || death) ? " (" + birth + "–" + death + ")" : "";
+
+
+        result.textContent = displayName(person["name"]) + range;
+        result.addEventListener("mousedown", searchResultEL);
+
+        result["data-search_id"] = person["id"];
+
+        return result;
+    }
+
     searchText.addEventListener("input",
     	function(event) {
-	        while (searchList.firstChild) { // Empty the list and begin anew
-	            searchList.removeChild(searchList.firstChild); 
-	        }
+	        clearList(searchList);
 
 	        if (searchText.value.length < 3) return; // Don't start searching unless 3+ characters
 
 	        var splitText = searchText.value.toLowerCase().split(" ");
 	        var anyMatches = false;
 
+
 	        for (var i = 0; i < rawStructure.length; i++) {
-	            var name = displayName(rawStructure[i]["name"]).toLowerCase();
-	            var nameMatches = true; // Assume true, show false for all cases
-	            
-	            for (var j = 0; j < splitText.length; j++) {
-	            	if (name.indexOf(splitText[j]) < 0) {
-	            		nameMatches = false;
-	            		break;
-	            	}
-	            }
+	            var match = namesMatch(splitText, displayName(rawStructure[i]["name"]).toLowerCase());
 
-	            if (nameMatches) {
+	            if (match) {
 	                anyMatches = true;
-	                searchList.style.display = "block";
-
-	                var result = document.createElement('div');
-	                result.className = "searchresult";
-
-	                // add life dates (if we have any)
-	                var birth = rawStructure[i]["birth"][0];
-	                var death = rawStructure[i]["death"][0];
-	                var range = "";
-	                if (birth || death) {
-	                    range = " (" + birth + "–" + death + ")";
-	                }
-
-	                result.textContent = displayName(rawStructure[i]["name"]) + range;
-	                result.addEventListener("mousedown", searchResultEL);
-
-	                result["data-search_id"] = rawStructure[i]["id"];
-	                searchList.appendChild(result);
+                    searchList.style.display = "block";
+	                searchList.appendChild(showResult(rawStructure[i]));
 	            }
 	        }
+            
 	        if (!anyMatches) {
 	            searchList.style.display="none";  
 	        }
