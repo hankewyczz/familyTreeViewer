@@ -244,10 +244,9 @@ def getFullDeathData(indiv):
 # Abstract function for divorce and marriage data
 def getMDData(individual, families, type):
 	events = []
-	sFamilies = getSFamily(individual, families)
 	tag = {"M": gedcom.tags.GEDCOM_TAG_MARRIAGE, "DIV": "DIV"}[type.upper()]
 
-	for family in sFamilies:
+	for family in getSFamily(individual, families):
 		date, spouse, place = "", "", ""
 
 		for child in family.get_child_elements():
@@ -258,12 +257,10 @@ def getMDData(individual, families, type):
 					elif sub.get_tag() == gedcom.tags.GEDCOM_TAG_PLACE:
 						place = sub.get_value()
 
-		spouse = getSpouse(individual, family)
-
 		if all(x == "" for x in [date, place]):
 			pass
 		else:
-			events.append([date, spouse, place, type.upper()]) 
+			events.append([date, getSpouse(individual, family), place, type.upper()]) 
 	return events
 
 

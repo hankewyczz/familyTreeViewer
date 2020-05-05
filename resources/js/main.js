@@ -112,8 +112,7 @@ function getDetails(canvasView, data, curPerson) {
 
             
             switch (event[event.length - 1]) { // We take the letter indicating event type
-                // Birth
-                case "B":
+                case "B": // Birth
                     var birthInfo = document.createElement('span');
                     var birthDate = event[0] || "";
                     // If we have a birth location, we parse it properly
@@ -134,8 +133,7 @@ function getDetails(canvasView, data, curPerson) {
                     field(birthDate, birthInfo);
                     break;
 
-                // Death
-                case "D":
+                case "D": // Death
                     var deathLocation = event[1] ? " in " + event[1] : "";
                     var deathType = event[2] ? " (" + event[2] + ")" : "";
                     var deathDate = event[0] || "";
@@ -143,34 +141,28 @@ function getDetails(canvasView, data, curPerson) {
                     field(deathDate, "Died" + deathLocation + deathType);
                     break;
 
-                // Occupation
-                case "OCC":
+                case "OCC": // Occupation
                     var occupationType = event[1] ? " " + event[1] : "";
                     var occupationDate = event[0] || "";
 
                     field(occupationDate,"Occupation:" + occupationType);
                     break;
 
-                // Marriage
-                case "M":
+                case "M": // Marriage
                     var marriageLocation = event[2] ? " at " + event[2] : "";
-                    var marriageDate = event[0];
                     var marriageLink = makePersonLink(event[1]);
                     
-                    field(marriageDate, relationship(["Married ", marriageLink, marriageLocation]));
+                    field(event[0], relationship(["Married ", marriageLink, marriageLocation]));
                     break;
 
-                // Divorce
-                case "DIV":
+                case "DIV": // Divorce
                     var divorceLocation = event[2] ? " at " + event[2] : "";
-                    var divorceDate = event[0];
                     var divorceLink = makePersonLink(event[1]);
                     
-                    field(divorceDate, relationship(["Divorced ", divorceLink, divorceLocation]));
+                    field(event[0], relationship(["Divorced ", divorceLink, divorceLocation]));
                     break;
 
-                // Catch case
-                default:
+                default: // Catch case
                     console.log("Could not parse event type");
             }
             rowGroupContainer.appendChild(eventDiv);

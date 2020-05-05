@@ -27,15 +27,28 @@ function parseDatePlace(date) {
     return str.trim();
 }
 
-function makeNodeText(person) {
+// Parses the birth and deaths into text
+function parseBirthDeathDate(person, result) {
     var birthStr = parseDatePlace(person["birth"]);
     var deathStr = parseDatePlace(person["death"]);
 
+    if (birthStr) {
+        result = result.concat([detailFont, "\nBorn " + birthStr]);
+    }
+    if (deathStr) {
+        result = result.concat([detailFont, "\nDied " + deathStr]);
+    }
+
+    return result;
+}
+
+
+// Creates the text for each node
+function makeNodeText(person) {
     var names = parseName(person["name"].split(" "));
 
-
     var formattedName = names[0].join(" ");
-    if (names[1].length > 0 && names[0].length > 0) { // Include forenames - if none, it's all on one line
+    if (names[1].length > 0 && names[0].length > 0) { // If we lack either fore or sur, it'll all be one line
         formattedName += "\n";
     }
     
@@ -43,18 +56,8 @@ function makeNodeText(person) {
 
     // If we have birth/death data, we append it to the result 
     var result = [baseFont, formattedName]; // Base name
-    if (birthStr) {
-        result = result.concat([detailFont, "\nBorn "+birthStr]);
-    }
-    if (deathStr) {
-        result = result.concat([detailFont, "\nDied "+deathStr]);
-    }
-
-    return result;
+    return parseBirthDeathDate(person, result);
 }
-
-
-
 
 
 
