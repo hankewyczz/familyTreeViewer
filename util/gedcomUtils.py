@@ -14,6 +14,15 @@ IMAGES_FOLDER = "../resources/photos/"
 
 
 #### GENERAL UTILITIES #####
+# Cleans out any null values
+def cleanNull(lst):
+	newLst = []
+	for val in lst:
+		if val != None:
+			newLst.append(val)
+	return newLst
+
+
 # Excludes an element from a list
 # Mainly used to exclude our individual from the spouse list
 def exclude(value, lst):

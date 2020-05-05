@@ -172,23 +172,17 @@ function Node(_person) {
 
         hitTest : function(canvasView, x, y) {
             var rect = this.getRect(canvasView);
-            var rectX = rect[0]; // left bounds
-            var rectY = rect[1]; // top bounds
-            var width = rect[2];
-            var height = rect[3];
+            var x1 = rect[0]; // left bounds
+            var y1 = rect[1]; // top bounds
+            var x2 = x1 + rect[2];
+            var y2 = y1 + rect[3];
 
-            var right = rectX + width;
-            var bottom = rectY + height;
-
-            var isHit = (x <= right) && (x >= rectX) &&
-            (y <= bottom) && (y >= rectY);
-
+            var isHit = (x <= x2 && x >= x1) && (y <= y2 && y >= y1); // Checks if within bounds
             var hitResult = [isHit, ["goto", this]];
             
-            if (x < rectX + sidePadding || x > right - sidePadding) {
+            if (x < x1 + sidePadding || x > x2 - sidePadding) {
                 hitResult = [isHit, ["info", this]];
             }
-
             return hitResult;
         },
 
@@ -307,14 +301,20 @@ function NodeGroup(_nodes) {
         },
 
         relationships: function(structure) {
+            function displayedGroup(group) {
+                var displayGroup = [];
+                for (var j = 0; j < group.length; j++) {
+                    displayGroup = displayGroup.concat(group[j].getIds());
+                }
+                return displayGroup;
+            }
+
+
             for (var i = 0; i < _nodes.length; i++) {
                 _nodes[i].group = this; // set each nodes group to this
 
                 // Deal w/ parent relationships                
-                var displayParents = [];
-                for (var j = 0; j < this.ancestorsUp.length; j++) {
-                    displayParents = displayParents.concat(this.ancestorsUp[j].getIds());
-                }
+                var displayParents = displayedGroup(this.ancestorsUp);
 
                 // Determine if this node's parents are hidden
                 map(function(p) {
@@ -325,11 +325,7 @@ function NodeGroup(_nodes) {
 
 
                 // Deal w/ children relationships
-                var displayChildren = [];
-                for (var j = 0; j < this.descendentsDown.length; j++) {
-                    displayChildren = displayChildren.concat(this.descendentsDown[j].getIds());
-                }
-
+                var displayChildren = displayedGroup(this.descendentsDown);
                 // Determine if this node's children are hidden
                 map(function(c) {
                     if (displayChildren.indexOf(c) < 0) { 

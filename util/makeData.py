@@ -11,14 +11,12 @@ from gedcom.element.family import FamilyElement
 from gedcom.parser import Parser
 
 def sortByNames(x):
-	nameSplit = x["name"].split(" ")
-
 	surnames = []
 	nonSurnames = []
 	inSurname = False # Checks if we are currently in the surname
 
 
-	for part in nameSplit:
+	for part in x["name"].split(" "):
 		'''
 		We do this due to how the Ukrainian language is represented in Unicode. The basic Cyrillic alphabet
 		covers the range of U+0400–U+04FF. However, the letter "I" is not part of the basic Cyrillic alphabet. 
@@ -40,9 +38,8 @@ def sortByNames(x):
 
 		'''
 		originalI = ["і", "І"]
-		cyrillicI = ["ияя", "ИЯЯ"]
 		for i in range(0, len(originalI)):
-			part = re.sub(originalI[i], cyrillicI[i], part)
+			part = re.sub(originalI[i], ["ияя", "ИЯЯ"][i], part)
 
 		inSurname = True if part.startswith("/") else inSurname
 
