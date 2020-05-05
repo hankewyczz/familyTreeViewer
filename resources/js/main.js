@@ -629,6 +629,27 @@ function View(data) {
                 }
             }
 
+            function moveSiblings(lowerBound, upperBound, change) {
+                var target = null;
+                var node = curView.tree.lookupNodeById(curView.focusId);
+                var groupUp = node.group ? node.group.ancestorsUp : null;
+                var parentNode = upDown(node.ancestorsUp, groupUp) || null;
+
+
+                if (parentNode) {
+                    var siblings = parentNode.descendentsDown;
+                    var index = siblings.indexOf(node);
+
+                    if (index < 0 && node.group) { // Group case
+                        index = siblings.indexOf(node.group);
+                    }
+                    if (index > lowerBound && index < (siblings.length + upperBound)) {
+                        target = siblings[index + change]; // Get the sibling
+                    }
+                }
+                return target;
+            }
+
             function keyEventListeners(keyEvent){
                 var target = null;
 
@@ -661,42 +682,14 @@ function View(data) {
                         keyEvent.preventDefault(); break;
 
                     case 37: case 65: // Left arrow and A key
-                        var node = curView.tree.lookupNodeById(curView.focusId);
-                        var groupUp = node.group ? node.group.ancestorsUp : null;
-                        var parentNode = upDown(node.ancestorsUp, groupUp) || null;
-
-
-                        if (parentNode) {
-                            var siblings = parentNode.descendentsDown;
-                            var index = siblings.indexOf(node);
-
-                            if (index < 0 && node.group) { // Group case
-                                index = siblings.indexOf(node.group);
-                            }
-                            if (index > 0) {
-                                target = siblings[index - 1]; // Get prev sibling
-                            }
-                        }
-                        
-                        keyEvent.preventDefault(); break;
+                        target = moveSiblings(0, 0, -1);
+                        keyEvent.preventDefault();
+                        break;
 
                     case 39: case 68: //  Right arrow and D key
-                        var node = curView.tree.lookupNodeById(curView.focusId);
-                        var groupUp = node.group ? node.group.ancestorsUp : null;
-                        var parentNode = upDown(node.ancestorsUp, groupUp) || null;
-
-
-                        if (parentNode) {
-                            var siblings = parentNode.descendentsDown;
-                            var index = siblings.indexOf(node);
-
-                            if (index < 0 && node.group) {
-                                index = siblings.indexOf(node.group);
-                            }
-                            if (index < siblings.length - 1) {
-                                target = siblings[index + 1];
-                            }
-                        }
+                        target = moveSiblings(-1, -1, 1);
+                        keyEvent.preventDefault();
+                        break;
 
                         keyEvent.preventDefault(); break;
 
