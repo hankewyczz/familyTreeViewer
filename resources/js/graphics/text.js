@@ -57,47 +57,57 @@ var detailFont = TextAttr(detailFontSize * scale, "sans-serif", "normal", "#333"
 
 
 
+function parseTextAsArray(text) {
+    var newText = [];
+    for (var i = 0; i < text.length; i++) {
+        if (typeof text[i] == "string") {
+            var s = text[i].split("\n");
+            for (var j = 0; j < s.length; j++) {
+                newText.push(s[j]);
+                if (j < s.length - 1) {
+                    newText.push("\n");
+                }
+            }
+        } 
+        else {
+            newText.push(text[i]);
+        }
+    }
+
+    return newText;
+}
+
 function renderText(_text, _view, _x, _y, real) {
     var x = _x;
     var y = _y;
     var lastFont = baseFont;
     _view.context.textBaseline = "top";
     var maxwidth = 0;
-    var linemaxheight = 0;
+    var maxLineHeight = 0;
 
-    var _newtext = [];
-    for (var i = 0; i < _text.length; i++) {
-        if (typeof _text[i] == "string") {
-            var s = _text[i].split("\n");
-            for (var j = 0; j < s.length; j++) {
-                _newtext.push(s[j]);
-                if (j < s.length-1)
-                {
-                    _newtext.push("\n");
-                }
-            }
-        } else {
-            _newtext.push(_text[i]);
-        }
-    }
-    for (var i = 0; i < _newtext.length; i++) {
-        var elem = _newtext[i];
+
+    map(function(elem) {
         if (typeof elem == "string") {
-            if (elem == "\n") { // newline
-                x = _x;
-                y += linemaxheight;
-                linemaxheight = 0;
-            } else { // just show the text
-                if (real)
-                    _view.context.fillText(elem,x,y);
+            if (elem == "\n") {
+                x = _x // Reset X
+                y += maxLineHeight; // Add to the max height
+                maxLineHeight = 0; // reset line height
+            } 
+            else { // just show the text
+                if (real) {
+                    _view.context.fillText(elem, x, y);
+                }
+
                 x += _view.context.measureText(elem).width;
-                maxwidth = Math.max(maxwidth, x-_x);
-                linemaxheight = Math.max(linemaxheight, lastFont.getheight());
+                maxwidth = Math.max(maxwidth, x - _x);
+                maxLineHeight = Math.max(maxLineHeight, lastFont.getheight());
             }
-        } else { // it is a TextAttr
+        } 
+        else { // it is a TextAttr
             lastFont = elem;
             elem.apply(_view);
         }
-    };
-    return [maxwidth, (y + linemaxheight) - _y];
+    }, parseTextAsArray(_text));
+
+    return [maxwidth, (y + maxLineHeight) - _y];
 }

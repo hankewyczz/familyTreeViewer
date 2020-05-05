@@ -48,56 +48,30 @@ function getJsonData(address, callback, timeout) {
 
 // Loads all the data we need
 function loadData(callback) {
-    var files = {
-        "structure_raw": "../../data/structure.json",
-    }
+    var file = "../../data/structure.json";
     // Initialize data dict
-    var data = {}
-    // Gets the file keys, and the number of keys
-    var fileKeys = Object.keys(files);
-    var fileKeysLeft = fileKeys.length
+    var data = {};
+    
+    (function() { // we wrap it so we don't run into timing errors w/ getJsonData
+        getJsonData(file, function(returnVal) {
+            if (returnVal == null) {
+                return null;
+            }
 
-    var errors = 0;
+            data["structure_raw"] = returnVal;
 
-    for (var i = 0; i < fileKeys.length; i++) {
-        var curFile = files[fileKeys[i]];
-        
-        (function() { // we wrap it so we don't run into timing errors w/ getJsonData
-            var curI = i; // callback function can't reach i; out of scope
-            getJsonData(curFile, 
-                function(returnVal) {
-                    fileKeysLeft--;
 
-                    if (returnVal == null) {
-                        errors++;
-                    }
+            var structure = {};
 
-                    data[fileKeys[curI]] = returnVal;
+            map(function(p) { structure[p["id"]] = p; },  
+                data["structure_raw"]);
 
-                    if (fileKeysLeft == 0) { // If there are no keys left, 
-                        if (errors == 0) { // and we encountered no errors
-                            var structure = {};
-
-                            for (var j = 0; j < data["structure_raw"].length; j++) {
-                                // Generate the structure dict
-                                // We use the IDs as keys here
-                                structure[data["structure_raw"][j]["id"]] = data["structure_raw"][j];
-                            }
-
-                            // Initialize the structure
-                            data["structure"] = structure;
-                            data["details"] = {};
-                            callback(data);
-                        }
-
-                        else {
-                            callback(null);
-                        }
-                    }
-                }, xmlRTimeout);
-        })();
-
-    }
+            // Initialize the structure
+            data["structure"] = structure;
+            data["details"] = {};
+            callback(data);
+        }, xmlRTimeout);
+    })(); // Execute immediately
 }
 
 

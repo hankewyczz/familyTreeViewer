@@ -120,7 +120,6 @@ function displaySurname(name) {
 
 // Searches for the given person
 function personSearch(data, view) {
-    var structure = data["structure"];
     var rawStructure = data["structure_raw"];
 
     document.getElementById("indexbutton").onclick = function(_) {
@@ -142,7 +141,7 @@ function personSearch(data, view) {
 
         	// Handles a specific person
             function handle(i) {
-                var newSurname = displaySurname(data["structure_raw"][i]["name"]);
+                var newSurname = displaySurname(rawStructure[i]["name"]);
                 newRow = newSurname != prevName;
 
                 if (newRow) {
@@ -166,18 +165,18 @@ function personSearch(data, view) {
                 var name = document.createElement('div');
                 var link = document.createElement("a");
                 link.style.cursor = "pointer";
-                var personName = displayName(data["structure_raw"][i]["name"]);
+                var personName = displayName(rawStructure[i]["name"]);
                 prevName = newSurname;
 
                 link.appendChild(document.createTextNode(personName));
-                link["link_person_id"] = data["structure_raw"][i]["id"];
+                link["link_person_id"] = rawStructure[i]["id"];
                 link.addEventListener("click", personLink);
                 name.appendChild(link);
                 divNames.appendChild(name);
             }
 
             var styleNumber = 0;
-            for (var i = 0; i < data["structure_raw"].length; i++) {
+            for (var i = 0; i < rawStructure.length; i++) {
             	handle(i);
             }
             return divContainer;
@@ -193,9 +192,9 @@ function personSearch(data, view) {
         names.appendChild(name);
         name.appendChild(document.createTextNode('Index/Індекс'));
 
-        var helptextdiv = document.createElement('div');
-        helptextdiv.appendChild(makeIndex());
-        container.appendChild(helptextdiv);
+        var indexContent = document.createElement('div');
+        indexContent.appendChild(makeIndex());
+        container.appendChild(indexContent);
 
         showInfoWindow({"text": container});
     } 

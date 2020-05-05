@@ -179,32 +179,37 @@ function getDetails(canvasView, data, curPerson) {
 
 
         // Handle the pictures
-        for (var i = 0; i < curPerson["pics"].length; i++) {
-            var picture = curPerson.pics[i];
-            var eventDiv = document.createElement('div');
+        
+        function makePictures() {
+            for (var i = 0; i < curPerson["pics"].length; i++) {
+                var picture = curPerson.pics[i];
+                var eventDiv = document.createElement('div');
 
-            var divClass = (styleNumber == 0) ? "detailRow" : "detailRow1";
-            styleNumber = (styleNumber == 0) ? 1 : 0; // Swap
+                var divClass = (styleNumber == 0) ? "detailRow" : "detailRow1";
+                styleNumber = (styleNumber == 0) ? 1 : 0; // Swap
 
-            eventDiv.className = divClass;
-            eventDiv.style.display = "table";
-            eventDiv.style.textAlign = "center";
+                eventDiv.className = divClass;
+                eventDiv.style.display = "table";
+                eventDiv.style.textAlign = "center";
 
-            // Get the pictures set up
-            function makePicture(src) {
-                var image = document.createElement('img');
-                image.onclick = function() { img_box(this) };
-                image.style.width = "90%";
-                image.style.marginTop = "5%";
-                image.style.cursor = "pointer";
-                image.src = src;
+                // Get the pictures set up
+                function makePicture(src) {
+                    var image = document.createElement('img');
+                    image.onclick = function() { img_box(this) };
+                    image.style.width = "90%";
+                    image.style.marginTop = "5%";
+                    image.style.cursor = "pointer";
+                    image.src = src;
 
-                eventDiv.appendChild(image);
+                    eventDiv.appendChild(image);
+                }
+
+                makePicture(picture);
+                eventsDivContainer.appendChild(eventDiv);
             }
-
-            makePicture(picture);
-            eventsDivContainer.appendChild(eventDiv);
         }
+        
+        makePictures();
         return eventsDivContainer;
     }
 
@@ -661,32 +666,27 @@ function View(data) {
                 switch (keyEvent.keyCode) {
                     case 189: case 173: // MINUS (and the seperate FireFox minus keycode)
                         curView.zoomOut();
-                        keyEvent.preventDefault();
-                        break;
+                        keyEvent.preventDefault(); break;
 
                     case 187: case 61: // PLUS (and FireFox's plus)
                         curView.zoomIn();
-                        keyEvent.preventDefault();
-                        break;
+                        keyEvent.preventDefault(); break;
 
                     case 48: // Zero
                         curView.zeroOut();
-                        keyEvent.preventDefault();
-                        break
+                        keyEvent.preventDefault(); break
 
                     case 38: case 87: // up arrow and W
                         var node = curView.tree.lookupNodeById(curView.focusId);
                         var groupUp = node.group ? node.group.ancestorsUp : null;
                         target = upDown(node.ancestorsUp, groupUp);
-                        keyEvent.preventDefault();
-                        break;
+                        keyEvent.preventDefault(); break;
 
                     case 40: case 83: // Down arrow and S key
                         var node = curView.tree.lookupNodeById(curView.focusId);
                         var groupDown = node.group ? node.group.descendentsDown : null;
                         target = upDown(node.descendentsDown, groupDown);
-                        keyEvent.preventDefault();
-                        break;
+                        keyEvent.preventDefault(); break;
 
                     case 37: case 65: // Left arrow and A key
                         var node = curView.tree.lookupNodeById(curView.focusId);
@@ -706,8 +706,7 @@ function View(data) {
                             }
                         }
                         
-                        keyEvent.preventDefault();
-                        break;
+                        keyEvent.preventDefault(); break;
 
                     case 39: case 68: //  Right arrow and D key
                         var node = curView.tree.lookupNodeById(curView.focusId);
@@ -727,8 +726,7 @@ function View(data) {
                             }
                         }
 
-                        keyEvent.preventDefault();
-                        break;
+                        keyEvent.preventDefault(); break;
 
                     case 9: // Tab
                         // Switch spouses                            
@@ -741,8 +739,7 @@ function View(data) {
                             }
                         }
                         
-                        keyEvent.preventDefault();
-                        break;
+                        keyEvent.preventDefault(); break;
                 }
 
                 if (target != null) {
@@ -823,49 +820,51 @@ function View(data) {
 }
 
 
+// Parses the hash
+function parseHash(initPerson) {
+    var showHelp = false;
+    var initialPerson = initPerson;
+    if (getHashString()) {
+        if (getHashString().toLowerCase() == "help") {
+            showHelp = true;
+        }
+        else {
+            initialPerson = getHashString();
+        }
+    }
+    return [showHelp, initialPerson];
+}
+
+
+// Shows the help window once fully loaded
+function showHelp() {
+    var helpInterval = setInterval(function() {
+        if (document.readyState !== 'complete') {
+            return;
+        }
+
+        clearInterval(helpInterval); // Kill the interval
+        // Show the info window for help
+        showInfoWindow({"text": document.getElementById("helpDivHidden").cloneNode(true)});
+    }, 200);
+}
+
 
 function main() {
     loadData(function(data) {
         fadeOut(document.getElementById("loadingwindow"), 0.07); // fade out once we load all the data
 
-        if (data == null) {
-            showError("Data could not be loaded", true);
-            return;
-        }
+        if (data == null) { showError("Data could not be loaded", true); return; }
 
         var canvasView = View(data);
         personSearch(data, canvasView);
 
-
-        var initialPerson = "@I0000@";
-        var showHelp = false;
-
-        if (getHashString()) {
-            if (getHashString().toLowerCase() == "help") {
-                showHelp = true;
-            }
-            else {
-                initialPerson = getHashString();
-            }
-        }
-
-
-
-        canvasView.init(initialPerson); // Initialize with the initial user
-        canvasView.zeroOut(); // Zero-out just to initialize
+        var hashParsed = parseHash("@I0000@");
+        canvasView.init(hashParsed[1]); // Initialize with the initial user
 
         // If the hash requires help:
-        if (showHelp) {
-            // We keep looping until the document is loaded, then replace
-            var helpInterval = setInterval(function () {
-                if (document.readyState !== 'complete') {
-                    return; // Return if not yet ready
-                }
-                clearInterval(helpInterval); // Kill the interval
-                // Show the info window for help
-                showInfoWindow({"text": document.getElementById("helpDivHidden").cloneNode(true)});
-            }, 200);
-
+        if (hashParsed[0]) {
+            showHelp();
         }
     });
 }

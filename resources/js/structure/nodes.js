@@ -1,19 +1,4 @@
-function makeNodeText(person) {
-
-    // Parses the date and place into a string
-    function parseDatePlace(date) {
-        var str = date[0];
-        if (date[1]) {
-            str += " in " + date[1];
-        }
-        return str.trim();
-    }
-
-    var birthStr = parseDatePlace(person["birth"]);
-    var deathStr = parseDatePlace(person["death"]);
-
-    var names = person["name"].split(" ");
-
+function parseName(names) {
     var forenames = [];
     var surnames = []
     var inSurname = false;
@@ -30,14 +15,31 @@ function makeNodeText(person) {
             forenames.push(displayName(names[i]));
         }
     }
+    return [forenames, surnames];
+}
+
+// Parses the date and place into a string
+function parseDatePlace(date) {
+    var str = date[0];
+    if (date[1]) {
+        str += " in " + date[1];
+    }
+    return str.trim();
+}
+
+function makeNodeText(person) {
+    var birthStr = parseDatePlace(person["birth"]);
+    var deathStr = parseDatePlace(person["death"]);
+
+    var names = parseName(person["name"].split(" "));
 
 
-    var formattedName = forenames.join(" ");
-    if (surnames.length > 0 && forenames.length > 0) { // Include forenames - if none, it's all on one line
+    var formattedName = names[0].join(" ");
+    if (names[1].length > 0 && names[0].length > 0) { // Include forenames - if none, it's all on one line
         formattedName += "\n";
     }
     
-    formattedName += surnames.join(" ");
+    formattedName += names[1].join(" ");
 
     // If we have birth/death data, we append it to the result 
     var result = [baseFont, formattedName]; // Base name
@@ -206,49 +208,49 @@ function Node(_person) {
                 return ;
             }
 
-            canvasView.context.fillStyle = bgColor[_person["sex"]]; // Fills with the above colors
-            canvasView.context.fillRect(rectX, rectY, width, height);
 
-            var textBox = renderText(text, canvasView, x + sidePadding, y, true);
-            var textWidth = textBox[0];
-            var textHeight = textBox[1];
 
-            imageScale = this.getScaling();
+            // Draws the rectangle
+            function drawRect() {
+                canvasView.context.fillStyle = bgColor[_person["sex"]]; // Fills with the above colors
+                canvasView.context.fillRect(rectX, rectY, width, height);
+                renderText(text, canvasView, x + sidePadding, y, true); // Renders the text
+            }
 
-            if (this.parentsHidden || this.childrenHidden) {
-                var image = null;
-                if (this.parentsHidden) {
-                    if (this.childrenHidden) {
-                        image = imageIcons.doubleArrow;
+
+            // Draws the images
+            function drawImages(dim) {
+                if (this.parentsHidden || this.childrenHidden) {
+                    if (this.parentsHidden && !this.childrenHidden) {
+                        var image = imageIcons.upArrow;
                     }
-                    else {
-                        image = imageIcons.upArrow;
+                    else if (!this.parentsHidden && this.childrenHidden) {
+                        var image = imageIcons.downArrow;
                     }
-                } 
-                else {
-                    image = imageIcons.downArrow;
+                    else if (this.parentsHidden && this.childrenHidden) {
+                        var image = imageIcons.doubleArrow;
+                    }
+
+                    image.width = dim;
+                    canvasView.context.drawImage(image, x + this.getWidth() - dim, y, dim, dim);
                 }
-                // Add size-changing capability
 
-                var imgWidth = 15 * imageScale;
-                image.width = imgWidth;
-
-                canvasView.context.drawImage(image, x + this.getWidth() - imgWidth, y, imgWidth, imgWidth);
+                
+                if (_person["pics"].length > 0) {
+                    // Icon image - we just use the first one
+                    canvasView.context.drawImage(loadImage(_person["pics"][0]), x, y, dim, dim);
+                }
+                else { // Default icon
+                    canvasView.context.drawImage(imageIcons.defaultPerson, x, y, dim, dim);
+                }
             }
 
-            var dim = 15 * imageScale;
-            if (_person["pics"].length > 0) {
-                image = loadImage(_person["pics"][0]);
-                // Icon image - we just use the first one
-                canvasView.context.drawImage(image, x, y, dim, dim);
-            }
-            else { // Default icon
-                canvasView.context.drawImage(imageIcons.defaultPerson, x, y, dim, dim);
-            }
+            drawRect();
+            drawImages(15 * this.getScaling());
 
             if (this.inFocus) { // The focused node
                 canvasView.context.lineWidth = 3;
-                canvasView.context.strokeStyle = "yellow";
+                canvasView.context.strokeStyle = "#FFFF00";
                 canvasView.context.strokeRect(rectX + 1, rectY + 1, width - 2, height - 2);    
             }
             else {
@@ -303,34 +305,28 @@ function NodeGroup(_nodes) {
             for (var i = 0; i < _nodes.length; i++) {
                 _nodes[i].group = this; // set each nodes group to this
 
-                // Deal w/ parent relationships
-                var parents = structure[_nodes[i].getId()].parents;
+                // Deal w/ parent relationships                
                 var displayParents = [];
-
                 for (var j = 0; j < this.ancestorsUp.length; j++) {
                     displayParents = displayParents.concat(this.ancestorsUp[j].getIds());
                 }
+
                 // Determine if this node's parents are hidden
-                for (var j = 0; j < parents.length; j++) {
-                    if (displayParents.indexOf(parents[j]) < 0) {
-                        _nodes[i].parentsHidden = true;
-                    }
-                }
+                map(function(p) {
+                    if (displayParents.indexOf(p) < 0) { _nodes[i].parentsHidden = true; } 
+                }, structure[_nodes[i].getId()].parents);
 
 
                 // Deal w/ children relationships
-                var children = structure[_nodes[i].getId()].children;
                 var displayChildren = [];
-
                 for (var j = 0; j < this.descendentsDown.length; j++) {
                     displayChildren = displayChildren.concat(this.descendentsDown[j].getIds());
                 }
+
                 // Determine if this node's children are hidden
-                for (var j = 0; j < children.length; j++) {
-                    if (displayChildren.indexOf(children[j]) < 0) {
-                        _nodes[i].childrenHidden = true;
-                    }
-                }
+                map(function(c) {
+                    if (displayChildren.indexOf(c) < 0) { _nodes[i].childrenHidden = true; } 
+                }, structure[_nodes[i].getId()].children);
 
                 // Get all of the children of this node
                 for (var j = 0; j < this.descendentsDown.length; j++) {
@@ -453,6 +449,7 @@ function Layout(person, structure) {
     /* Tree structure from  https://rachel53461.wordpress.com/2014/04/20/algorithm-for-drawing-trees/
     Based on https://pastebin.com/SxkjJauX */
 
+
     // Utility functions
     function getSpouses(person) { return structure[person].spouses; }
     function getParents(person) { return structure[person].parents; }
@@ -474,21 +471,18 @@ function Layout(person, structure) {
         } 
         else {
             var spouseList = [person].concat(getSpouses(person)); // well, spouses and the given person
-            var newNode = NodeGroup(map(function(p){return Node(structure[p])}, spouseList));
+            var newNode = NodeGroup(map(function(p) { return Node(structure[p]) }, spouseList));
 
-            for (var i = 0; i < spouseList.length; i++) {
-                mappedNodes[spouseList[i]] = newNode;
-            }
+            map(function(p) { mappedNodes[p] = newNode; }, spouseList);
         }
 
         newNode.generation = generation;
 
         // Parents
-        if (getParents(person).length == 0) {
-            newNode.ancestorsUp = [];
-        }
-        else if (getParents(person)[0] in mappedNodes) {
-            newNode.ancestorsUp = [makeNode(getParents(person)[0], generation - 1)];
+        if (getParents(person).length > 0) {
+            if (getParents(person)[0] in mappedNodes) {
+                newNode.ancestorsUp = [makeNode(getParents(person)[0], generation - 1)];
+            }
         }
         else {
             newNode.ancestorsUp = [];
@@ -631,25 +625,22 @@ function Layout(person, structure) {
     
     // Calculate the initial X position of a node
     function calculateInitialX(node) {
-        for (var i = 0; i < node.descendentsDown.length; i++) {
-            calculateInitialX(node.descendentsDown[i]);
-        }
+        map(function(n) { calculateInitialX(n); }, node.descendentsDown);
 
         if (isNodeLeaf(node)) {
             if (isNodeLeftmost(node)) {
                 node.setX(0); // The leftmost leaf is our 0 point
             }
             else {
-                var newX = getPrevSibling(node).getX() + getPrevSibling(node).getWidth() + horizontalMargin; 
-                node.setX(newX);
+                node.setX(getPrevSibling(node).getX() + getPrevSibling(node).getWidth() + horizontalMargin);
             }
         } 
+
         else {
-            var firstChild = node.descendentsDown[0].getX();
             var lastChild = node.descendentsDown[node.descendentsDown.length-1];
 
-            var left = firstChild;
-            var right = lastChild.getX() + lastChild.getWidth();
+            var left = node.descendentsDown[0].getX(); // Gets the first child
+            var right = lastChild.getX() + lastChild.getWidth();  // Right side of the last child
             var mid = (left + right) / 2;
 
             if (isNodeLeftmost(node)) {
@@ -661,7 +652,6 @@ function Layout(person, structure) {
                 node.setX(prevSibling.getX() + prevSibling.getWidth() + horizontalMargin);
                 node.mod = node.getX() - mid + node.getWidth() / 2;
             }
-
         }
 
         // If we have kids, and this isn't the leftmost node, we have to work around it
