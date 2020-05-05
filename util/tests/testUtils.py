@@ -3,6 +3,7 @@ import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import gedcomUtils as gu
+import makeData as md
 import unittest
 import datetime
 
@@ -81,6 +82,14 @@ class TestUtils(unittest.TestCase):
 		self.assertEqual(fullList[2], sortedDate[3])
 		self.assertEqual(fullList[3], sortedDate[4])
 		self.assertEqual(fullList[4], sortedDate[0])
+
+
+class TestMakeData(unittest.TestCase):
+	def testUkrSort(self):
+		self.assertEqual("ИЯЯгор", md.ukrSort("Ігор"))
+		self.assertEqual("ИЯЯля", md.ukrSort("Іля"))
+		self.assertEqual("аслдйияя", md.ukrSort("аслдйі"))
+		self.assertEqual("ияяван", md.ukrSort("іван"))
 
 
 
