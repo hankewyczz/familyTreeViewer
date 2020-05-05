@@ -203,10 +203,21 @@ function Node(_person) {
 
 
             // Draws the rectangle
-            function drawRect() {
+            function drawRect(inFocus) {
                 canvasView.context.fillStyle = bgColor[_person["sex"]]; // Fills with the above colors
                 canvasView.context.fillRect(rectX, rectY, width, height);
                 renderText(text, canvasView, x + sidePadding, y, true); // Renders the text
+
+                if (inFocus) { // The focused node
+                    canvasView.context.lineWidth = 3;
+                    canvasView.context.strokeStyle = "#FFFF00";
+                    canvasView.context.strokeRect(rectX + 1, rectY + 1, width - 2, height - 2);    
+                }
+                else {
+                    canvasView.context.lineWidth = 1;
+                    canvasView.context.strokeStyle = "#000000";
+                    canvasView.context.strokeRect(rectX, rectY, width, height);    
+                }
             }
 
 
@@ -241,19 +252,9 @@ function Node(_person) {
                 }
             }
 
-            drawRect();
+            drawRect(this.inFocus);
             drawImages(this, 15 * this.getScaling());
-
-            if (this.inFocus) { // The focused node
-                canvasView.context.lineWidth = 3;
-                canvasView.context.strokeStyle = "#FFFF00";
-                canvasView.context.strokeRect(rectX + 1, rectY + 1, width - 2, height - 2);    
-            }
-            else {
-                canvasView.context.lineWidth = 1;
-                canvasView.context.strokeStyle = "#000000";
-                canvasView.context.strokeRect(rectX, rectY, width, height);    
-            }
+            
         },
 
         drawLines : function(canvasView) {
@@ -298,6 +299,7 @@ function NodeGroup(_nodes) {
         },
 
         relationships: function(structure) {
+            // Gets the displayed group
             function displayedGroup(group) {
                 var displayGroup = [];
                 for (var j = 0; j < group.length; j++) {
@@ -306,29 +308,34 @@ function NodeGroup(_nodes) {
                 return displayGroup;
             }
 
+            // Checks if any people in the group are NOT displayed
+            function anyHidden(group, displayedGroup) {
+                var hidden = false;
+                map(function(person) {
+                    if (displayedGroup.indexOf(person) < 0) {
+                        hidden = true;
+                    }
+                }, group);
+
+                return hidden;
+            }
+
 
             for (var i = 0; i < _nodes.length; i++) {
                 _nodes[i].group = this; // set each nodes group to this
 
-                // Deal w/ parent relationships                
+                // Deal w/ parent relationships
+                var parents = structure[_nodes[i].getId()].parents;    
                 var displayParents = displayedGroup(this.ancestorsUp);
-
                 // Determine if this node's parents are hidden
-                map(function(p) {
-                    if (displayParents.indexOf(p) < 0) { 
-                        _nodes[i].parentsHidden = true; 
-                    } 
-                }, structure[_nodes[i].getId()].parents);
+                 _nodes[i].parentsHidden = anyHidden(parents, displayParents);
 
 
                 // Deal w/ children relationships
+                var children = structure[_nodes[i].getId()].children;
                 var displayChildren = displayedGroup(this.descendentsDown);
                 // Determine if this node's children are hidden
-                map(function(c) {
-                    if (displayChildren.indexOf(c) < 0) { 
-                        _nodes[i].childrenHidden = true;
-                    } 
-                }, structure[_nodes[i].getId()].children);
+                _nodes[i].childrenHidden = anyHidden(children, displayChildren);
 
                 // Get all of the children of this node
                 for (var j = 0; j < this.descendentsDown.length; j++) {

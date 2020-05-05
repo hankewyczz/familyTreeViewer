@@ -60,6 +60,21 @@ def sortByNames(x):
 	return surnames + nonSurnames
 
 
+
+def generateArrays(gedcomParser):
+	individuals, objects, families = [], [], []
+	for element in gedcomParser.get_root_child_elements():
+		if isinstance(element, IndividualElement):
+			individuals.append(element)
+		elif isinstance(element, ObjectElement):
+			objects.append(element)
+		elif isinstance(element, FamilyElement):
+			families.append(element)
+
+	return individuals, objects, families
+
+
+
 def main():
 	# Parses arguments
 	parser = argparse.ArgumentParser(description="Parse GEDCOM files for web viewing")
@@ -86,14 +101,8 @@ def main():
 	gedcomParser.parse_file(filename)
 
 	# Creates lists of individuals, objects, and families
-	individuals, objects, families = [], [], []
-	for element in gedcomParser.get_root_child_elements():
-		if isinstance(element, IndividualElement):
-			individuals.append(element)
-		elif isinstance(element, ObjectElement):
-			objects.append(element)
-		elif isinstance(element, FamilyElement):
-			families.append(element)
+	individuals, objects, families = generateArrays(gedcomParser)
+	
 
 	# No initial person at first
 	initialPerson = None
