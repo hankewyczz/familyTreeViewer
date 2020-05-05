@@ -1,7 +1,7 @@
 /* Utils for loading data */
 
 // Grabs a json file
-function getJsonData(address, callback, timeout) {
+function getJsonData(address, callback, timeout=xmlRTimeout) {
     var xmlR = new XMLHttpRequest();
     var calledYet = false;
 
@@ -15,7 +15,6 @@ function getJsonData(address, callback, timeout) {
                 catch (e) {
                     console.log("Could not parse responseText: " + e);
                 }
-
                 if (!calledYet) {
                     calledYet = true;
                     callback(returnVal);
@@ -25,14 +24,10 @@ function getJsonData(address, callback, timeout) {
     }
 
     // We try again at the timeout
-    if (timeout) {
-        setTimeout(function() {
-            if (!calledYet) {
-                calledYet = true;
-                callback(null);
-            }
-        }, timeout);
-    }
+    setTimeout(function() { if (!calledYet) {
+            calledYet = true;
+            callback(null);
+        }}, timeout);
 
     // Add the event listener
     xmlR.addEventListener("readystatechange", onStateChange);
@@ -54,21 +49,15 @@ function loadData(callback) {
     
     (function() { // we wrap it so we don't run into timing errors w/ getJsonData
         getJsonData(file, function(returnVal) {
-            if (returnVal == null) {
-                return null;
-            }
+            if (returnVal == null) { callback(null); }
 
             data["structure_raw"] = returnVal;
+            data["details"] = {};
+            data["structure"] = {};
 
-
-            var structure = {};
-
-            map(function(p) { structure[p["id"]] = p; },  
+            map(function(p) { data["structure"][p["id"]] = p; },  
                 data["structure_raw"]);
 
-            // Initialize the structure
-            data["structure"] = structure;
-            data["details"] = {};
             callback(data);
         }, xmlRTimeout);
     })(); // Execute immediately

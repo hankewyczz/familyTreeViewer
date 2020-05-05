@@ -187,7 +187,7 @@ function getDetails(canvasView, data, curPerson) {
                 // Get the pictures set up
                 function makePicture(src) {
                     var image = document.createElement('img');
-                    image.onclick = function() { img_box(this) };
+                    image.onclick = function() { imgBox(this) };
                     image.style.width = "90%";
                     image.style.marginTop = "5%";
                     image.style.cursor = "pointer";
@@ -372,10 +372,8 @@ function View(data) {
 
         setFocus: function(node) {
             this.tree = this.makeTree(node);
-
-            if (this.tree == null) { // null-case
-                return;
-            }
+            
+            if (this.tree == null) { return; }
 
             this.focusId = node; // Focus on the given node
             window.location.hash = node; // Change window hash
@@ -388,14 +386,12 @@ function View(data) {
             this.scrollx = this.targetx = center.x - theNode.getX() - (theNode.getWidth() / 2);
             this.scrolly = this.targety = center.y - theNode.getY() - (theNode.getHeight() / 2);
             
-
             theNode.inFocus = true; 
             this.canvas.focus();
             this.redraw();
 
             if (isVisible(document.getElementById("infowindow"))) {
-                // If the info window is open, update it
-                this.showDetailedView(node);
+                this.showDetailedView(node); // If the info window is open, update it
             }
 
         },

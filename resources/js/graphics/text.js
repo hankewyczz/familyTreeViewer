@@ -62,6 +62,7 @@ function parseTextAsArray(text) {
     for (var i = 0; i < text.length; i++) {
         if (typeof text[i] == "string") {
             var s = text[i].split("\n");
+            
             for (var j = 0; j < s.length; j++) {
                 newText.push(s[j]);
                 if (j < s.length - 1) {
