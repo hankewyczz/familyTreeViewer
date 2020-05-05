@@ -216,8 +216,6 @@ function getDetails(canvasView, data, curPerson) {
 
 
 
-
-
 // Handles the canvasView
 function View(data) {
     // Grabs the necessary parts
@@ -485,20 +483,12 @@ function View(data) {
             // If not, we have to get it ourselves
             getLoadingPanelJson("../../data/details.json", 
                 function(el) {
-                    if (el == null) {
-                        callback(null);
-                    } 
+                    if (el == null) { callback(null); } 
                     else {
-                        var newKeyValues = Object.keys(el);
-                        for (var i = 0; i < newKeyValues.length; i++) {
-                            details[newKeyValues[i]] = el[newKeyValues[i]];
-                        }
-                        if (personId in details) {
-                            callback(details[personId]);
-                        }
-                        else {
-                            callback(null);
-                        }
+                        map(function(newK) { details[newK] = el[newK]; }, Object.keys(el));
+
+                        if (personId in details) { callback(details[personId]); }
+                        else { callback(null); }
                     }
                 }, xmlRTimeout);
         },
@@ -526,14 +516,9 @@ function View(data) {
         },
         // On mousemove
         mouseMove: function(buttons, mousePosition) {
-            if (window.event) {
-                buttons = window.event.button || buttons;
-            }
+            if (window.event) { buttons = window.event.button || buttons; }
 
-
-            if (buttons == 0) {
-                this.stopDragging(); // if no longer holding
-            }
+            if (buttons == 0) { this.stopDragging(); } // if no longer holding
             
             var x = mousePosition[0] - this.lastclickposx;
             var y = mousePosition[1] - this.lastclickposy;
@@ -544,8 +529,7 @@ function View(data) {
                 this.draggingAnim();
             }
             else if (this.ismousedown) {
-                var d = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-                if (d > mouseClickRadius) {
+                if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) > mouseClickRadius) {
                     this.dragging = true;
                 }
             }

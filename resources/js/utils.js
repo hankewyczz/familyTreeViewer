@@ -97,23 +97,17 @@ function displayName(name) {
 
 // Parses the surname for display
 function displaySurname(name) {
-    var names = name.split(" ");
     var surnames = [];
-    var insurname = false;
+    var inSurname = false;
 
-    for (var i = 0; i < names.length; i++) {
-        if (names[i].startsWith("/")) {
-            insurname = true;
-        }
+    map(function(name) {
+        if (name.startsWith("/")) { inSurname = true; }
+        
+        if (inSurname) { surnames.push(name); }
+        
+        if (name.endsWith("/")) { return surnames.join(" ").replace(/\//g, ""); }
+    }, name.split(" "));
 
-        if (insurname) {
-            surnames.push(names[i]);
-        }
-
-        if (names[i].endsWith("/")) {
-            return surnames.join(" ").replace(/\//g, "");
-        }
-    }
     return "";
 }
 

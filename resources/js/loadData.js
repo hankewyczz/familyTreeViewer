@@ -6,19 +6,16 @@ function getJsonData(address, callback, timeout=xmlRTimeout) {
     var calledYet = false;
 
     function onStateChange() {
-        var returnVal = null;
-        if (xmlR.status && xmlR.status == 200) { // If we get a 200 ("OK")
-            if (xmlR.readyState == 4) { // if the call is complete
-                try {
-                    returnVal = JSON.parse(xmlR.responseText);
-                } 
-                catch (e) {
-                    console.log("Could not parse responseText: " + e);
-                }
-                if (!calledYet) {
-                    calledYet = true;
-                    callback(returnVal);
-                }
+        if (xmlR.status && xmlR.status == 200 && xmlR.readyState == 4) { // "OK" and completed
+            try {
+                var returnVal = JSON.parse(xmlR.responseText);
+            } 
+            catch (e) {
+                console.log("Could not parse responseText: " + e);
+            }
+            if (!calledYet) {
+                calledYet = true;
+                callback(returnVal);
             }
         }
     }

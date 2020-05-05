@@ -3,18 +3,14 @@ function parseName(names) {
     var surnames = []
     var inSurname = false;
     // Seperates the name into fore/sur-name arrays
-    for (var i = 0; i < names.length; i++) {
-        if (names[i].startsWith("/")) {
-            inSurname = true;
-        }
+    
+    map(function(name) {
+        if (name.startsWith("/")) { inSurname = true; }
+        
+        if (inSurname) { surnames.push(displayName(name)); }
+        else { forenames.push(displayName(name)) }
+    }, names);
 
-        if (inSurname) {
-            surnames.push(displayName(names[i]));
-        }
-        else {
-            forenames.push(displayName(names[i]));
-        }
-    }
     return [forenames, surnames];
 }
 
@@ -109,9 +105,11 @@ function Node(_person) {
                 displayChildren = displayChildren.concat(this.descendentsDown[j].getIds());
             }
 
-            for (var j = 0; j < children.length; j++)
-                if (displayChildren.indexOf(children[j])<0)
+            for (var j = 0; j < children.length; j++) {
+                if (displayChildren.indexOf(children[j]) < 0) {
                     this.childrenHidden = true;
+                }
+            }
         },
 
         getChildConnectorPoint: function() {
@@ -222,23 +220,27 @@ function Node(_person) {
 
 
             // Draws the images
-            function drawImages(dim) {
-                if (this.parentsHidden || this.childrenHidden) {
-                    if (this.parentsHidden && !this.childrenHidden) {
+            function drawImages(self, dim) {
+
+                function hiddenImage(pHidden, cHidden) {
+                    if (pHidden && !cHidden) {
                         var image = imageIcons.upArrow;
                     }
-                    else if (!this.parentsHidden && this.childrenHidden) {
+                    else if (!pHidden && cHidden) {
                         var image = imageIcons.downArrow;
                     }
-                    else if (this.parentsHidden && this.childrenHidden) {
+                    else if (pHidden && cHidden) {
                         var image = imageIcons.doubleArrow;
                     }
-
+                    return image;
+                }
+                
+                if (self.parentsHidden || self.childrenHidden) {
+                    var image = hiddenImage(self.parentsHidden, self.childrenHidden);
                     image.width = dim;
-                    canvasView.context.drawImage(image, x + this.getWidth() - dim, y, dim, dim);
+                    canvasView.context.drawImage(image, x + self.getWidth() - dim, y, dim, dim);
                 }
 
-                
                 if (_person["pics"].length > 0) {
                     // Icon image - we just use the first one
                     canvasView.context.drawImage(loadImage(_person["pics"][0]), x, y, dim, dim);
@@ -249,7 +251,7 @@ function Node(_person) {
             }
 
             drawRect();
-            drawImages(15 * this.getScaling());
+            drawImages(this, 15 * this.getScaling());
 
             if (this.inFocus) { // The focused node
                 canvasView.context.lineWidth = 3;
@@ -316,7 +318,9 @@ function NodeGroup(_nodes) {
 
                 // Determine if this node's parents are hidden
                 map(function(p) {
-                    if (displayParents.indexOf(p) < 0) { _nodes[i].parentsHidden = true; } 
+                    if (displayParents.indexOf(p) < 0) { 
+                        _nodes[i].parentsHidden = true; 
+                    } 
                 }, structure[_nodes[i].getId()].parents);
 
 
@@ -328,7 +332,9 @@ function NodeGroup(_nodes) {
 
                 // Determine if this node's children are hidden
                 map(function(c) {
-                    if (displayChildren.indexOf(c) < 0) { _nodes[i].childrenHidden = true; } 
+                    if (displayChildren.indexOf(c) < 0) { 
+                        _nodes[i].childrenHidden = true;
+                    } 
                 }, structure[_nodes[i].getId()].children);
 
                 // Get all of the children of this node
@@ -508,12 +514,11 @@ function Layout(person, structure) {
     function verticalSpacing(canvasView, nodeList) {
         // We get the max height per generation, so they're all aligned
         var maxHeights = {};
-        for (var i = 0; i < nodeList.length; i++) {
-            var dimensions = nodeList[i].calcDimensions(canvasView);
-            var width = dimensions[0];
-            var height = dimensions[1];
-            maxHeights[nodeList[i].generation] = Math.max(maxHeights[nodeList[i].generation] || 0, height);
-        }
+        map(function(n) {
+            var height = n.calcDimensions(canvasView)[1];
+            maxHeights[n.generation] = Math.max(maxHeights[n.generation] || 0, height);
+        }, nodeList);
+
 
         var sumHeights = {0: 0}; // calculate the summed heights
         for (var i = 1; i in maxHeights; i++) {
@@ -525,9 +530,8 @@ function Layout(person, structure) {
         }
 
         for (var i = 0; i < nodeList.length; i++) {
-            var position = nodeList[i].getPos();
-            // Establish the new position
-            nodeList[i].setPos(position[0], sumHeights[nodeList[i].generation]);
+            // Establish the new position (using the same X as before)
+            nodeList[i].setPos(nodeList[i].getPos()[0], sumHeights[nodeList[i].generation]);
         }
     }
 
@@ -605,7 +609,7 @@ function Layout(person, structure) {
         }
 
         var upDown = node.ancestorsUp[0].descendentsDown; // or There and Back Again
-        for (var i=0; i < upDown.length, upDown[i] != node; i++) {
+        for (var i = 0; i < upDown.length, upDown[i] != node; i++) {
             var siblingContour = getRightContour(upDown[i]);
 
             for (var j = node.generation + 1; j in leftContour && j in siblingContour; j++) {
