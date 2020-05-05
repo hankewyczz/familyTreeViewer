@@ -99,14 +99,16 @@ function displayName(name) {
 function displaySurname(name) {
     var surnames = [];
     var inSurname = false;
+    var names = name.split(" ");
 
-    map(function(name) {
-        if (name.startsWith("/")) { inSurname = true; }
+    for (var i = 0; i < names.length; i++) {
+        if (names[i].startsWith("/")) { inSurname = true; }
         
-        if (inSurname) { surnames.push(name); }
+        if (inSurname) { surnames.push(names[i]); }
         
-        if (name.endsWith("/")) { return surnames.join(" ").replace(/\//g, ""); }
-    }, name.split(" "));
+        if (names[i].endsWith("/")) { return surnames.join(" ").replace(/\//g, ""); }
+    }
+
 
     return "";
 }

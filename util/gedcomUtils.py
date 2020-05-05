@@ -30,18 +30,20 @@ def exclude(value, lst):
 		lst.remove(value)
 	return lst
 
+
 # Parses the date
 def dateParse(dateStr):
 	try:
 		return parser.parse(dateStr)
 	except:
-		return datetime.datetime.min# If we can't get a date, we go to min
+		return datetime.datetime.min # If we can't get a date, we go to min
 
 # cleans up the date string
 def cleanDate(x):
 	# Strip any date inaccuracies
 	x = re.sub("ABT ", "", x.upper())
-	x = re.sub("ABOUT ", "", x)
+	x = re.sub("ABOUT ", "", x) 
+	# If we wanted to handle the 'BET' case, do it here
 
 	while True:
 		# We try to get the start date
@@ -146,7 +148,9 @@ def getParents(individual, families):
 		# we grab the husband and wife (as opposed to father/mother)
 		father = getTag(family, gedcom.tags.GEDCOM_TAG_HUSBAND)
 		mother = getTag(family, gedcom.tags.GEDCOM_TAG_WIFE)
-		return [father, mother]
+
+		
+		return cleanNull([father, mother])
 	except:
 		return []
 
@@ -163,6 +167,7 @@ def getSFamily(individual, families):
 # Gets the spouse from this family
 def getSpouse(individual, family):
 	spouse = [getTag(family, gedcom.tags.GEDCOM_TAG_HUSBAND), getTag(family, gedcom.tags.GEDCOM_TAG_WIFE)]
+	spouse = cleanNull(spouse)
 	return exclude(getID(individual), spouse)[0]
 
 

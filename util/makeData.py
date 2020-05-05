@@ -3,6 +3,7 @@ import json
 import gedcomUtils as gu
 import argparse
 import datetime
+import os
 
 import gedcom
 from gedcom.element.individual import IndividualElement
@@ -153,6 +154,9 @@ def main():
 
 	# Sort the structure file
 	structure.sort(key=sortByNames)
+	if not os.path.exists(dataFolder):
+		os.makedirs(dataFolder)
+
 	# Generate the structure file
 	with open(structureOutput, "w+", encoding="utf8") as f:
 		json.dump(structure, f, **jsonStyling)
