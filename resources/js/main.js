@@ -226,7 +226,7 @@ function getDetails(canvasView, data, curPerson) {
 
 
 
-// Handles the canvasview
+// Handles the canvasView
 function View(data) {
     // Grabs the necessary parts
     var structure = data["structure"];
