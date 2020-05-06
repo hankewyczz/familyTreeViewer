@@ -1,4 +1,4 @@
-# familyTreeViewer
+# familyTreeViewer [![BCH compliance](https://bettercodehub.com/edge/badge/zackh105/familyTreeViewer?branch=master)](https://bettercodehub.com/)
 familyTreeViewer is a simple web-based family tree viewer. 
 It takes a [GEDCOM](https://www.familysearch.org/developers/docs/guides/gedcom) file as input, and returns a JavaScript-based site dynamically displaying the family tree and its details. 
 
@@ -11,7 +11,9 @@ The Python script generates two JSON files, `structure.json` and `details.json`.
 * `details.json` contains personal data - life events and pictures
 
 ## Viewing
-The family tree can now be viewed interactivly at `index.html`. All necessary resources are contained within the `resources` folder, excluding the fonts and FontAwesome (hosted by Google and Cloudflare, respectively).
+Once the data is parsed and generated, the family tree can now be viewed interactivly at `index.html`. All necessary resources are contained within the `resources` folder, excluding the fonts and FontAwesome (hosted by Google and Cloudflare, respectively).
+
+The site is static, which makes it ideal for hosting on a small, static website (maybe GitHub pages?). 
 
 ## Support
 **Generally speaking**, this project supports most **modern** browsers, desktop and mobile. This means that IE11 is a strech at best, and any older IE versions are all but guaranteed not to work (if you want IE support, take it up with [Bill Gates](https://www.gatesnotes.com/)). 
@@ -19,8 +21,10 @@ The family tree can now be viewed interactivly at `index.html`. All necessary re
 # Example
 
 ![Example (English Monarcy)](https://i.imgur.com/mXuwDfL.png)
-This example family tree was generated using a GEDCOM file of the [English and British Kings and Queens
-](https://chronoplexsoftware.com/myfamilytree/samples/).
+This example family tree was generated using a GEDCOM file of the [English and British Kings and Queens](https://chronoplexsoftware.com/myfamilytree/samples/).
+
+For testing, two good sources are the [English Monarchy](https://chronoplexsoftware.com/myfamilytree/samples/) and the [Kennedy family](https://chronoplexsoftware.com/myfamilytree/samples/)
+
 
 # Issues
 
@@ -32,4 +36,4 @@ Even if a file is a valid GEDCOM file, maybe it won't work due to peculiarities 
 
 This project is intended for relatively straight-forward family trees. It can handle size (my personal one has 500+), and all the typical events - divorce, remarriage, multiple spouses, single parent, etc.
 
-**However**, if the GEDCOM file has any specific peculiarities (for example, a Hapsburg-type family), it's pretty likely that this viewer won't display it properly. 
+**However**, if the GEDCOM file has any specific peculiarities (for example, a Hapsburg-type family), it's pretty likely that this viewer won't display it properly. From an example, I know that intra-familial marriage doesn't render well, but that should be an edge case.
