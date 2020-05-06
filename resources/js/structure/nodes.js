@@ -458,7 +458,6 @@ function Layout(person, structure) {
     /* Tree structure from  https://rachel53461.wordpress.com/2014/04/20/algorithm-for-drawing-trees/
     Based on https://pastebin.com/SxkjJauX */
 
-
     // Utility functions
     function getSpouses(person) { return structure[person].spouses; }
     function getParents(person) { return structure[person].parents; }

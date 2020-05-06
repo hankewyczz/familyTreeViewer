@@ -20,6 +20,21 @@ class TestUtils(unittest.TestCase):
 		self.assertEqual(list0, gu.exclude(1, list3))
 		self.assertEqual(list0, gu.exclude(1, list0))
 
+	# Same test but with strings
+	def testExcludeString(self):
+		str0 = ["a", "b", "c", "d"]
+		str1 = ["a", "x", "b", "c", "d", "x"]
+		str2 = ["x", "a", "b", "c", "d"]
+		str3 = ["x", "a", "b", "c", "x", "d"]
+		str4 = ["a", "b", "c", "d", "x", "x"]
+
+		self.assertEqual(str0, gu.exclude("x", str0))
+		self.assertEqual(str0, gu.exclude("x", str1))
+		self.assertEqual(str0, gu.exclude("x", str2))
+		self.assertEqual(str0, gu.exclude("x", str3))
+		self.assertEqual(str0, gu.exclude("x", str4))
+
+
 	#  Tests the date parser
 	def testDateParse(self):
 		date0 = datetime.datetime(1827, 5, 5, 0, 0)
@@ -90,6 +105,10 @@ class TestMakeData(unittest.TestCase):
 		self.assertEqual("ИЯЯля", md.ukrSort("Іля"))
 		self.assertEqual("аслдйияя", md.ukrSort("аслдйі"))
 		self.assertEqual("ияяван", md.ukrSort("іван"))
+		self.assertEqual("Basic", md.ukrSort("Basic"))
+		self.assertEqual("Christopher", md.ukrSort("Christopher"))
+		self.assertEqual("Chris ИЯЯмя", md.ukrSort("Chris Імя"))
+
 
 
 
