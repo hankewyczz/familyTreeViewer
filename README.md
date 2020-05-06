@@ -37,3 +37,9 @@ Even if a file is a valid GEDCOM file, maybe it won't work due to peculiarities 
 This project is intended for relatively straight-forward family trees. It can handle size (my personal one has 500+), and all the typical events - divorce, remarriage, multiple spouses, single parent, etc.
 
 **However**, if the GEDCOM file has any specific peculiarities (for example, a Hapsburg-type family), it's pretty likely that this viewer won't display it properly. From an example, I know that intra-familial marriage doesn't render well, but that should be an edge case.
+
+
+### Credits
+* The image viewer was based off of [img_box](https://github.com/krittanon-w/IMG-BOX)
+* The tree structure algorithm was helped by [this algorithm](https://rachel53461.wordpress.com/2014/04/20/algorithm-for-drawing-trees/)
+* The tree generation was inspired by [this code](https://github.com/jepst/treeViewer)
