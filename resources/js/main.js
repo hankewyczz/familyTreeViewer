@@ -42,6 +42,7 @@ function getDetails(canvasView, data, curPerson) {
         nameDiv.appendChild(document.createTextNode(name));
         names.appendChild(nameDiv);
     }
+    console.log(curPerson)
 
     function makeEventsPane() {
         // Initialize the data container
@@ -55,6 +56,30 @@ function getDetails(canvasView, data, curPerson) {
         // We use this to alternate div background colors. Using n-th child doesn't work too well,
         // since we go thru multiple exterior container divs
         var styleNumber = 0;
+
+        // Creates the notes
+        function makeNotes() {
+            for (var i = 0; i < curPerson["notes"].length; i++) {
+                var note = curPerson["notes"][i];
+                var eventDiv = document.createElement('div');
+
+                var divClass = (styleNumber == 0) ? "detailRow" : "detailRow1";
+                styleNumber = (styleNumber == 0) ? 1 : 0; // Swap
+
+                eventDiv.className = divClass;
+                eventDiv.style.display = "table";
+
+                var text = document.createElement('div');
+                text.style.fontSize = "85%";
+                text.style.textIndent = "10px";
+                text.style.paddingLeft = "5px";
+
+                text.appendChild(document.createTextNode(note));
+                eventDiv.appendChild(text);
+                eventsDivContainer.appendChild(eventDiv);
+            }
+        }
+        makeNotes();
 
         // Run over each event
         for (var i = 0; i < curPerson["events"].length; i++) {
@@ -139,6 +164,15 @@ function getDetails(canvasView, data, curPerson) {
                     var deathDate = event[0] || "";
 
                     field(deathDate, "Died" + deathLocation + deathType);
+                    break;
+
+                case "BUR": // Burial data
+                    var burialDate = event[0] || "";
+                    var burialLocation = event[1] ? " in " + event[1] : "";
+                    var burialType = event[2] ? " (" + event[2] + ")" : "";
+                    
+
+                    field(burialDate, "Buried" + burialLocation + burialType);
                     break;
 
                 case "OCC": // Occupation

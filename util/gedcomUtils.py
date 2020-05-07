@@ -68,6 +68,9 @@ def dateKey(y):
 		elif y[-1] == "D":
 			# Make it max date possible
 			return datetime.datetime(datetime.MAXYEAR,1,1)
+		elif y[-1] == "BUR":
+			# We try to one-up the death data and get a HIGHER max date
+			return datetime.datetime(datetime.MAXYEAR,2,2)
 		else:
 			raise ValueError("No valid date given ({0})".format(y))
 	# If we have a year, we just clean it and parse it (get num value)
@@ -95,11 +98,27 @@ def sortByDate(lst):
 def getID(indiv):
 	return indiv.get_pointer()
 
+
+
+
+
+
 # Gets a given tag
 def getTag(indiv, tag):
+	inTag = False
+	returnVal = ""
 	for child in indiv.get_child_elements():
 		if child.get_tag() == tag:
-			return child.get_value()
+			returnVal += child.get_value()
+			inTag = True
+		elif inTag:
+			if child.get_tag() == "CONT":
+				returnVal += child.get_value()
+			elif child.get_tag() == "CONT":
+				returnVal += child.get_value()
+				inTag = False
+				return returnVal
+	return returnVal
 
 # FOr a tag with multiple values
 def getTags(indiv, tag, value=True):
@@ -255,6 +274,36 @@ def getFullDeathData(indiv):
 		return [[date, place, dType, "D"]]
 
 
+# gets burial data
+def getBurialData(indiv):
+	date, place, bType = "", "", ""
+	inPlace, inType = False, False
+
+	for child in indiv.get_child_elements():
+		if child.get_tag() == gedcom.tags.GEDCOM_TAG_BURIAL:
+			for childOfChild in child.get_child_elements():
+				tag = childOfChild.get_tag()
+				if tag == gedcom.tags.GEDCOM_TAG_DATE:
+					date = childOfChild.get_value()
+
+				if tag == gedcom.tags.GEDCOM_TAG_PLACE or inPlace:
+					place = childOfChild.get_value()
+
+					for sub in childOfChild.get_child_elements():
+						bType += sub.get_value()
+
+				if tag == "TYPE":
+					bType = childOfChild.get_value()
+
+					for sub in childOfChild.get_child_elements():
+						bType += sub.get_value()
+
+	if all(x == '' for x in [date, place, bType]):
+		return []
+	else:
+		return [[date, place, bType, "BUR"]]
+
+
 # Abstract function for divorce and marriage data
 def getMDData(individual, families, type):
 	events = []
@@ -297,9 +346,35 @@ def getOccupationData(individual):
 
 	for occ in occs:
 		date = ""
+		value = occ.get_value()
+		inValue = True
 		for sub in occ.get_child_elements():
+			if inValue and sub.get_tag() in ["CONC", "CONT"]:
+				value += sub.get_value()
+				if sub.get_tag() == "CONC":
+					inValue = False
+			else:
+				inValue = False
+
 			if sub.get_tag() == gedcom.tags.GEDCOM_TAG_DATE:
 				date = sub.get_value()
-		occupations.append([date, occ.get_value(), "OCC"])
+		occupations.append([date, value, "OCC"])
 
 	return occupations
+
+
+# gets notes for the given individual
+def getNotes(individual, notes):
+	# Gets all the objects for this given person
+	rawNotes = [getObj(note, notes) for note in getTags(individual, "NOTE")]
+	# gets the pictures from all of the objects
+	result = []
+	for note in rawNotes:
+		parsedNote = note.get_value()
+
+		for childNote in note.get_child_elements():
+			if childNote.get_tag() == "CONT" or childNote.get_tag() == "CONC":
+				parsedNote += childNote.get_value()
+
+		result.append(parsedNote)
+	return result

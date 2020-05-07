@@ -61,9 +61,12 @@ def sortByNames(x):
 	return surnames + nonSurnames
 
 
+def isNote(element):
+	return element.get_tag() == "NOTE"
+
 
 def generateArrays(gedcomParser):
-	individuals, objects, families = [], [], []
+	individuals, objects, families, notes = [], [], [], []
 	for element in gedcomParser.get_root_child_elements():
 		if isinstance(element, IndividualElement):
 			individuals.append(element)
@@ -71,8 +74,10 @@ def generateArrays(gedcomParser):
 			objects.append(element)
 		elif isinstance(element, FamilyElement):
 			families.append(element)
+		elif isNote(element):
+			notes.append(element)
 
-	return individuals, objects, families
+	return individuals, objects, families, notes
 
 
 
@@ -102,7 +107,7 @@ def main():
 	gedcomParser.parse_file(filename)
 
 	# Creates lists of individuals, objects, and families
-	individuals, objects, families = generateArrays(gedcomParser)
+	individuals, objects, families, notes = generateArrays(gedcomParser)
 	
 
 	# No initial person at first
@@ -127,7 +132,7 @@ def main():
 			"id": person["id"],
 			"pics": gu.getPics(individual, objects),
 			"names": gu.getTags(individual, gedcom.tags.GEDCOM_TAG_NAME),
-			# Back to normal
+			"notes": gu.getNotes(individual, notes),
 			"events": gu.sortByDate(
 				# Birth event
 				gu.getFullBirthData(individual) +
@@ -138,8 +143,10 @@ def main():
 				# Divorce events
 				gu.getDivorceData(individual, families) +
 				# Occupation events
-				gu.getOccupationData(individual)
-				),
+				gu.getOccupationData(individual) + 
+				# Burial data
+				gu.getBurialData(individual)
+			),
 		}
 		
 
