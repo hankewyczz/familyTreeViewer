@@ -250,7 +250,7 @@ function personSearch(data, view) {
     // Event Listener for each individual search result
     function searchResultEL(event) {
         view.setFocus(event.currentTarget["data-search_id"]);
-        searchText.value = displayName(structure[event.currentTarget["data-search_id"]]["name"]);
+        searchText.value = displayName(data["structure"][event.currentTarget["data-search_id"]]["name"]);
     }
 
     // Clears the list of any children

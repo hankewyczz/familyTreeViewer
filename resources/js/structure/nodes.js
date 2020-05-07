@@ -58,7 +58,7 @@ function makeNodeText(person) {
 
 
 // Generates a node
-function Node(_person) {
+function Node(_person, pDetails) {
     var text = makeNodeText(_person); // Generates the text for this node
     var textDimensions = null;
     var imageScaling = scale;
@@ -243,9 +243,9 @@ function Node(_person) {
                     canvasView.context.drawImage(image, x + self.getWidth() - dim, y, dim, dim);
                 }
 
-                if (_person["pics"].length > 0) {
+                if (pDetails["pics"].length > 0) {
                     // Icon image - we just use the first one
-                    canvasView.context.drawImage(loadImage(_person["pics"][0]), x, y, dim, dim);
+                    canvasView.context.drawImage(loadImage(pDetails["pics"][0]), x, y, dim, dim);
                 }
                 else { // Default icon
                     canvasView.context.drawImage(imageIcons.defaultPerson, x, y, dim, dim);
@@ -454,10 +454,7 @@ function NodeGroup(_nodes) {
 
 
 
-function Layout(person, structure) {
-    /* Tree structure from  https://rachel53461.wordpress.com/2014/04/20/algorithm-for-drawing-trees/
-    Based on https://pastebin.com/SxkjJauX */
-
+function Layout(person, structure, details) {
     // Utility functions
     function getSpouses(person) { return structure[person].spouses; }
     function getParents(person) { return structure[person].parents; }
@@ -474,12 +471,12 @@ function Layout(person, structure) {
 
         // Spouses
         if (getSpouses(person).length == 0) { // No spouses
-            var newNode = Node(structure[person]);
+            var newNode = Node(structure[person], details[person]);
             mappedNodes[person] = newNode;
         } 
         else {
             var spouseList = [person].concat(getSpouses(person)); // well, spouses and the given person
-            var newNode = NodeGroup(map(function(p) { return Node(structure[p]) }, spouseList));
+            var newNode = NodeGroup(map(function(p) { return Node(structure[p], details[p]) }, spouseList));
 
             map(function(p) { mappedNodes[p] = newNode; }, spouseList);
         }

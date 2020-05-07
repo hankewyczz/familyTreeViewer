@@ -113,8 +113,6 @@ def main():
 			"id": gu.getID(individual),
 			"name": gu.getTag(individual, gedcom.tags.GEDCOM_TAG_NAME),
 			"sex": gu.getTag(individual, gedcom.tags.GEDCOM_TAG_SEX).lower(),
-			"occ": gu.getTags(individual, gedcom.tags.GEDCOM_TAG_OCCUPATION),
-			"pics": gu.getPics(individual, objects),
 			"parents": gu.getParents(individual, families),
 			"spouses": gu.getSpouses(individual, families),
 			"children": gu.getChildren(individual, families),
@@ -127,7 +125,7 @@ def main():
 
 		detail = {
 			"id": person["id"],
-			"pics": person["pics"],
+			"pics": gu.getPics(individual, objects),
 			"names": gu.getTags(individual, gedcom.tags.GEDCOM_TAG_NAME),
 			# Back to normal
 			"events": gu.sortByDate(

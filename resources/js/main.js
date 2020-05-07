@@ -222,6 +222,7 @@ function View(data) {
     var structure = data["structure"];
     var details = data["details"];
 
+
     // Gets the top ancestor possible (up to X generations)
     function getTopAncestor(personid, generations=4) {
         // Gets all the ancestors up to the given
@@ -340,7 +341,7 @@ function View(data) {
                 showError("No ancestor (" + nodeid + ") was found", true);
                 return null;
             }
-            return Tree(structure, ancestor);;
+            return Tree(structure, details, ancestor);;
         },
 
         recreateTree: function() { this.setFocus(this.focusId); }, // we just set focus to current node, redraw tree

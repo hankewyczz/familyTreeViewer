@@ -1,5 +1,7 @@
 /* Utils for loading data */
 
+
+
 // Grabs a json file
 function getJsonData(address, callback, timeout=xmlRTimeout) {
     var xmlR = new XMLHttpRequest();
@@ -41,6 +43,7 @@ function getJsonData(address, callback, timeout=xmlRTimeout) {
 // Loads all the data we need
 function loadData(callback) {
     var file = "../../data/structure.json";
+    var detailsFile = "../../data/details.json";
     // Initialize data dict
     var data = {};
     
@@ -49,15 +52,20 @@ function loadData(callback) {
             if (returnVal == null) { callback(null); }
 
             data["structure_raw"] = returnVal;
-            data["details"] = {};
             data["structure"] = {};
 
             map(function(p) { data["structure"][p["id"]] = p; },  
                 data["structure_raw"]);
 
-            callback(data);
         }, xmlRTimeout);
     })(); // Execute immediately
+
+    (function() {
+        getJsonData(detailsFile, function(returnVal) { 
+            data["details"] = returnVal;
+            callback(data);
+        }, xmlRTimeout)
+    })();
 }
 
 

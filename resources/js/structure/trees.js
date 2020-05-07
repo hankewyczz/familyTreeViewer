@@ -16,8 +16,8 @@ function flattenTree(node) {
 
 
 // Main tree function
-function Tree(structure, personId) {
-    var layout = Layout(personId, structure);
+function Tree(structure, details, personId) {
+    var layout = Layout(personId, structure, details);
     var isPositioned = false;
     var nodes = flattenTree(layout.nodes);
 
