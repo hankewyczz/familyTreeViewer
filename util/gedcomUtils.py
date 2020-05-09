@@ -223,6 +223,28 @@ def getChildren(individual, families):
 
 
 
+# Strips birthday data
+def stripBirthData(date):
+    dateSplit = date.split()
+    # Unless we have a full birthday, kill it
+    if len(dateSplit) != 3:
+        return ""
+
+    try:
+        day = int(dateSplit[0])
+    # Cannot parse the day
+    except ValueError:
+        return ""
+
+    # The day is not a valid one
+    if day < 1 or day > 31:
+        return ""
+
+    if dateSplit[1].upper() not in ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]:
+        return ""
+
+    return "{0} {1}".format(str(day), dateSplit[1].title())
+
 
 # Gets simple birth data
 def getBirthData(individual):

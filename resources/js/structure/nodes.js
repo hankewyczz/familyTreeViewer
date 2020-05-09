@@ -18,21 +18,22 @@ function parseName(names) {
 function parseDatePlace(date) {
     var str = date[0];
     if (date[1]) {
-        str += " in " + date[1];
+        str += ", в " + date[1];
     }
     return str.trim();
 }
 
 // Parses the birth and deaths into text
 function parseBirthDeathDate(person, result) {
+    var sex = person["sex"].toUpperCase();
     var birthStr = parseDatePlace(person["birth"]);
     var deathStr = parseDatePlace(person["death"]);
 
     if (birthStr) {
-        result = result.concat([detailFont, "\nBorn " + birthStr]);
+        result = result.concat([detailFont, "\n" + {"M": "Народився", "F": "Народилася"}[sex] + " " + birthStr]);
     }
     if (deathStr) {
-        result = result.concat([detailFont, "\nDied " + deathStr]);
+        result = result.concat([detailFont, "\n" + {"M": "Помер", "F": "Померла"}[sex] + " " + deathStr]);
     }
 
     return result;

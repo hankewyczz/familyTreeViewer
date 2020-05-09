@@ -43,7 +43,10 @@ function getJsonData(address, callback, timeout=xmlRTimeout) {
 // Loads all the data we need
 function loadData(callback) {
     var file = "../../data/structure.json";
-    var detailsFile = "../../data/details.json";
+    var detailsFile = "../../data/details.json"; 
+    var burialsFile = "../../data/burials.json"; 
+    var birthdaysFile = "../../data/birthdays.json"; 
+
     // Initialize data dict
     var data = {};
     
@@ -60,28 +63,27 @@ function loadData(callback) {
         }, xmlRTimeout);
     })(); // Execute immediately
 
+    // Get details
     (function() {
         getJsonData(detailsFile, function(returnVal) { 
             data["details"] = returnVal;
             callback(data);
         }, xmlRTimeout)
     })();
-}
 
+    // Get burials
+    (function() {
+        getJsonData(burialsFile, function(returnVal) { 
+            data["burials"] = returnVal;
+            callback(data);
+        }, xmlRTimeout)
+    })();
 
-function getLoadingPanelJson(address, callback, timeout) {
-    var loadingScreen = document.createElement("div");
-    loadingScreen.className = "loadingpanel";
-    loadingScreen.appendChild(document.createTextNode("Loading family data..."));
-
-    showInfoWindow({"text": loadingScreen});
-
-    getJsonData(address, function(js) {
-        if (js == null) {
-            showError("The requested data could not be loaded. Please refresh the page.", true);
-        }
-        else {
-            callback(js);
-        }
-    }, timeout);
+// Get details
+    (function() {
+        getJsonData(birthdaysFile, function(returnVal) { 
+            data["birthdays"] = returnVal;
+            callback(data);
+        }, xmlRTimeout)
+    })();
 }

@@ -11,6 +11,7 @@ var imageIcons = {
 
 function getDetails(canvasView, data, curPerson) {
     var structure = data["structure"];
+    var sex = structure[curPerson["id"]]["sex"].toUpperCase();
 
     var container = document.createElement('div');
     container.style.display = "table";
@@ -42,7 +43,6 @@ function getDetails(canvasView, data, curPerson) {
         nameDiv.appendChild(document.createTextNode(name));
         names.appendChild(nameDiv);
     }
-    console.log(curPerson)
 
     function makeEventsPane() {
         // Initialize the data container
@@ -71,6 +71,7 @@ function getDetails(canvasView, data, curPerson) {
 
                 var text = document.createElement('div');
                 text.style.fontSize = "85%";
+                text.style.lineHeight = "120%";
                 text.style.textIndent = "10px";
                 text.style.paddingLeft = "5px";
 
@@ -141,16 +142,17 @@ function getDetails(canvasView, data, curPerson) {
                     var birthInfo = document.createElement('span');
                     var birthDate = event[0] || "";
                     // If we have a birth location, we parse it properly
-                    var birthLocation = event[1] ? " in " + event[1] : "";
-                    birthInfo.appendChild(document.createTextNode("Born" + birthLocation));
+                    var birthLocation = event[1] ? " в " + event[1] : "";
+                    var birthStr = {"M": "Народився", "F": "Народилася"}
+                    birthInfo.appendChild(document.createTextNode(birthStr[sex] + birthLocation));
 
                     var parents = structure[curPerson.id]["parents"];
                     if (parents.length > 0) {
-                        birthInfo.appendChild(document.createTextNode(" to "));
+                        birthInfo.appendChild(document.createTextNode(" до "));
                         birthInfo.appendChild(makePersonLink(structure[parents[0]].id));
 
                         if (parents.length > 1) {
-                            birthInfo.appendChild(document.createTextNode(" and "));
+                            birthInfo.appendChild(document.createTextNode(" і "));
                             birthInfo.appendChild(makePersonLink(structure[parents[1]].id));
                         }
                     }
@@ -159,38 +161,40 @@ function getDetails(canvasView, data, curPerson) {
                     break;
 
                 case "D": // Death
-                    var deathLocation = event[1] ? " in " + event[1] : "";
+                    var deathLocation = event[1] ? " в " + event[1] : "";
                     var deathType = event[2] ? " (" + event[2] + ")" : "";
                     var deathDate = event[0] || "";
 
-                    field(deathDate, "Died" + deathLocation + deathType);
+                    var deathStr = {"M": "Помер", "F": "Померла"}
+                    field(deathDate, deathStr[sex] + deathLocation + deathType);
                     break;
 
                 case "BUR": // Burial data
                     var burialDate = event[0] || "";
-                    var burialLocation = event[1] ? " in " + event[1] : "";
+                    var burialLocation = event[1] ? " в " + event[1] : "";
                     var burialType = event[2] ? " (" + event[2] + ")" : "";
                     
-
-                    field(burialDate, "Buried" + burialLocation + burialType);
+                    var burialStr = {"M": "Похований", "F": "Похована"}
+                    field(burialDate, burialStr[sex] + burialLocation + burialType);
                     break;
 
                 case "OCC": // Occupation
                     var occupationType = event[1] ? " " + event[1] : "";
                     var occupationDate = event[0] || "";
 
-                    field(occupationDate,"Occupation:" + occupationType);
+                    field(occupationDate,"Праця:" + occupationType);
                     break;
 
                 case "M": // Marriage
-                    var marriageLocation = event[2] ? " at " + event[2] : "";
+                    var marriageLocation = event[2] ? " в " + event[2] : "";
                     var marriageLink = makePersonLink(event[1]);
                     
-                    field(event[0], relationship(["Married ", marriageLink, marriageLocation]));
+                    var marriageStr = {"M": "Одружився з ", "F": "Вийшла за заміж з "}
+                    field(event[0], relationship([marriageStr[sex], marriageLink, marriageLocation]));
                     break;
 
                 case "DIV": // Divorce
-                    var divorceLocation = event[2] ? " at " + event[2] : "";
+                    var divorceLocation = event[2] ? " в " + event[2] : "";
                     var divorceLink = makePersonLink(event[1]);
                     
                     field(event[0], relationship(["Divorced ", divorceLink, divorceLocation]));
@@ -240,7 +244,7 @@ function getDetails(canvasView, data, curPerson) {
     }
 
 
-    if (curPerson["events"].length > 0 || curPerson["pics"].length > 0) {
+    if (curPerson["events"].length > 0 || curPerson["pics"].length > 0 || curPerson["notes"].length > 0) {
         container.appendChild(makeEventsPane());
     }
 
@@ -270,8 +274,10 @@ function View(data) {
             
             if (person in structure) {
                 // Gets the gens of each parent as well
-                map(function(parent) { result = result.concat(getAncestorsInGen(parent, gen - 1)); }, 
-                    structure[person].parents);   
+                var parents = structure[person]["parents"];
+                for (var j = parents.length - 1; j >= 0; j--) {
+                    result = result.concat(getAncestorsInGen(parents[j], gen - 1));
+                }
             }
             return result;
         }
@@ -375,7 +381,7 @@ function View(data) {
                 showError("No ancestor (" + nodeid + ") was found", true);
                 return null;
             }
-            return Tree(structure, details, ancestor);;
+            return Tree(structure, details, ancestor);
         },
 
         recreateTree: function() { this.setFocus(this.focusId); }, // we just set focus to current node, redraw tree
@@ -515,17 +521,6 @@ function View(data) {
                 callback(details[personId]);
                 return;
             }
-            // If not, we have to get it ourselves
-            getLoadingPanelJson("../../data/details.json", 
-                function(el) {
-                    if (el == null) { callback(null); } 
-                    else {
-                        map(function(newK) { details[newK] = el[newK]; }, Object.keys(el));
-
-                        if (personId in details) { callback(details[personId]); }
-                        else { callback(null); }
-                    }
-                }, xmlRTimeout);
         },
         showDetailedView: function(personId) {
             var thisEl = this;
@@ -819,7 +814,6 @@ function View(data) {
     return initialDict;
 }
 
-
 // Parses the hash
 function parseHash(initPerson) {
     var showHelp = false;
@@ -850,6 +844,11 @@ function showHelp() {
 }
 
 
+function numPeople(data) {
+    var num = Object.keys(data).length;
+    document.getElementById("numPeople").innerHTML = "<strong>" + num + "</strong> people in this tree";
+}
+
 function main() {
     loadData(function(data) {
         fadeOut(document.getElementById("loadingwindow"), 0.07); // fade out once we load all the data
@@ -866,5 +865,10 @@ function main() {
         if (hashParsed[0]) {
             showHelp();
         }
+
+        numPeople(data["structure"]);
     });
+    
 }
+
+

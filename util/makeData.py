@@ -96,10 +96,14 @@ def main():
 	# Data filenames
 	structureOutput = "{0}structure.json".format(dataFolder)
 	detailsOutput = "{0}details.json".format(dataFolder)
+	burialOutput = "{0}burials.json".format(dataFolder)
+	birthdayOutput = "{0}birthdays.json".format(dataFolder)
 
 	# Initialize the structure and details containers
 	structure = []
 	details = {}
+	birthdays = []
+	burials = []
 
 	
 	# Initialize the parser
@@ -128,6 +132,9 @@ def main():
 		if initialPerson == None:
 			initialPerson = person['id']
 
+		birthData = gu.getFullBirthData(individual)
+		burialData = gu.getBurialData(individual)
+
 		detail = {
 			"id": person["id"],
 			"pics": gu.getPics(individual, objects),
@@ -135,7 +142,7 @@ def main():
 			"notes": gu.getNotes(individual, notes),
 			"events": gu.sortByDate(
 				# Birth event
-				gu.getFullBirthData(individual) +
+				birthData +
 				# Death event
 				gu.getFullDeathData(individual) +
 				# Marriage events
@@ -145,20 +152,39 @@ def main():
 				# Occupation events
 				gu.getOccupationData(individual) + 
 				# Burial data
-				gu.getBurialData(individual)
+				burialData
 			),
 		}
-		
 
 		structure.append(person)
+
 		details[person["id"]] = detail
+
+		# If birth data exists, and we get rid of the wrapper list, and we have a proper date
+		if birthData and birthData[0] and birthData[0][0]:
+			date = gu.stripBirthData(birthData[0][0])
+
+			if date != "":
+				birthday = [person["id"], date]
+				birthdays.append(birthday)
+
+		if burialData and burialData[0] and burialData[0][1]:
+			burialPlace = burialData[0][1]
+
+			if burialData != "":
+				burial = [person["id"], burialPlace]
+				burials.append(burial)
+
 
 
 	jsonStyling = {"sort_keys": True, "indent": 4, "separators":(',', ': ')}
 
-
-	# Sort the structure file
+	# Sort the structures and birthday files file
 	structure.sort(key=sortByNames)
+	birthdays.sort(key=lambda birthday: gu.dateParse(birthday[1]))
+	burials.sort(key=lambda burial: burial[1])
+
+
 	if not os.path.exists(dataFolder):
 		os.makedirs(dataFolder)
 
@@ -169,6 +195,14 @@ def main():
 	# Generate the details file
 	with open(detailsOutput,"w+", encoding="utf8") as f:
 		json.dump(details, f, **jsonStyling)
+
+	# Generate the birthdays file
+	with open(birthdayOutput, "w+", encoding="utf8") as f:
+		json.dump(birthdays, f, **jsonStyling)
+
+	# Generate the burials file
+	with open(burialOutput, "w+", encoding="utf8") as f:
+		json.dump(burials, f, **jsonStyling)
 
 if __name__ == "__main__":
 	main()

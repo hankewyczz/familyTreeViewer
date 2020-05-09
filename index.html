@@ -28,7 +28,7 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
         <link rel="stylesheet" type="text/css" href="resources/main.css">
 
-        <title>Родовід Тарнавських</title>
+        <title>Родовід</title>
     </head>
 
 
@@ -36,15 +36,18 @@
         <canvas id="canvas" width=1000 height=1000 tabindex="1"></canvas>
 
         <div id="navbar">
-            <div class="button circle-button" id="zoomin"><i class="fas fa-search-plus"></i></div>
-            <div class="button circle-button" id="zoomout"><i class="fas fa-search-minus"></i></div>
+            <div class="button" id="helpbutton">Help</div>
             <div class="button" id="indexbutton">Index</div>
-            <div class="button" id="helpbutton">Help</div><br>
+            <div class="button" id="burialbutton">Burials</div>
+            <div class="button" id="birthdaybutton">Birthdays</div><br>
 
             <div id="searchArea" class="search">
                 <input type="text" id="searchtext" class="searchTerm" autocomplete="off" placeholder="Пошук (Search)">
                 <div id="searchlist"></div>
             </div>
+            <div class="button circle-button" id="zoomin"><i class="fas fa-search-plus"></i></div>
+            <div class="button circle-button" id="zoomout"><i class="fas fa-search-minus"></i></div>
+            
             <br/>
             <div id="message"></div>
         </div>
@@ -58,10 +61,10 @@
         </div>
 
         <div id="helpDivHidden">
-            <div class="detailTitleDiv">
+            <div class="detailTitleDiv" id="detailTitleDiv">
                 <div class="detailTitle">Help</div>
             </div>
-            <div class="detailRowcontainer">
+            <div class="detailRowcontainer" id="detailRowcontainer">
                 <div class="detailRow" style="display: table; text-align: center; padding-bottom: 5px">
                     <h3 style="margin: 5px 0">General</h3>
                     <p class="helpText">This family tree viewer is web and mobile compatible. It works on most <strong>
@@ -113,9 +116,9 @@
                         Switch to spouse:&nbsp;&nbsp;<span class="kbd">Tab</span><br><br>
                     </p>
                 </div>
-                <div class="detailRow1" style="display: table; text-align: center">
+                <div id="aboutHelp" class="detailRow1" style="display: table; text-align: center">
                     <h3 style="margin: 5px 0">About</h3>
-                    <p class="helpText">Захар Ганкевич, 2020</p>
+                    <p class="helpText">Захар Ганкевич, 2020<br><br><span id="numPeople"></span></p>
                     <br>
                 </div>
                 
