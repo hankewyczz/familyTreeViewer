@@ -76,7 +76,7 @@ a {
     display:block;
     position:relative;
     height: 100%;
-    width: 99%;
+    width: 100%;
     margin-left: 0;
     padding-left: 0;
     overflow-x: hidden;
@@ -104,6 +104,7 @@ a {
 }
 
 .detailTitleDiv {
+    width: 110%; /* Gets rid of the weird scrollbar gap */
     background-color: #2D89EF;
     padding: 10px 30px 15px 10px;
 }
