@@ -43,5 +43,4 @@ This project is intended for relatively straight-forward family trees. It can ha
 
 ### Credits
 * The image viewer was based off of [img_box](https://github.com/krittanon-w/IMG-BOX)
-* The tree structure algorithm was helped by [this algorithm](https://rachel53461.wordpress.com/2014/04/20/algorithm-for-drawing-trees/)
-* The tree generation was inspired by [this code](https://github.com/jepst/treeViewer)
+* The tree structure algorithm was helped by [this algorithm](https://rachel53461.wordpress.com/2014/04/20/algorithm-for-drawing-trees/) and [this code](https://github.com/jepst/treeViewer)
