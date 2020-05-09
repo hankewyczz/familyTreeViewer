@@ -351,8 +351,8 @@ function View(data) {
 
             function dragAnim() {
                 // get new X, Y coordinates
-                elem.scrollx += elem.animEase * (elem.targetx - elem.scrollx);
-                elem.scrolly += elem.animEase * (elem.targety - elem.scrolly);
+                elem.scrollx += elem.animEase * 2 * (elem.targetx - elem.scrollx);
+                elem.scrolly += elem.animEase * 2 * (elem.targety - elem.scrolly);
 
                 // If not dragging + we're within 0.1 of the targetx and targety:
                 if ((!elem.dragging) && (Math.abs(elem.scrollx - elem.targetx) < 0.1) 
