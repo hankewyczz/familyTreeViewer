@@ -67,16 +67,16 @@ a {
     height: 50%;
     padding: 0;
     border: 3px solid #2D89EF;
-    background-color: #dadada;
+    background-color: #2D89EF;
 }
 
 
 #textinfo {
-    background-color:#fefefe;
+    background-color: #fefefe;
     display:block;
     position:relative;
     height: 100%;
-    width: 100%;
+    width: 99%;
     margin-left: 0;
     padding-left: 0;
     overflow-x: hidden;
@@ -89,8 +89,12 @@ a {
     background-color: #F5F5F5;
 }
 
+#textinfo::-webkit-scrollbar:hover {
+    cursor: pointer;
+}
+
 #textinfo::-webkit-scrollbar-thumb {
-    background-color: #999;
+    background-color: #aaa;
 }
 
 .detailTitle {
