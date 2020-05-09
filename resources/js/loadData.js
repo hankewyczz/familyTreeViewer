@@ -42,10 +42,10 @@ function getJsonData(address, callback, timeout=xmlRTimeout) {
 
 // Loads all the data we need
 function loadData(callback) {
-    var file = "../../data/structure.json";
-    var detailsFile = "../../data/details.json"; 
-    var burialsFile = "../../data/burials.json"; 
-    var birthdaysFile = "../../data/birthdays.json"; 
+    var file = "data/structure.json";
+    var detailsFile = "data/details.json"; 
+    var burialsFile = "data/burials.json"; 
+    var birthdaysFile = "data/birthdays.json"; 
 
     // Initialize data dict
     var data = {};
@@ -59,31 +59,35 @@ function loadData(callback) {
 
             map(function(p) { data["structure"][p["id"]] = p; },  
                 data["structure_raw"]);
-
+            console.log("Loaded structure.json");
+            loadDetails();
         }, xmlRTimeout);
     })(); // Execute immediately
 
     // Get details
-    (function() {
+    function loadDetails() {
         getJsonData(detailsFile, function(returnVal) { 
             data["details"] = returnVal;
-            callback(data);
+            console.log("Loaded details.json");
+            loadBurials();
         }, xmlRTimeout)
-    })();
+    }
 
     // Get burials
-    (function() {
+    function loadBurials() {
         getJsonData(burialsFile, function(returnVal) { 
             data["burials"] = returnVal;
-            callback(data);
+            console.log("Loaded burials.json");
+            loadBirthdays();
         }, xmlRTimeout)
-    })();
+    }
 
-// Get details
-    (function() {
+    // Get birthdays
+    function loadBirthdays() {
         getJsonData(birthdaysFile, function(returnVal) { 
             data["birthdays"] = returnVal;
+            console.log("Loaded birthdays.json");
             callback(data);
         }, xmlRTimeout)
-    })();
+    }
 }

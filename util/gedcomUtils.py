@@ -10,7 +10,7 @@ from dateutil import parser
 import datetime
 
 
-IMAGES_FOLDER = "../resources/photos/"
+IMAGES_FOLDER = "resources/photos/"
 
 
 #### GENERAL UTILITIES #####

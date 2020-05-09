@@ -118,86 +118,7 @@ function displaySurname(name) {
 function personSearch(data, view) {
     var rawStructure = data["structure_raw"];
 
-    document.getElementById("indexbutton").onclick = function(_) {
-    	// generate index
-        function makeIndex() {
-            var divContainer = document.createElement('div');
-            divContainer.className = "container";
-
-            var divRow = null;
-            var divSurnames = null;
-            var divNames = null;
-            var newRow = true;
-            var prevName = "";
-
-			// Handle linking to the person
-            function personLink(event) {
-                view.setFocus(event.currentTarget["link_person_id"]);
-            }
-
-        	// Handles a specific person
-            function handle(i) {
-                var newSurname = displaySurname(rawStructure[i]["name"]);
-                newRow = newSurname != prevName;
-
-                if (newRow) {
-                    divRow = document.createElement('div');
-                    var divClass = (styleNumber == 0) ? "detailRow" : "detailRow1";
-                    styleNumber = (styleNumber == 0) ? 1 : 0; // Swap
-                    divRow.className = divClass;
-
-                    var divSurnames = document.createElement('div');
-                    divSurnames.className = "rowDate";
-                    divSurnames.appendChild(document.createTextNode(newSurname));
-
-                    divNames = document.createElement('div');
-                    divNames.className = "rowContent";
-
-                    divRow.appendChild(divSurnames);
-                    divRow.appendChild(divNames);
-                    divContainer.appendChild(divRow);
-                }
-
-                var name = document.createElement('div');
-                var link = document.createElement("a");
-                link.style.cursor = "pointer";
-                var personName = displayName(rawStructure[i]["name"]);
-                prevName = newSurname;
-
-                link.appendChild(document.createTextNode(personName));
-                link["link_person_id"] = rawStructure[i]["id"];
-                link.addEventListener("click", personLink);
-                name.appendChild(link);
-                divNames.appendChild(name);
-            }
-
-            var styleNumber = 0;
-            for (var i = 0; i < rawStructure.length; i++) {
-            	handle(i);
-            }
-            return divContainer;
-        }
-
-        var names = document.createElement('div');
-        names.className ='detailTitleDiv';
-        var container = document.createElement('div');
-        container.appendChild(names);
-
-        var name = document.createElement('div'); 
-        name.className='detailTitle';
-        names.appendChild(name);
-        name.appendChild(document.createTextNode('Index/Індекс'));
-
-        var indexContent = document.createElement('div');
-        indexContent.appendChild(makeIndex());
-        container.appendChild(indexContent);
-
-        showInfoWindow({"text": container});
-    } 
-
-
-
-    function generateUtils(dataSrc) {
+    function generateUtils(dataSrc, titleName) {
         // generate index
         function makeIndex() {
             var divContainer = document.createElement('div');
@@ -264,7 +185,7 @@ function personSearch(data, view) {
         var name = document.createElement('div'); 
         name.className='detailTitle';
         names.appendChild(name);
-        name.appendChild(document.createTextNode('Index/Індекс'));
+        name.appendChild(document.createTextNode(titleName));
 
         var indexContent = document.createElement('div');
         indexContent.appendChild(makeIndex());
@@ -273,15 +194,29 @@ function personSearch(data, view) {
         showInfoWindow({"text": container});
     }
 
+    // Index button
+    document.getElementById("indexbutton").onclick = function(_) {
+        var namesArray = [];
+
+        // Generate the names array first
+        for (var j = 0; j < rawStructure.length; j++) {
+            var surname = displaySurname(rawStructure[j]["name"]);
+            var id = rawStructure[j]["id"];
+            namesArray.push([id, surname]);
+        }
+
+        generateUtils(namesArray, "Index/Індех");
+    } 
+
     // Birthdays button
     document.getElementById("birthdaybutton").onclick = function(_) {
-        generateUtils(data["birthdays"])
+        generateUtils(data["birthdays"], "Birthdays")
     } 
 
     
     // Burial button 
     document.getElementById("burialbutton").onclick = function(_) {
-        generateUtils(data["burials"])
+        generateUtils(data["burials"], "Burials")
     }
 
 
