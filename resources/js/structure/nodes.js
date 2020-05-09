@@ -246,9 +246,11 @@ function Node(_person, pDetails) {
 
                 if (pDetails["pics"].length > 0) {
                     // Icon image - we just use the first one
-                    loadImage(pDetails["pics"][0], function(returnImage) {
-                        canvasView.context.drawImage(returnImage, x, y, dim, dim);
-                    })
+                    var image = loadImage(pDetails["pics"][0]);
+
+                    if (image.height > 0 && image.width > 0) { // If already loaded, then we draw
+                        canvasView.context.drawImage(image, x, y, dim, dim);
+                    }
                     
                 }
                 else { // Default icon

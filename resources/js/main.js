@@ -1,11 +1,11 @@
 "use strict";
 
-var imageIcons = {}
-
-loadImage('resources/images/person.png', function(img) { imageIcons["defaultPerson"] = img });
-loadImage('resources/images/downarrow.png', function(img) { imageIcons["downArrow"] = img });
-loadImage('resources/images/uparrow.png', function(img) { imageIcons["upArrow"] = img });
-loadImage('resources/images/doublearrow.png', function(img) { imageIcons["doubleArrow"] = img });
+var imageIcons = {
+    defaultPerson: loadImage('resources/images/person.png'),
+    downArrow: loadImage('resources/images/downarrow.png'),
+    upArrow: loadImage('resources/images/uparrow.png'),
+    doubleArrow: loadImage('resources/images/doublearrow.png'),
+}
 
 
 

@@ -10,6 +10,8 @@ var generationLimit = 6;
 var mouseClickRadius = 70;
 var xmlRTimeout = 20000;
 
+var loadedImages = {};
+
 
 // Trims whitespace
 String.prototype.trim = function() {
@@ -52,12 +54,14 @@ function addUnique(value, lst) {
     lst.push(value);
 }
 
+
+
+
 // Loads an image
-function loadImage(source, callback) {
+function loadImage(source) {
     var image = new Image();
-    var loaded = false;
-    image.onload = function() { callback(image); }
     image.src = source;
+    return image
 }
 
 
