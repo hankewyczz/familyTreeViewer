@@ -53,10 +53,11 @@ function addUnique(value, lst) {
 }
 
 // Loads an image
-function loadImage(source) {
+function loadImage(source, callback) {
     var image = new Image();
+    var loaded = false;
+    image.onload = function() { callback(image); }
     image.src = source;
-    return image;
 }
 
 
