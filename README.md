@@ -5,10 +5,12 @@ It takes a [GEDCOM](https://www.familysearch.org/developers/docs/guides/gedcom) 
 # Usage
 The GEDCOM file is parsed using `makeData.py`, found under `utils`. The default file path is `familyTree.ged` - however, different filenames can be passed using `--file`.
 
-The Python script generates two JSON files, `structure.json` and `details.json`. 
+The Python script generates four JSON files, `structure.json`, `details.json`, `birthdays.json`, and `burials.json`.
 
 * `structure.json` contains structural data - parents, children, spouses, sex, etc.
 * `details.json` contains personal data - life events and pictures
+* `birthdays.json` contains all of the birthdays, sorted
+* `burials.json` contains all of the burials and their locations, sorted
 
 ## Viewing
 Once the data is parsed and generated, the family tree can now be viewed interactivly at `index.html`. All necessary resources are contained within the `resources` folder, excluding the fonts and FontAwesome (hosted by Google and Cloudflare, respectively).
