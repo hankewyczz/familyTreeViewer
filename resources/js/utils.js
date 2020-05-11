@@ -162,6 +162,11 @@ function personSearch(data, view) {
                 }
 
                 var name = document.createElement('div');
+
+                if (!newRow) {
+                    name.style.marginTop = "10px"; // Add a space between each name if not in a new row
+                }
+
                 var link = document.createElement("a");
                 link.style.cursor = "pointer";
                 var person = data["structure"][dataSrc[i][0]];

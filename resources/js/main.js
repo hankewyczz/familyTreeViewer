@@ -148,12 +148,13 @@ function getDetails(canvasView, data, curPerson) {
 
                     var parents = structure[curPerson.id]["parents"];
                     if (parents.length > 0) {
-                        birthInfo.appendChild(document.createTextNode(" до "));
+                        birthInfo.appendChild(document.createTextNode(" (Батьки: "));
                         birthInfo.appendChild(makePersonLink(structure[parents[0]].id));
 
                         if (parents.length > 1) {
                             birthInfo.appendChild(document.createTextNode(" і "));
                             birthInfo.appendChild(makePersonLink(structure[parents[1]].id));
+                            birthInfo.appendChild(document.createTextNode(")"));
                         }
                     }
 
