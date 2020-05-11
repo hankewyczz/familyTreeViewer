@@ -10,7 +10,33 @@ var generationLimit = 6;
 var mouseClickRadius = 70;
 var xmlRTimeout = 20000;
 
-var loadedImages = {};
+var currentLanguage = "UA";
+var languages = [
+    {
+        id: "UA", 
+        name : "УКР",
+        locatedIn: " в ",
+        born: {"M": "Народився", "F": "Народилася"},
+        parents: "Батьки",
+        and: " і ",
+    },
+    {
+        id: "EN", 
+        name: "ENG",
+        locatedIn: " in ",
+        born: {"M": "Born", "F": "Born"},
+        parents: "Parents",
+        and: " and ",
+    },
+];
+
+function getLang() {
+    for (var i = 0; i < languages.length; i++) {
+        if (languages[i]["id"] == currentLanguage) {
+            return languages[i];
+        }
+    }
+}
 
 
 // Trims whitespace
@@ -233,6 +259,28 @@ function personSearch(data, view) {
     // HELP BUTTON
     document.getElementById("helpbutton").onclick = function(_) {
     	showInfoWindow({"text": document.getElementById("helpDivHidden").cloneNode(true)});
+    }
+
+    // Change the languages
+    document.getElementById("languagebutton").onclick = function(_) {
+        // Gets the next language
+        for (var i = 0; i < languages.length; i++) {
+            if (languages[i]["id"] == currentLanguage) {
+                if (i + 1 < languages.length) {
+                    var newIndex = i + 1;
+                }
+                else {
+                    var newIndex = 0;
+                }
+            }
+        }
+        currentLanguage = languages[newIndex]["id"];
+
+        // Update the button
+        document.getElementById("languagebutton").innerHTML = languages[newIndex]["name"];
+
+        view.recreateTree(); // Redraw
+
     }
 
 

@@ -136,23 +136,25 @@ function getDetails(canvasView, data, curPerson) {
                 return personLink;
             }
 
-            
+            // Localizaiton
+            var langArray = getLang();
+
             switch (event[event.length - 1]) { // We take the letter indicating event type
                 case "B": // Birth
                     var birthInfo = document.createElement('span');
                     var birthDate = event[0] || "";
+
                     // If we have a birth location, we parse it properly
-                    var birthLocation = event[1] ? " в " + event[1] : "";
-                    var birthStr = {"M": "Народився", "F": "Народилася"}
-                    birthInfo.appendChild(document.createTextNode(birthStr[sex] + birthLocation));
+                    var birthLocation = event[1] ? langArray["locatedIn"] + event[1] : "";
+                    birthInfo.appendChild(document.createTextNode(langArray["born"][sex] + birthLocation));
 
                     var parents = structure[curPerson.id]["parents"];
                     if (parents.length > 0) {
-                        birthInfo.appendChild(document.createTextNode(" (Батьки: "));
+                        birthInfo.appendChild(document.createTextNode(" (" + langArray["parents"] + ": "));
                         birthInfo.appendChild(makePersonLink(structure[parents[0]].id));
 
                         if (parents.length > 1) {
-                            birthInfo.appendChild(document.createTextNode(" і "));
+                            birthInfo.appendChild(document.createTextNode(langArray["and"]));
                             birthInfo.appendChild(makePersonLink(structure[parents[1]].id));
                             birthInfo.appendChild(document.createTextNode(")"));
                         }

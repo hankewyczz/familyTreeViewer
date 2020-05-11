@@ -60,6 +60,7 @@ function makeNodeText(person) {
 
 // Generates a node
 function Node(_person, pDetails) {
+    
     var text = makeNodeText(_person); // Generates the text for this node
     var textDimensions = null;
     var imageScaling = scale;
