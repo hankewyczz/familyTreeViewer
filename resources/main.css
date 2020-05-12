@@ -104,7 +104,7 @@ a {
 }
 
 .detailTitleDiv {
-    width: 110%; /* Gets rid of the weird scrollbar gap */
+    width: 95%; /* Gets rid of the weird scrollbar gap */
     background-color: #2D89EF;
     padding: 10px 30px 15px 10px;
 }

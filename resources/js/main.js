@@ -150,7 +150,8 @@ function getDetails(canvasView, data, curPerson) {
 
                     var parents = structure[curPerson.id]["parents"];
                     if (parents.length > 0) {
-                        birthInfo.appendChild(document.createTextNode(" (" + langArray["parents"] + ": "));
+                        birthInfo.appendChild(document.createElement("br"));
+                        birthInfo.appendChild(document.createTextNode("(" + langArray["parents"] + ": "));
                         birthInfo.appendChild(makePersonLink(structure[parents[0]].id));
 
                         if (parents.length > 1) {
@@ -164,43 +165,40 @@ function getDetails(canvasView, data, curPerson) {
                     break;
 
                 case "D": // Death
-                    var deathLocation = event[1] ? " в " + event[1] : "";
+                    var deathLocation = event[1] ? langArray["locatedIn"] + event[1] : "";
                     var deathType = event[2] ? " (" + event[2] + ")" : "";
                     var deathDate = event[0] || "";
 
-                    var deathStr = {"M": "Помер", "F": "Померла"}
-                    field(deathDate, deathStr[sex] + deathLocation + deathType);
+                    field(deathDate, langArray["died"][sex] + deathLocation + deathType);
                     break;
 
                 case "BUR": // Burial data
                     var burialDate = event[0] || "";
-                    var burialLocation = event[1] ? " в " + event[1] : "";
+                    var burialLocation = event[1] ? langArray["locatedIn"] + event[1] : "";
                     var burialType = event[2] ? " (" + event[2] + ")" : "";
                     
-                    var burialStr = {"M": "Похований", "F": "Похована"}
-                    field(burialDate, burialStr[sex] + burialLocation + burialType);
+                    field(burialDate, langArray["buried"][sex] + burialLocation + burialType);
                     break;
 
                 case "OCC": // Occupation
                     var occupationType = event[1] ? " " + event[1] : "";
                     var occupationDate = event[0] || "";
 
-                    field(occupationDate,"Праця:" + occupationType);
+                    field(occupationDate, langArray["occupation"] + ":" + occupationType);
                     break;
 
                 case "M": // Marriage
-                    var marriageLocation = event[2] ? " в " + event[2] : "";
+                    var marriageLocation = event[2] ? langArray["locatedIn"] + event[2] : "";
                     var marriageLink = makePersonLink(event[1]);
                     
-                    var marriageStr = {"M": "Одружився з ", "F": "Вийшла за заміж з "}
-                    field(event[0], relationship([marriageStr[sex], marriageLink, marriageLocation]));
+                    field(event[0], relationship([langArray["married"][sex], marriageLink, marriageLocation]));
                     break;
 
                 case "DIV": // Divorce
-                    var divorceLocation = event[2] ? " в " + event[2] : "";
+                    var divorceLocation = event[2] ? langArray["locatedIn"] + event[2] : "";
                     var divorceLink = makePersonLink(event[1]);
                     
-                    field(event[0], relationship(["Divorced ", divorceLink, divorceLocation]));
+                    field(event[0], relationship([langArray["divorced"], divorceLink, divorceLocation]));
                     break;
 
                 default: // Catch case

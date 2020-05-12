@@ -18,7 +18,8 @@ function parseName(names) {
 function parseDatePlace(date) {
     var str = date[0];
     if (date[1]) {
-        str += ", в " + date[1];
+        var langArray = getLang();
+        str += "," + langArray["locatedIn"] + date[1];
     }
     return str.trim();
 }
@@ -28,12 +29,13 @@ function parseBirthDeathDate(person, result) {
     var sex = person["sex"].toUpperCase();
     var birthStr = parseDatePlace(person["birth"]);
     var deathStr = parseDatePlace(person["death"]);
+    var langArray = getLang();
 
     if (birthStr) {
-        result = result.concat([detailFont, "\n" + {"M": "Народився", "F": "Народилася"}[sex] + " " + birthStr]);
+        result = result.concat([detailFont, "\n" + langArray["born"][sex] + " " + birthStr]);
     }
     if (deathStr) {
-        result = result.concat([detailFont, "\n" + {"M": "Помер", "F": "Померла"}[sex] + " " + deathStr]);
+        result = result.concat([detailFont, "\n" + langArray["died"][sex] + " " + deathStr]);
     }
 
     return result;
@@ -60,7 +62,7 @@ function makeNodeText(person) {
 
 // Generates a node
 function Node(_person, pDetails) {
-    
+
     var text = makeNodeText(_person); // Generates the text for this node
     var textDimensions = null;
     var imageScaling = scale;
