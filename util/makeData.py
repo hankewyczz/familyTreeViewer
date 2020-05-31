@@ -122,20 +122,6 @@ def main():
 		personObj = gu.Person(individual, families, objects, notes)
 
 
-		def testCases(obj, former):
-			if obj != former:
-				print("{0} neq {1}".format(obj, former))
-
-		testCases(personObj.id, gu.getID(individual))
-		testCases(personObj.name[0], gu.getTag(individual, gedcom.tags.GEDCOM_TAG_NAME))
-		testCases(personObj.name, gu.getTags(individual, gedcom.tags.GEDCOM_TAG_NAME))
-		testCases(personObj.sex, gu.getTag(individual, gedcom.tags.GEDCOM_TAG_SEX).lower())
-		testCases(personObj.parents, gu.getParents(individual, families))
-		testCases(personObj.children, gu.getChildren(individual, families))
-		testCases(personObj.spouses, gu.getSpouses(individual, families))
-		testCases(personObj.birthData, gu.getBirthData(individual))
-		testCases(personObj.deathData, gu.getDeathData(individual))
-
 
 		person = {
 			"id": personObj.id,
@@ -150,18 +136,6 @@ def main():
 		
 		if initialPerson == None:
 			initialPerson = person['id']
-
-
-		testCases(personObj.fullBirthData, gu.getFullBirthData(individual))
-		testCases(personObj.pics, gu.getPics(individual, objects))
-		testCases(personObj.name, gu.getTags(individual, gedcom.tags.GEDCOM_TAG_NAME))
-		testCases(personObj.notes, gu.getNotes(individual, notes))
-		testCases(personObj.fullDeathData, gu.getFullDeathData(individual))
-
-		testCases(personObj.marriageData, gu.getMarriageData(individual, families))
-		testCases(personObj.divorceData, gu.getDivorceData(individual, families))
-		testCases(personObj.occupationData, gu.getOccupationData(individual))
-		testCases(personObj.burialData, gu.getBurialData(individual))
 
 		detail = {
 			"id": personObj.id,
