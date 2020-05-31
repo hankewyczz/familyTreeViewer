@@ -872,7 +872,12 @@ function main() {
         var canvasView = View(data);
         personSearch(data, canvasView);
 
-        var hashParsed = parseHash("@I0000@");
+        var initialPerson = "@I0000@";
+        if (!(initialPerson in data["structure"])) {
+            initialPerson = Object.keys(data["structure"])[0];
+        }
+
+        var hashParsed = parseHash(initialPerson);
         canvasView.init(hashParsed[1]); // Initialize with the initial user
 
         // If the hash requires help:
