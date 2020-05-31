@@ -73,8 +73,8 @@ function getDetails(canvasView, data, curPerson) {
                 var text = document.createElement('div');
                 text.style.fontSize = "85%";
                 text.style.lineHeight = "120%";
-                text.style.textIndent = "10px";
-                text.style.paddingLeft = "5px";
+                text.style.padding = "5px";
+                text.style.whiteSpace = "pre-wrap";
 
                 text.appendChild(document.createTextNode(note));
                 eventDiv.appendChild(text);

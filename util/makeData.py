@@ -119,14 +119,14 @@ def main():
 
 		# Some sanity checks, just to make sure that the names are valid
 		surname = re.search('\/([^\/)]+)', personObj.name[0]).group(1)
-		firstNames = [name for name in personObj.name[0].split() if not name.endswith("/")]
 
 		if personObj.sex.upper() == "F":
 			# Surname check ("ий")
 			if surname.endswith("ий"):
 				print("{0} should end in 'а', not 'ий'".format(personObj.name[0]))
 		elif personObj.sex.upper() == "M":
-			pass
+			if surname.endswith("ська"):
+				print("{0} should end in 'ий', not 'а'".format(personObj.name[0]))
 
 
 		person = {
@@ -148,20 +148,19 @@ def main():
 			"pics": personObj.pics,
 			"names": personObj.name,
 			"notes": personObj.notes,
-			"events": gu.sortByDate(
-				# Birth event
-				personObj.fullBirthData +
+			"events": personObj.fullBirthData + # Birth event
+			gu.sortByDate(
 				# Marriage events
 				personObj.marriageData + 
 				# Divorce events
 				personObj.divorceData +
 				# Occupation events
-				personObj.occupationData + 
-				# Death event
-				personObj.fullDeathData +
-				# Burial data
-				personObj.burialData
-			),
+				personObj.occupationData) + 
+			# Death event
+			personObj.fullDeathData +
+			# Burial data
+			personObj.burialData
+			,
 		}
 
 

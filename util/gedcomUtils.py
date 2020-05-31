@@ -59,22 +59,7 @@ def cleanDate(x):
 def dateKey(y):
 	# If we're not given a date...
 	if y[0] == "":
-		# If it's birth
-		if y[-1] == "B":
-			# Make it the min date possible
-			# Since we only use this for 
-			return datetime.datetime(datetime.MINYEAR,1,1)
-		elif y[-1] == "OCC":
-			return datetime.datetime(datetime.MAXYEAR,1,1)
-		# if it's death
-		elif y[-1] == "D":
-			# Make it max date possible
-			return datetime.datetime(datetime.MAXYEAR,2,2)
-		elif y[-1] == "BUR":
-			# We try to one-up the death data and get a HIGHER max date
-			return datetime.datetime(datetime.MAXYEAR,3,3)
-		else:
-			raise ValueError("No valid date given ({0})".format(y))
+		return datetime.datetime(datetime.MAXYEAR,1,1)
 	# If we have a year, we just clean it and parse it (get num value)
 	return dateParse(cleanDate(y[0]))
 
@@ -300,11 +285,12 @@ class Person():
 		# gets the pictures from all of the objects
 		result = []
 		for note in rawNotes:
-			parsedNote = note.get_value()
+			parsedNote = "\t{0}".format(note.get_value())
 
 			for childNote in note.get_child_elements():
 				if childNote.get_tag() == "CONT" or childNote.get_tag() == "CONC":
-					parsedNote += childNote.get_value()
+					val = childNote.get_value()
+					parsedNote += val if val != "" else "\n\n\t"
 
 			result.append(parsedNote)
 		self.notes = result
