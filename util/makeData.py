@@ -119,7 +119,7 @@ def main():
 	# Loop over all people
 
 	for individual in individuals:
-		personObj = gu.Person(individual, families)
+		personObj = gu.Person(individual, families, objects, notes)
 
 
 		def testCases(obj, former):
@@ -151,27 +151,36 @@ def main():
 		if initialPerson == None:
 			initialPerson = person['id']
 
-		birthData = gu.getFullBirthData(individual)
-		burialData = gu.getBurialData(individual)
+
+		testCases(personObj.fullBirthData, gu.getFullBirthData(individual))
+		testCases(personObj.pics, gu.getPics(individual, objects))
+		testCases(personObj.name, gu.getTags(individual, gedcom.tags.GEDCOM_TAG_NAME))
+		testCases(personObj.notes, gu.getNotes(individual, notes))
+		testCases(personObj.fullDeathData, gu.getFullDeathData(individual))
+
+		testCases(personObj.marriageData, gu.getMarriageData(individual, families))
+		testCases(personObj.divorceData, gu.getDivorceData(individual, families))
+		testCases(personObj.occupationData, gu.getOccupationData(individual))
+		testCases(personObj.burialData, gu.getBurialData(individual))
 
 		detail = {
-			"id": person["id"],
-			"pics": gu.getPics(individual, objects),
-			"names": gu.getTags(individual, gedcom.tags.GEDCOM_TAG_NAME),
-			"notes": gu.getNotes(individual, notes),
+			"id": personObj.id,
+			"pics": personObj.pics,
+			"names": personObj.name,
+			"notes": personObj.notes,
 			"events": gu.sortByDate(
 				# Birth event
-				birthData +
-				# Death event
-				gu.getFullDeathData(individual) +
+				personObj.fullBirthData +
 				# Marriage events
-				gu.getMarriageData(individual, families) + 
+				personObj.marriageData + 
 				# Divorce events
-				gu.getDivorceData(individual, families) +
+				personObj.divorceData +
 				# Occupation events
-				gu.getOccupationData(individual) + 
+				personObj.occupationData + 
+				# Death event
+				personObj.fullDeathData +
 				# Burial data
-				burialData
+				personObj.burialData
 			),
 		}
 
@@ -181,6 +190,7 @@ def main():
 		details[person["id"]] = detail
 
 		# If birth data exists, and we get rid of the wrapper list, and we have a proper date
+		birthData = personObj.fullBirthData
 		if birthData and birthData[0] and birthData[0][0]:
 			date = gu.stripBirthData(birthData[0][0])
 
@@ -188,6 +198,7 @@ def main():
 				birthday = [person["id"], date]
 				birthdays.append(birthday)
 
+		burialData = personObj.burialData
 		if burialData and burialData[0] and burialData[0][1]:
 			burialPlace = burialData[0][1]
 

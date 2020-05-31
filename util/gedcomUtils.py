@@ -406,18 +406,31 @@ def getNotes(individual, notes):
 
 # Person object
 class Person():
-	def __init__(self, individual, families):
+	def __init__(self, individual, families, objects, notes):
 		self.indiv = individual
 		self.getId()
 		self.getName()
 		self.getSex()
 		self.getBirthData()
+		self.getFullBirthData()
 		self.getDeathData()
+		self.getFullDeathData()
+		self.getOccupationData()
+		self.getBurialData()
 
 		# Family
+		self.getSpousalFamilies(families)
 		self.getParents(families)
 		self.getSpouses(families)
 		self.getChildren(families)
+		self.getMarriageData(families)
+		self.getDivorceData(families)
+
+		# Objects
+		self.getPics(objects)
+
+		# Notes
+		self.getNotes(notes)
 
 	
 	# Gets the given tag
@@ -465,17 +478,20 @@ class Person():
 		sFamilies = self.getTags(self.indiv, "FAMS")
 		# Converts them into objects
 		sFamilies = [getObj(family, families) for family in sFamilies]
-		return sFamilies
+		self.sFamilies = sFamilies
+
+	# gets the spouse of this family
+	def getSpouse(self, family):
+		spouse = [self.getTag(family, "HUSB"), self.getTag(family, "WIFE")]
+		spouse = cleanNull(spouse) # Removes any null values
+		return exclude(self.id, spouse)[0] # Returns the one that isn't this person
 
 	# Gets this person's spouses
 	def getSpouses(self, families):
-		sFamilies = self.getSpousalFamilies(families)
 		spouseList = []
 		try:
-			for family in sFamilies:
-				spouse = [self.getTag(family, "HUSB"), self.getTag(family, "WIFE")]
-				spouse = cleanNull(spouse) # Removes any null values
-				spouseList.append(exclude(self.id, spouse)[0]) # Returns the one that isn't this person
+			for family in self.sFamilies:
+				spouseList.append(self.getSpouse(family)) # Returns the one that isn't this person
 		except:
 			pass
 			# We don't do anything here, since the spouseList is already set to []
@@ -484,10 +500,9 @@ class Person():
 
 	# Gets the children of this person (if any)
 	def getChildren(self, families):
-		sFamilies = self.getSpousalFamilies(families)
 		childList = []
 		try:
-			for family in sFamilies:
+			for family in self.sFamilies:
 				childList.extend(self.getTags(family, "CHIL"))
 		except:
 			pass # Since the list is [], exactly what we want to return
@@ -503,6 +518,13 @@ class Person():
 		birthDate = str(birthDate) if birthDate != -1 else ''
 		self.birthData = [birthDate, birthPlace]
 
+	def getFullBirthData(self):
+		d, l, x = self.indiv.get_birth_data()
+		if all(x == '' for x in [d, l]):
+			self.fullBirthData =  []
+		else:
+			self.fullBirthData = [[d, l, "B"]]
+
 	# Gets simple death data
 	def getDeathData(self):
 		deathPlace = self.indiv.get_death_data()[1]
@@ -511,4 +533,140 @@ class Person():
 		deathDate = self.indiv.get_death_year()
 		deathDate = str(deathDate) if deathDate != -1 else ''
 		self.deathData = [deathDate, deathPlace]
+
+	# Gets the full death data
+	def getFullDeathData(self):
+		date, place, dType = "", "", ""
+
+		for child in self.indiv.get_child_elements():
+			if child.get_tag() == "DEAT":
+				for childOfChild in child.get_child_elements():
+					if childOfChild.get_tag() == "DATE":
+						date = childOfChild.get_value()
+					if childOfChild.get_tag() == "PLAC":
+						place = childOfChild.get_value()
+					if childOfChild.get_tag() == "TYPE":
+						dType = childOfChild.get_value()
+
+		if all(x == '' for x in [date, place, dType]):
+			self.fullDeathData = []
+		else:
+			self.fullDeathData = [[date, place, dType, "D"]]
+
+
+	# gets pictures from this person
+	def getPics(self, objects):
+		# Gets all the objects for this given person
+		objs = [getObj(obj, objects) for obj in self.getTags(self.indiv, "OBJE")]
+		# gets the pictures from all of the objects
+		pics = []
+		for obj in objs:
+			pic = self.getTag(obj, "FILE")
+			pic = parsePictureFilename(pic)
+			pics.append(pic)
+		self.pics = pics
+
+	# Gets this person's notes
+	def getNotes(self, notes):
+		# Gets all the objects for this given person
+		rawNotes = [getObj(note, notes) for note in self.getTags(self.indiv, "NOTE")]
+		# gets the pictures from all of the objects
+		result = []
+		for note in rawNotes:
+			parsedNote = note.get_value()
+
+			for childNote in note.get_child_elements():
+				if childNote.get_tag() == "CONT" or childNote.get_tag() == "CONC":
+					parsedNote += childNote.get_value()
+
+			result.append(parsedNote)
+		self.notes = result
+
+
+
+	# Abstract function for divorce and marriage data
+	def getMDData(self, families, type):
+		events = []
+		tag = {"M": "MARR", "DIV": "DIV"}[type.upper()]
+
+		for family in self.sFamilies:
+			date, spouse, place = "", "", ""
+
+			for child in family.get_child_elements():
+				if child.get_tag() == tag:
+					for sub in child.get_child_elements():
+						if sub.get_tag() == "DATE":
+							date = sub.get_value()
+						elif sub.get_tag() == "PLAC":
+							place = sub.get_value()
+
+			if all(x == "" for x in [date, place]):
+				pass
+			else:
+				events.append([date, self.getSpouse(family), place, type.upper()]) 
+		return events
+
+	def getMarriageData(self, families):
+		self.marriageData = self.getMDData(families, "M")
+
+	def getDivorceData(self, families):
+		self.divorceData = self.getMDData(families, "DIV")
+
+
+	# Gets occupation data
+	def getOccupationData(self):
+		occupations = []
+		occs = self.getTags(self.indiv, "OCCU", value=False)
+
+		for occ in occs:
+			date = ""
+			value = occ.get_value()
+			inValue = True
+			for sub in occ.get_child_elements():
+				if inValue and sub.get_tag() in ["CONC", "CONT"]:
+					value += sub.get_value()
+					if sub.get_tag() == "CONC":
+						inValue = False
+				else:
+					inValue = False
+
+				if sub.get_tag() == "DATE":
+					date = sub.get_value()
+			occupations.append([date, value, "OCC"])
+
+		self.occupationData = occupations
+
+
+	# gets burial data
+	def getBurialData(self):
+		date, place, bType = "", "", ""
+		inPlace, inType = False, False
+
+		for child in self.indiv.get_child_elements():
+			if child.get_tag() == "BURI":
+				for childOfChild in child.get_child_elements():
+					tag = childOfChild.get_tag()
+					if tag == "DATE":
+						date = childOfChild.get_value()
+
+					if tag == "PLAC" or inPlace:
+						place = childOfChild.get_value()
+
+						for sub in childOfChild.get_child_elements():
+							bType += sub.get_value()
+
+					if tag == "TYPE":
+						bType = childOfChild.get_value()
+
+						for sub in childOfChild.get_child_elements():
+							bType += sub.get_value()
+
+		if all(x == '' for x in [date, place, bType]):
+			self.burialData = []
+		else:
+			self.burialData = [[date, place, bType, "BUR"]]
+
+
+
+
 
