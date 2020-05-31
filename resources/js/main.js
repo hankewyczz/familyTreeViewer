@@ -151,8 +151,7 @@ function getDetails(canvasView, data, curPerson) {
 
                     var parents = structure[curPerson.id]["parents"];
                     if (parents.length > 0) {
-                        birthInfo.appendChild(document.createElement("br"));
-                        birthInfo.appendChild(document.createTextNode("(" + langArray["parents"] + ": "));
+                        birthInfo.appendChild(document.createTextNode(" (" + langArray["parents"] + ": "));
                         birthInfo.appendChild(makePersonLink(structure[parents[0]].id));
 
                         if (parents.length > 1) {
@@ -170,7 +169,16 @@ function getDetails(canvasView, data, curPerson) {
                     var deathType = event[2] ? " (" + event[2] + ")" : "";
                     var deathDate = event[0] || "";
 
-                    field(deathDate, langArray["died"][sex] + deathLocation + deathType);
+                    var ageAtDeath = "";
+                    if ((birthDate != "") && (deathDate != "")) {
+                        var dd = new Date(deathDate);
+                        var bd = new Date(birthDate);
+                        var ageAtDeathInt = Math.floor((dd - bd) / (1000*60*60*24*365));
+                        // MS * Secs * Mins * Hours * Days
+                        ageAtDeath = " (" + ageAtDeathInt.toString() + " " + langArray["yearsOld"] + ")";
+                    }
+
+                    field(deathDate, langArray["died"][sex] + deathLocation + deathType + ageAtDeath);
                     break;
 
                 case "BUR": // Burial data

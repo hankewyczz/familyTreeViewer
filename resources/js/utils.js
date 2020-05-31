@@ -24,6 +24,7 @@ var languages = [
         occupation: "Праця",
         married: {"M": "Одружився з ", "F": "Вийшла за заміж з "},
         divorced: "Розлучились ",
+        yearsOld: "років",
     },
     {
         id: "EN", 
@@ -37,6 +38,7 @@ var languages = [
         occupation: "Occupation",
         married: {"M": "Married ", "F": "Married "},
         divorced: "Divorced ",
+        yearsOld: "years old"
     },
 ];
 
