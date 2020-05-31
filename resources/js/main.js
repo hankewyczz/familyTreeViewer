@@ -5,6 +5,7 @@ var imageIcons = {
     downArrow: loadImage('resources/images/downarrow.png'),
     upArrow: loadImage('resources/images/uparrow.png'),
     doubleArrow: loadImage('resources/images/doublearrow.png'),
+    notes: loadImage('resources/images/notes.png'),
 }
 
 

@@ -42,10 +42,15 @@ function getJsonData(address, callback, timeout=xmlRTimeout) {
 
 // Loads all the data we need
 function loadData(callback) {
-    var file = "data/structure.json";
-    var detailsFile = "data/details.json"; 
-    var burialsFile = "data/burials.json"; 
-    var birthdaysFile = "data/birthdays.json"; 
+    /* We append this every time to ensure that the JSON files aren't kept in the cache.
+    Fixes an issue where, for some reason, JSON files wouldn't reflect an update.
+    For example, they'd call a person which no longer existed (since only some of the files would
+    update?, or not reflect changes). */
+    var rand = Math.random().toString(36).substr(2, 5);
+    var file = "data/structure.json?" + rand;
+    var detailsFile = "data/details.json?" + rand; 
+    var burialsFile = "data/burials.json?" + rand; 
+    var birthdaysFile = "data/birthdays.json?" + rand; 
 
     // Initialize data dict
     var data = {};

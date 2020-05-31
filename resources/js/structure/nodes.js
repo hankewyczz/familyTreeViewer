@@ -256,6 +256,10 @@ function Node(_person, pDetails) {
                     }
                     
                 }
+                else if (pDetails["notes"].length > 0) {
+                    /* If we have any notes and NO custom image, denote it with the notes icon */
+                    canvasView.context.drawImage(imageIcons.notes, x, y, dim, dim);
+                }
                 else { // Default icon
                     canvasView.context.drawImage(imageIcons.defaultPerson, x, y, dim, dim);
                 }

@@ -64,13 +64,15 @@ def dateKey(y):
 			# Make it the min date possible
 			# Since we only use this for 
 			return datetime.datetime(datetime.MINYEAR,1,1)
+		elif y[-1] == "OCC":
+			return datetime.datetime(datetime.MAXYEAR,1,1)
 		# if it's death
 		elif y[-1] == "D":
 			# Make it max date possible
-			return datetime.datetime(datetime.MAXYEAR,1,1)
+			return datetime.datetime(datetime.MAXYEAR,2,2)
 		elif y[-1] == "BUR":
 			# We try to one-up the death data and get a HIGHER max date
-			return datetime.datetime(datetime.MAXYEAR,2,2)
+			return datetime.datetime(datetime.MAXYEAR,3,3)
 		else:
 			raise ValueError("No valid date given ({0})".format(y))
 	# If we have a year, we just clean it and parse it (get num value)
