@@ -402,3 +402,113 @@ def getNotes(individual, notes):
 
 		result.append(parsedNote)
 	return result
+
+
+# Person object
+class Person():
+	def __init__(self, individual, families):
+		self.indiv = individual
+		self.getId()
+		self.getName()
+		self.getSex()
+		self.getBirthData()
+		self.getDeathData()
+
+		# Family
+		self.getParents(families)
+		self.getSpouses(families)
+		self.getChildren(families)
+
+	
+	# Gets the given tag
+	def getTag(self, element, tag):
+		return self.getTags(element, tag)[0]
+
+	# Gets the given tags
+	def getTags(self, element, tag, value=True):
+		array = []
+		for child in element.get_child_elements():
+			if child.get_tag() == tag:
+				if value:
+					array.append(child.get_value())
+				else:
+					array.append(child)
+		return array
+
+	# Gets the ID of this person
+	def getId(self):
+		self.id = self.indiv.get_pointer()
+
+	# Gets the name of this person
+	def getName(self):
+		self.name = self.getTags(self.indiv, "NAME")
+	
+	# Gets the sex of this person
+	def getSex(self):
+		self.sex = self.getTag(self.indiv, "SEX")[0].lower()
+
+	# Gets this person's parents (if any)
+	def getParents(self, families):
+		try:
+			family = getObj(self.getTag(self.indiv, "FAMC"), families) # Get the family object
+			# Since we examine the family in which this person is a child in,
+			# we grab the husband and wife (as opposed to father/mother)
+			father = self.getTag(family, "HUSB")
+			mother = getTag(family, "WIFE")
+
+			self.parents = cleanNull([father, mother]) # Strip any null values
+		except:
+			self.parents = []
+
+	# Gets all the families in which this person is a spouse
+	def getSpousalFamilies(self, families):
+		sFamilies = self.getTags(self.indiv, "FAMS")
+		# Converts them into objects
+		sFamilies = [getObj(family, families) for family in sFamilies]
+		return sFamilies
+
+	# Gets this person's spouses
+	def getSpouses(self, families):
+		sFamilies = self.getSpousalFamilies(families)
+		spouseList = []
+		try:
+			for family in sFamilies:
+				spouse = [self.getTag(family, "HUSB"), self.getTag(family, "WIFE")]
+				spouse = cleanNull(spouse) # Removes any null values
+				spouseList.append(exclude(self.id, spouse)[0]) # Returns the one that isn't this person
+		except:
+			pass
+			# We don't do anything here, since the spouseList is already set to []
+			# Conviniently, this is what we want to return
+		self.spouses = spouseList
+
+	# Gets the children of this person (if any)
+	def getChildren(self, families):
+		sFamilies = self.getSpousalFamilies(families)
+		childList = []
+		try:
+			for family in sFamilies:
+				childList.extend(self.getTags(family, "CHIL"))
+		except:
+			pass # Since the list is [], exactly what we want to return
+
+		self.children = childList
+
+	# Gets the simple birth data (date and place)
+	def getBirthData(self):
+		birthPlace = self.indiv.get_birth_data()[1]
+		birthPlace = birthPlace.split(",")[0]
+
+		birthDate = self.indiv.get_birth_year()
+		birthDate = str(birthDate) if birthDate != -1 else ''
+		self.birthData = [birthDate, birthPlace]
+
+	# Gets simple death data
+	def getDeathData(self):
+		deathPlace = self.indiv.get_death_data()[1]
+		deathPlace = deathPlace.split(",")[0]
+
+		deathDate = self.indiv.get_death_year()
+		deathDate = str(deathDate) if deathDate != -1 else ''
+		self.deathData = [deathDate, deathPlace]
+

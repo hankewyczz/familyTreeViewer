@@ -15,7 +15,7 @@ from gedcom.parser import Parser
 def ukrSort(part):
 	'''
 	We do this due to how the Ukrainian language is represented in Unicode. The basic Cyrillic alphabet
-	covers the range of U+0400–U+04FF. However, the letter "I" is not part of the basic Cyrillic alphabet. 
+	covers the range of U+0410–U+04FF. However, the letter "I" is not part of the basic Cyrillic alphabet. 
 	It's part of the Cyrillic extensions (U+0406). Therefore, when trying to alphabetize, the I becomes the first
 	letter in this alphabet. 
 
@@ -24,7 +24,7 @@ def ukrSort(part):
 	any starting with "Ї" (the next letter). 
 
 	It's not perfect, but seeing as very few words begin with "И" to begin with, and none (that I know of) have a
-	"ияя" letter combination, it does the job well. 
+	"ия" letter combination (let alone "ияя"), it does the job well. 
 
 	Since we just use this function to determine the keys, it doesn't affect the name anywhere else, which is perfect
 
@@ -61,20 +61,20 @@ def sortByNames(x):
 	return surnames + nonSurnames
 
 
-def isNote(element):
-	return element.get_tag() == "NOTE"
+def isInstanceOf(element, tag):
+	return element.get_tag() == tag
 
 
 def generateArrays(gedcomParser):
 	individuals, objects, families, notes = [], [], [], []
 	for element in gedcomParser.get_root_child_elements():
-		if isinstance(element, IndividualElement):
+		if isInstanceOf(element, "INDI"):
 			individuals.append(element)
-		elif isinstance(element, ObjectElement):
+		elif isInstanceOf(element, "OBJE"):
 			objects.append(element)
-		elif isinstance(element, FamilyElement):
+		elif isInstanceOf(element, "FAM"):
 			families.append(element)
-		elif isNote(element):
+		elif isInstanceOf(element, "NOTE"):
 			notes.append(element)
 
 	return individuals, objects, families, notes
@@ -117,16 +117,35 @@ def main():
 	# No initial person at first
 	initialPerson = None
 	# Loop over all people
+
 	for individual in individuals:
+		personObj = gu.Person(individual, families)
+
+
+		def testCases(obj, former):
+			if obj != former:
+				print("{0} neq {1}".format(obj, former))
+
+		testCases(personObj.id, gu.getID(individual))
+		testCases(personObj.name[0], gu.getTag(individual, gedcom.tags.GEDCOM_TAG_NAME))
+		testCases(personObj.name, gu.getTags(individual, gedcom.tags.GEDCOM_TAG_NAME))
+		testCases(personObj.sex, gu.getTag(individual, gedcom.tags.GEDCOM_TAG_SEX).lower())
+		testCases(personObj.parents, gu.getParents(individual, families))
+		testCases(personObj.children, gu.getChildren(individual, families))
+		testCases(personObj.spouses, gu.getSpouses(individual, families))
+		testCases(personObj.birthData, gu.getBirthData(individual))
+		testCases(personObj.deathData, gu.getDeathData(individual))
+
+
 		person = {
-			"id": gu.getID(individual),
-			"name": gu.getTag(individual, gedcom.tags.GEDCOM_TAG_NAME),
-			"sex": gu.getTag(individual, gedcom.tags.GEDCOM_TAG_SEX).lower(),
-			"parents": gu.getParents(individual, families),
-			"spouses": gu.getSpouses(individual, families),
-			"children": gu.getChildren(individual, families),
-			"birth": gu.getBirthData(individual),
-			"death": gu.getDeathData(individual),
+			"id": personObj.id,
+			"name": personObj.name[0],
+			"sex": personObj.sex,
+			"parents": personObj.parents,
+			"spouses": personObj.spouses,
+			"children": personObj.children,
+			"birth": personObj.birthData,
+			"death": personObj.deathData,
 		}
 		
 		if initialPerson == None:
@@ -156,6 +175,7 @@ def main():
 			),
 		}
 
+
 		structure.append(person)
 
 		details[person["id"]] = detail
@@ -174,7 +194,6 @@ def main():
 			if burialData != "":
 				burial = [person["id"], burialPlace]
 				burials.append(burial)
-
 
 
 	jsonStyling = {"sort_keys": True, "indent": 4, "separators":(',', ': ')}
