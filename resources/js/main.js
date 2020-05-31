@@ -49,6 +49,9 @@ function getDetails(canvasView, data, curPerson) {
         // Initialize the data container
         var eventsDivContainer = document.createElement('div');
         eventsDivContainer.className = "detailRowcontainer";
+        eventsDivContainer.style.display = "table";
+        eventsDivContainer.style.width = "100%";
+
 
         var rowGroupContainer = document.createElement('div');
         rowGroupContainer.style.display = "table-row-group";
@@ -170,7 +173,7 @@ function getDetails(canvasView, data, curPerson) {
                     var deathDate = event[0] || "";
 
                     var ageAtDeath = "";
-                    if ((birthDate != "") && (deathDate != "")) {
+                    if ((birthDate != "") && (birthDate != null) && (deathDate != "")) {
                         var dd = new Date(deathDate);
                         var bd = new Date(birthDate);
                         var ageAtDeathInt = Math.floor((dd - bd) / (1000*60*60*24*365));
