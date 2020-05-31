@@ -5,10 +5,6 @@ import argparse
 import datetime
 import os
 
-import gedcom
-from gedcom.element.individual import IndividualElement
-from gedcom.element.object import ObjectElement
-from gedcom.element.family import FamilyElement
 from gedcom.parser import Parser
 
 
@@ -121,6 +117,16 @@ def main():
 	for individual in individuals:
 		personObj = gu.Person(individual, families, objects, notes)
 
+		# Some sanity checks, just to make sure that the names are valid
+		surname = re.search('\/([^\/)]+)', personObj.name[0]).group(1)
+		firstNames = [name for name in personObj.name[0].split() if not name.endswith("/")]
+
+		if personObj.sex.upper() == "F":
+			# Surname check ("ий")
+			if surname.endswith("ий"):
+				print("{0} should end in 'а', not 'ий'".format(personObj.name[0]))
+		elif personObj.sex.upper() == "M":
+			pass
 
 
 		person = {
