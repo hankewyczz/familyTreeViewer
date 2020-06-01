@@ -95,31 +95,59 @@ def parsePictureFilename(filename):
 
 # Strips birthday data
 def stripBirthData(date):
-    dateSplit = date.split()
-    # Unless we have a full birthday, kill it
-    if len(dateSplit) != 3:
-        return ""
+	dateSplit = date.split()
+	# Unless we have a full birthday, kill it
+	if len(dateSplit) != 3:
+		return ""
 
-    try:
-        day = int(dateSplit[0])
-    # Cannot parse the day
-    except ValueError:
-        return ""
+	try:
+		day = int(dateSplit[0])
+	# Cannot parse the day
+	except ValueError:
+		return ""
 
-    # The day is not a valid one
-    if day < 1 or day > 31:
-        return ""
+	# The day is not a valid one
+	if day < 1 or day > 31:
+		return ""
 
-    if dateSplit[1].upper() not in ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]:
-        return ""
+	if dateSplit[1].upper() not in ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]:
+		return ""
 
-    return "{0} {1}".format(str(day), dateSplit[1].title())
+	return "{0} {1}".format(str(day), dateSplit[1].title())
+
+
+# gets a person
+def getPerson(ID, people):
+	for person in people:
+		if person.id == ID:
+			return person
+
+# Gets ancestors
+def getAncestors(person, people):
+
+	ancestors = list(person.parents)
+
+	for parent in person.parents: # We DON'T want to use ancestors here:
+		# since we keep adding to ancestors, iterating over it causes problems (since we're still adding on to it)
+		ancestors += getAncestors(getPerson(parent, people), people)
+
+	return ancestors
+
+
+
+
 
 
 # Person object
 class Person():
 	def __init__(self, individual, families, objects, notes):
+		# Set some default values:
+		self.redirects = False
+		self.redirectsTo = ""
+		self.parentsHidden = False
+		self.childrenHidden = False
 		self.indiv = individual
+
 		self.getId()
 		self.getName()
 		self.getSex()
@@ -378,6 +406,42 @@ class Person():
 			self.burialData = []
 		else:
 			self.burialData = [[date, place, bType, "BUR"]]
+
+
+	def getAllAncestors(self, people):
+		self.ancestors = list(set(getAncestors(self, people)))
+		# We convert to set, then back to list to make sure that there are no duplciates
+		# Duplicates can naturally occur in an incestous loop (ie. two seperate ancestors have the same ancestor, 
+		# so that common ancestor is duplicated in the list)
+
+
+	def setsOverlap(self, sets):
+		union = set()
+		for s in sets:
+			for x in s:
+				if x in union:
+					return True
+				union.add(x)
+		return False
+
+	def checkCommonAncestor(self, people):
+		commonAncestor = False
+		for spouse in self.spouses:
+			spouse = getPerson(spouse, people)
+			spouseCommonAncestor = self.setsOverlap([spouse.ancestors, self.ancestors])
+			commonAncestor = commonAncestor and spouseCommonAncestor
+
+			if spouseCommonAncestor:
+				print(self.name, spouse.name)
+				# Check which one is the male
+				#self.redirects = True
+				#self.redirectsTo = ""
+				#self.parentsHidden = False
+				#self.childrenHidden = False
+
+			
+
+
 
 
 

@@ -114,9 +114,18 @@ def main():
 	initialPerson = None
 	# Loop over all people
 
+	personObjs = []
 	for individual in individuals:
-		personObj = gu.Person(individual, families, objects, notes)
+		personObjs.append(gu.Person(individual, families, objects, notes))
 
+	
+
+	for personObj in personObjs:
+		# Generate the ancestor lists for all people
+		personObj.getAllAncestors(personObjs)
+		
+		
+	for personObj in personObjs:
 		# Some sanity checks, just to make sure that the names are valid
 		surname = re.search('\/([^\/)]+)', personObj.name[0]).group(1)
 
@@ -142,6 +151,9 @@ def main():
 		
 		if initialPerson == None:
 			initialPerson = person['id']
+
+		# We check for a common ancestor among all spouses:
+		personObj.checkCommonAncestor(personObjs)
 
 		detail = {
 			"id": personObj.id,

@@ -49,12 +49,12 @@ function getDetails(canvasView, data, curPerson) {
         // Initialize the data container
         var eventsDivContainer = document.createElement('div');
         eventsDivContainer.className = "detailRowcontainer";
-        eventsDivContainer.style.display = "table";
+        //eventsDivContainer.style.display = "table";
         eventsDivContainer.style.width = "100%";
 
 
         var rowGroupContainer = document.createElement('div');
-        rowGroupContainer.style.display = "table-row-group";
+        rowGroupContainer.style.display = "table";
         rowGroupContainer.style.width = "100%";
 
         // We use this to alternate div background colors. Using n-th child doesn't work too well,
