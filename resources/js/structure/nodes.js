@@ -82,6 +82,9 @@ function Node(_person, pDetails) {
         childrenHidden: false, // Are the children hidden?
         inFocus: false, // Is this the node currently in focus
         group: null, // by default we have no group
+        redirects: pDetails.redirects,
+        redirectsTo: pDetails.redirectsTo,
+
 
         // Returns the interior node
         getInteriorNodeById: function(_) { return this; },

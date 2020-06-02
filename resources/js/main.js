@@ -423,15 +423,23 @@ function View(data) {
 
 
         setFocus: function(node) {
+
             this.tree = this.makeTree(node);
             
             if (this.tree == null) { return; }
+
+
+            var theNode = this.tree.lookupNodeById(node);
+            if (theNode.redirects) {
+                node = theNode.redirectsTo;
+                this.setFocus(node);
+                return;
+            }
 
             this.focusId = node; // Focus on the given node
             window.location.hash = node; // Change window hash
             this.tree.position(this);
 
-            var theNode = this.tree.lookupNodeById(node);
             var center = this.findScreenCenter();
 
 
@@ -453,10 +461,17 @@ function View(data) {
             if (this.tree == null) {
                 return;
             }
-            this.focusId = node;
-            window.location.hash = node; 
             this.tree.position(this);
             var theNode = this.tree.lookupNodeById(node);
+
+            if (theNode.redirects) {
+                node = theNode.redirectsTo;
+                this.setFocus(node);
+                return;
+            }
+
+            this.focusId = node;
+            window.location.hash = node; 
             
             this.scrollx = x - theNode.getX();
             this.scrolly = y - theNode.getY();

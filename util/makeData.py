@@ -175,6 +175,8 @@ def main():
 			,
 			"parentsHidden": personObj.parentsHidden,
 			"childrenHidden": personObj.childrenHidden,
+			"redirects": personObj.redirects,
+			"redirectsTo": personObj.redirectsTo,
 			
 		}
 
