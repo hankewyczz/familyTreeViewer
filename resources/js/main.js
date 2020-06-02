@@ -421,6 +421,19 @@ function View(data) {
             return {"x": left + ((right - left) / 2), "y": top + ((bottom - top) / 2)}; 
         },
 
+        setAncestors: function(node) {
+            if (node == null) {
+                return;
+            }
+            var ancestors = node.ancestors;
+            for (var i = 0; i < ancestors.length; i++) {
+                var ancestorNode = this.tree.lookupNodeById(ancestors[i]);
+                if (ancestorNode != null) {
+                    ancestorNode.ancestorFocus = true;
+                }
+            }
+
+        }, 
 
         setFocus: function(node) {
 
@@ -436,6 +449,7 @@ function View(data) {
                 return;
             }
 
+            this.setAncestors(theNode); // highlight ancestors
             this.focusId = node; // Focus on the given node
             window.location.hash = node; // Change window hash
             this.tree.position(this);
@@ -455,24 +469,21 @@ function View(data) {
             }
 
         },
-
         setFocusPosition: function(node, x, y) {
-            console.log(node)
-
             this.tree = this.makeTree(node);
             if (this.tree == null) {
                 return;
             }
             this.tree.position(this);
             var theNode = this.tree.lookupNodeById(node);
-
-            console.log(theNode)
+            
 
             if (theNode.redirects) {
                 node = theNode.redirectsTo;
                 this.setFocus(node);
                 return;
             }
+            this.setAncestors(theNode);
 
             this.focusId = node;
             window.location.hash = node; 

@@ -81,9 +81,11 @@ function Node(_person, pDetails) {
         parentsHidden: false, // Are the parents hidden?
         childrenHidden: false, // Are the children hidden?
         inFocus: false, // Is this the node currently in focus
+        ancestorFocus: false, // Is this node the ancestor of the currently focused node?
         group: null, // by default we have no group
         redirects: pDetails.redirects,
         redirectsTo: pDetails.redirectsTo,
+        ancestors: pDetails.ancestors,
 
 
         // Returns the interior node
@@ -210,7 +212,7 @@ function Node(_person, pDetails) {
 
 
             // Draws the rectangle
-            function drawRect(inFocus) {
+            function drawRect(inFocus, ancestorFocus) {
                 canvasView.context.fillStyle = bgColor[_person["sex"]]; // Fills with the above colors
                 canvasView.context.fillRect(rectX, rectY, width, height);
                 renderText(text, canvasView, x + sidePadding, y, true); // Renders the text
@@ -218,13 +220,21 @@ function Node(_person, pDetails) {
                 if (inFocus) { // The focused node
                     canvasView.context.lineWidth = 3;
                     canvasView.context.strokeStyle = "#FFFF00";
-                    canvasView.context.strokeRect(rectX + 1, rectY + 1, width - 2, height - 2);    
+                    canvasView.context.strokeRect(rectX + 1, rectY + 1, width - 2, height - 2); 
+                    return;   
+                }
+                else if (ancestorFocus) {
+                    var lineWidth = 2;
+                    var color = "#DD0";
                 }
                 else {
-                    canvasView.context.lineWidth = 1;
-                    canvasView.context.strokeStyle = "#000000";
-                    canvasView.context.strokeRect(rectX, rectY, width, height);    
+                    var lineWidth = 1;
+                    var color = "#000000";
                 }
+                canvasView.context.lineWidth = lineWidth;
+                canvasView.context.strokeStyle = color;
+                canvasView.context.strokeRect(rectX, rectY, width, height);    
+                
             }
 
 
@@ -276,7 +286,7 @@ function Node(_person, pDetails) {
                 }
             }
 
-            drawRect(this.inFocus);
+            drawRect(this.inFocus, this.ancestorFocus);
             drawImages(this, 15 * this.getScaling());
             
         },

@@ -529,10 +529,7 @@ class Person():
 
 
 				duplicateFemale.children = children
-				fem.children = [child for child in list(fem.children) if child not in children]
-
-				print(duplicateFemale.children, fem.children)
-				
+				fem.children = [child for child in list(fem.children) if child not in children]				
 
 				male.replaceSpouse(fem, duplicateFemale)
 				people.append(duplicateFemale)
