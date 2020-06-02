@@ -240,9 +240,17 @@ function Node(_person, pDetails) {
                     }
                     return image;
                 }
+
                 
-                if (self.parentsHidden || self.childrenHidden) {
-                    var image = hiddenImage(self.parentsHidden, self.childrenHidden);
+                if (self.parentsHidden || self.childrenHidden || pDetails.parentsHidden || pDetails.childrenHidden) {
+                    if (pDetails.parentsHidden || pDetails.childrenHidden) {
+                        var pHidden = pDetails.parentsHidden || self.parentsHidden;
+                        var cHidden = pDetails.childrenHidden || self.childrenHidden;
+                        var image = hiddenImage(pHidden, cHidden);
+                    }
+                    else{
+                        var image = hiddenImage(self.parentsHidden, self.childrenHidden);
+                    }
                     image.width = dim;
                     canvasView.context.drawImage(image, x + self.getWidth() - dim, y, dim, dim);
                 }

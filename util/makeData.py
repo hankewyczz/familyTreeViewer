@@ -138,6 +138,9 @@ def main():
 				print("{0} should end in 'ий', not 'а'".format(personObj.name[0]))
 
 
+		# We check for a common ancestor among all spouses:
+		personObj.checkCommonAncestor(personObjs)
+
 		person = {
 			"id": personObj.id,
 			"name": personObj.name[0],
@@ -151,9 +154,6 @@ def main():
 		
 		if initialPerson == None:
 			initialPerson = person['id']
-
-		# We check for a common ancestor among all spouses:
-		personObj.checkCommonAncestor(personObjs)
 
 		detail = {
 			"id": personObj.id,
@@ -173,6 +173,9 @@ def main():
 			# Burial data
 			personObj.burialData
 			,
+			"parentsHidden": personObj.parentsHidden,
+			"childrenHidden": personObj.childrenHidden,
+			
 		}
 
 

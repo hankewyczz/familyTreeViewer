@@ -1,13 +1,10 @@
 import gedcom
-from gedcom.element.individual import IndividualElement
-from gedcom.element.object import ObjectElement
-from gedcom.element.family import FamilyElement
-
 from gedcom.parser import Parser
 import os
 import re
 from dateutil import parser
 import datetime
+import copy
 
 
 IMAGES_FOLDER = "resources/photos/"
@@ -116,11 +113,16 @@ def stripBirthData(date):
 	return "{0} {1}".format(str(day), dateSplit[1].title())
 
 
+# Checks if an id exists already
+def checkIdExists(ID, people):
+	return False if getPerson(ID, people) == None else True
+
 # gets a person
 def getPerson(ID, people):
 	for person in people:
 		if person.id == ID:
 			return person
+	return None
 
 # Gets ancestors
 def getAncestors(person, people):
@@ -140,37 +142,38 @@ def getAncestors(person, people):
 
 # Person object
 class Person():
-	def __init__(self, individual, families, objects, notes):
-		# Set some default values:
-		self.redirects = False
-		self.redirectsTo = ""
-		self.parentsHidden = False
-		self.childrenHidden = False
-		self.indiv = individual
+	def __init__(self, individual, families, objects, notes, realPerson=True):
+		if realPerson:
+			# Set some default values:
+			self.redirects = False
+			self.redirectsTo = ""
+			self.parentsHidden = False
+			self.childrenHidden = False
+			self.indiv = individual
 
-		self.getId()
-		self.getName()
-		self.getSex()
-		self.getBirthData()
-		self.getFullBirthData()
-		self.getDeathData()
-		self.getFullDeathData()
-		self.getOccupationData()
-		self.getBurialData()
+			self.getId()
+			self.getName()
+			self.getSex()
+			self.getBirthData()
+			self.getFullBirthData()
+			self.getDeathData()
+			self.getFullDeathData()
+			self.getOccupationData()
+			self.getBurialData()
 
-		# Family
-		self.getSpousalFamilies(families)
-		self.getParents(families)
-		self.getSpouses(families)
-		self.getChildren(families)
-		self.getMarriageData(families)
-		self.getDivorceData(families)
+			# Family
+			self.getSpousalFamilies(families)
+			self.getParents(families)
+			self.getSpouses(families)
+			self.getChildren(families)
+			self.getMarriageData(families)
+			self.getDivorceData(families)
 
-		# Objects
-		self.getPics(objects)
+			# Objects
+			self.getPics(objects)
 
-		# Notes
-		self.getNotes(notes)
+			# Notes
+			self.getNotes(notes)
 
 	
 	# Gets the given tag
@@ -424,6 +427,75 @@ class Person():
 				union.add(x)
 		return False
 
+	def getOverlap(self, a, b):
+		return [x for x in a if x in b]
+
+	def initRedirect(self, redirectingTo, people):
+		self.redirects = True
+		self.redirectsTo = redirectingTo.id
+		self.parentsHidden = False
+		self.childrenHidden = False
+		self.indiv = None
+
+		ID = redirectingTo.id
+		while checkIdExists(ID, people):
+			ID += "1"
+
+		self.id = ID
+
+		self.name = list(redirectingTo.name)
+		self.sex = redirectingTo.sex
+		self.birthData = list(redirectingTo.birthData)
+		self.fullBirthData = list(redirectingTo.fullBirthData)
+		self.deathData = list(redirectingTo.deathData)
+		self.fullDeathData = list(redirectingTo.fullDeathData)
+		self.occupationData = []
+		self.burialData = []
+		self.sFamilies = []
+		self.parents = []
+		self.spouses = []
+		self.children = []
+		self.marriageData = []
+		self.divorceData = []
+		self.pics = []
+		self.notes = []
+		self.ancestors = []
+
+	def replaceSpouse(self, old, new):
+		# switch self spouse
+		newSpouses = []
+		for spouse in self.spouses:
+			if spouse == old.id:
+				newSpouses.append(new.id)
+			else:
+				newSpouses.append(spouse)
+
+		self.spouses = newSpouses
+
+		# remove self from old
+		oldSpouses = []
+		for spouse in old.spouses:
+			if not spouse == self.id:
+				oldSpouses.append(spouse)
+
+		old.spouses = oldSpouses
+
+		# add self to new
+		new.spouses.append(self.id)
+
+	def replaceInList(self, ourList, old, new):
+		newList = []
+		for element in ourList:
+			if element == old:
+				newList.append(new)
+			else:
+				newList.append(element)
+
+		return newList
+
+
+
+
 	def checkCommonAncestor(self, people):
 		commonAncestor = False
 		for spouse in self.spouses:
@@ -432,8 +504,45 @@ class Person():
 			commonAncestor = commonAncestor and spouseCommonAncestor
 
 			if spouseCommonAncestor:
-				print(self.name, spouse.name)
-				# Check which one is the male
+				if self.sex.upper() == "M":
+					male = self
+					fem = spouse
+				else:
+					male = spouse
+					fem = self
+
+				# male remains as-is : don't change anything about him but spouse
+
+				# Duplicate female
+				duplicateFemale = Person(None, None, None, None, realPerson=False)
+				duplicateFemale.initRedirect(fem, people)
+				duplicateFemale.parentsHidden = True
+				fem.childrenHidden = True
+				duplicateFemale.children = list(fem.children)
+				fem.children = []
+
+				# We have to change the children
+				children = self.getOverlap(self.children, duplicateFemale.children)
+
+				for child in children:
+					child = getPerson(child, people)
+					newParents = child.replaceInList(child.parents, fem.id, duplicateFemale.id)
+					child.parents = newParents
+
+				male.replaceSpouse(fem, duplicateFemale)
+				people.append(duplicateFemale)
+
+				# Now, we deal with the duplicate husband
+				duplicateMale = Person(None, None, None, None, realPerson=False)
+				duplicateMale.initRedirect(male, people)
+				duplicateMale.parentsHidden = True
+				duplicateMale.childrenHidden = True
+
+				fem.spouses.append(duplicateMale.id)
+				duplicateMale.spouses = [fem.id]
+				people.append(duplicateMale)
+
+				print(male.name, fem.name)
 				#self.redirects = True
 				#self.redirectsTo = ""
 				#self.parentsHidden = False
