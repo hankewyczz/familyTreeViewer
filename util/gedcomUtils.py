@@ -518,16 +518,21 @@ class Person():
 				duplicateFemale.initRedirect(fem, people)
 				duplicateFemale.parentsHidden = True
 				fem.childrenHidden = True
-				duplicateFemale.children = list(fem.children)
-				fem.children = []
 
 				# We have to change the children
-				children = self.getOverlap(self.children, duplicateFemale.children)
+				children = self.getOverlap(self.children, fem.children)
 
 				for child in children:
 					child = getPerson(child, people)
 					newParents = child.replaceInList(child.parents, fem.id, duplicateFemale.id)
 					child.parents = newParents
+
+
+				duplicateFemale.children = children
+				fem.children = [child for child in list(fem.children) if child not in children]
+
+				print(duplicateFemale.children, fem.children)
+				
 
 				male.replaceSpouse(fem, duplicateFemale)
 				people.append(duplicateFemale)

@@ -457,12 +457,16 @@ function View(data) {
         },
 
         setFocusPosition: function(node, x, y) {
+            console.log(node)
+
             this.tree = this.makeTree(node);
             if (this.tree == null) {
                 return;
             }
             this.tree.position(this);
             var theNode = this.tree.lookupNodeById(node);
+
+            console.log(theNode)
 
             if (theNode.redirects) {
                 node = theNode.redirectsTo;
