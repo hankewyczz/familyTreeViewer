@@ -21,8 +21,10 @@ function getDetails(canvasView, data, curPerson) {
     var names = document.createElement('div');
     names.className = 'detailTitleDiv';
     container.appendChild(names);
-    // Named div inside the infoWindow
 
+
+    // Localizaiton
+    var langArray = getLang();
 
     // If we have multiple names
     for (var i = 0; i < curPerson.names.length; i++) {
@@ -45,6 +47,137 @@ function getDetails(canvasView, data, curPerson) {
         names.appendChild(nameDiv);
     }
 
+
+    function openRelCalc() {
+        var container = document.createElement('div');
+        container.style.width = "100%";
+
+        var nameDiv = document.createElement('div');
+        nameDiv.className = 'detailTitle';
+
+        var names = document.createElement('div');
+        names.className = 'detailTitleDiv';
+        container.appendChild(names);
+
+        nameDiv.appendChild(document.createTextNode(langArray["relationshipCalculator"]));
+        names.appendChild(nameDiv);
+
+        var relCalcContainer = document.createElement('div');
+        relCalcContainer.className = "detailRowcontainer";
+        relCalcContainer.style.width = "100%";
+        relCalcContainer.style.textAlign = "center";
+
+        var person1text = document.createTextNode(langArray["person"] + "1");
+        relCalcContainer.appendChild(person1text)
+
+        // First person search bar
+        var searchArea = document.createElement('div');
+        searchArea.id = "searchAreaP1";
+        searchArea.className = "search";
+
+        var searchtext = document.createElement('input');
+        searchtext.type = "text";
+        searchtext.id = "searchtextP1";
+        searchtext.className = "searchTerm";
+        searchtext.autocomplete = "off";
+        searchtext.placeholder = "Пошук (Search)";
+
+        var searchlist = document.createElement('div');
+        searchlist.id = "searchlistP1";
+
+        searchArea.appendChild(searchtext);
+        searchArea.appendChild(searchlist);
+        relCalcContainer.appendChild(searchArea);
+        relCalcContainer.appendChild(document.createElement('br'));
+
+
+        var person2text = document.createTextNode(langArray["person"] + "2");
+        relCalcContainer.appendChild(person2text)
+
+        // Second search bar
+        var searchArea2 = document.createElement('div');
+        searchArea2.id = "searchAreaP2";
+        searchArea2.className = "search";
+
+        var searchtext2 = document.createElement('input');
+        searchtext2.type = "text";
+        searchtext2.id = "searchtextP2";
+        searchtext2.className = "searchTerm";
+        searchtext2.autocomplete = "off";
+        searchtext2.placeholder = "Пошук (Search)";
+
+        var searchlist2 = document.createElement('div');
+        searchlist2.id = "searchlistP2";
+
+        searchArea2.appendChild(searchtext2);
+        searchArea2.appendChild(searchlist2);
+        relCalcContainer.appendChild(searchArea2);
+
+        // Calculates the relationship, returns the result
+        var searchButton = document.createElement('div');
+        searchButton.className = "button";
+        searchButton.style.cursor = "pointer";
+        searchButton.appendChild(document.createTextNode("Calculate"));
+
+
+        //finds the given person
+        function findPerson(personName) {
+            for (var i = 0; i < data["structure_raw"].length; i++) {
+                if (displayName(data["structure_raw"][i]["name"]) == personName.toString()) {
+                    return data["structure_raw"][i];
+                }
+            }
+        }
+
+        searchButton.onclick = function(_) {
+            var person1 = findPerson(document.getElementById("searchtextP1").value);
+            var person2 = findPerson(document.getElementById("searchtextP2").value);
+
+            if (person1 == null || person2 == null) {
+                showError("Names must be entered exactly and in full");
+            }
+            
+            var names = displayFirstName(person1.name) + langArray["and"] + displayFirstName(person2.name);
+            names += langArray["are"];
+            var relationship = relationshipCalculator(person1.id, person2.id, data);
+
+            document.getElementById("relCalResponse").innerHTML = names + relationship;
+
+        } 
+            
+        
+        var responseText = document.createElement('p');
+        responseText.id = "relCalResponse";
+        responseText.style.padding = "5px";
+
+        relCalcContainer.appendChild(document.createElement('br'));
+        relCalcContainer.appendChild(searchButton);
+        relCalcContainer.appendChild(document.createElement('br'));
+        relCalcContainer.appendChild(responseText);
+
+
+        container.appendChild(relCalcContainer);
+
+        showInfoWindow({"text": container});
+        setSearchEvents(document.getElementById("searchtextP1"), document.getElementById("searchlistP1"), data, canvasView, false);
+        setSearchEvents(document.getElementById("searchtextP2"), document.getElementById("searchlistP2"), data, canvasView, false);
+    }
+
+    // Creates a link to the relationship calculator
+    function relCalcLink(content) {
+        var personLink = document.createElement('a');
+        personLink.style.cursor = "pointer";
+        var linkContent = document.createTextNode(content);
+        personLink.appendChild(linkContent);
+
+        personLink.addEventListener("click", function(event) {
+            openRelCalc();
+        });
+
+        personLink.style.color = "#2D89EF";
+        return personLink;
+    }
+
     function makeEventsPane() {
         // Initialize the data container
         var eventsDivContainer = document.createElement('div');
@@ -57,9 +190,19 @@ function getDetails(canvasView, data, curPerson) {
         rowGroupContainer.style.display = "table";
         rowGroupContainer.style.width = "100%";
 
+        var eventDiv = document.createElement('div');
+        eventDiv.className = "detailRow1";
+        eventDiv.style.display = "table";
+        eventDiv.style.textAlign = "center";
+        eventDiv.appendChild(relCalcLink(langArray["relationshipCalculator"]));
+        eventsDivContainer.appendChild(eventDiv);
+
+
+
         // We use this to alternate div background colors. Using n-th child doesn't work too well,
         // since we go thru multiple exterior container divs
         var styleNumber = 0;
+
 
         // Creates the notes
         function makeNotes() {
@@ -140,8 +283,7 @@ function getDetails(canvasView, data, curPerson) {
                 return personLink;
             }
 
-            // Localizaiton
-            var langArray = getLang();
+            
 
             switch (event[event.length - 1]) { // We take the letter indicating event type
                 case "B": // Birth
@@ -257,9 +399,7 @@ function getDetails(canvasView, data, curPerson) {
     }
 
 
-    if (curPerson["events"].length > 0 || curPerson["pics"].length > 0 || curPerson["notes"].length > 0) {
-        container.appendChild(makeEventsPane());
-    }
+    container.appendChild(makeEventsPane());
 
     return {"text":container};
 }

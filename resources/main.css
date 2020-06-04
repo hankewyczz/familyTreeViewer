@@ -24,7 +24,7 @@ a {
 }
 
 /* We make an exception for the info area and the search bar */
-#searchtext, .infoarea {
+#searchtext, .infoarea, #searchtextP1, #searchtextP2 {
     user-select: text;
     -webkit-user-select: text; 
     -moz-user-select: text; 
@@ -240,7 +240,7 @@ a {
     cursor: pointer;
 }
 
-#searchtext {
+#searchtext, #searchtextP1, #searchtextP2 {
     border: 1px solid #bbb;
     color: #888;
     background-color: #fff;
@@ -275,7 +275,7 @@ a {
     color: #FFF;
 }
 
-#searchlist {
+#searchlist, #searchlistP1, #searchlistP2 {
     height: 200px;
     display: none;
     position: absolute;
