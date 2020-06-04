@@ -416,14 +416,14 @@ function relationshipCalculator(person1, person2, data) {
             }
             if (generationA == 2) {
                 // Aunt/Uncle
-                return langArray["nieceNephew"][sexA + parentSex] + "/" + langArray["auntUncle"][sexB];   
+                return langArray["nieceNephew"][sexA] + "/" + langArray["auntUncle"][sexB + parentSex];   
             }
             else {
                 var prefix = "";
                 for (var i = generationA-2; i > 0; i--) {
                     prefix += langArray["great"] + "-";
                 }
-                return prefix + langArray["nieceNephew"][sexA + parentSex] + "/" + prefix + langArray["auntUncle"][sexB];
+                return prefix + langArray["nieceNephew"][sexA] + "/" + prefix + langArray["auntUncle"][sexB + parentSex];
             }
         }
 
