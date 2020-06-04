@@ -204,7 +204,7 @@ def main():
 				burials.append(burial)
 
 
-	jsonStyling = {"sort_keys": True, "indent": 4, "separators":(',', ': ')}
+	jsonStyling = {"indent": 4, "separators":(',', ':')}
 
 	# Sort the structures and birthday files file
 	structure.sort(key=sortByNames)

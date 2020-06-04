@@ -25,6 +25,20 @@ var languages = [
         married: {"M": "Одружився з ", "F": "Вийшла за заміж з "},
         divorced: "Розлучились ",
         yearsOld: "років",
+        // Relationship calculator
+        samePerson: "Та сама людина",
+        siblings: {"MM": "брати", "MF": "брат/сестра", 
+        "FM": "сестра/брат", "FF": "сестри"},
+        cousins: {"MM": "кузини", "MF": "кузини", "FM": "кузини",
+        "FF": "кузинки"},
+        child: {"M": "син", "F": "дочка"},
+        parent: {"M": "батько", "F": "мама"},
+        grandparent: {"M": "дідо", "F": "баба"},
+        grandchild: {"M": "внук", "F": "внучка"},
+        great: "пра",
+        auntUncle: {"MM": "стрийко", "MF": "вуйко", "FM": "стриянка", "FF": "тета"},
+        nieceNephew: {"M": "племінник", "F": "племінниця"},
+        removed: "віддалені",
     },
     {
         id: "EN", 
@@ -38,7 +52,21 @@ var languages = [
         occupation: "Occupation",
         married: {"M": "Married ", "F": "Married "},
         divorced: "Divorced ",
-        yearsOld: "years old"
+        yearsOld: "years old",
+        // Relationship calculator
+        samePerson: "Same person",
+        siblings: {"MM": "Brothers", "MF": "Brother/Sister", 
+        "FM": "Sister/Brother", "FF": "Sisters"},
+        cousins: {"MM": "cousins", "MF": "cousins", "FM": "cousins",
+        "FF": "кузинки"},
+        child: {"M": "son", "F": "daughter"},
+        parent: {"M": "father", "F": "mother"},
+        grandparent: {"M": "grandfather", "F": "grandmother"},
+        grandchild: {"M": "grandson", "F": "granddaughter"},
+        great: "great",
+        auntUncle: {"MM": "uncle", "MF": "uncle", "FM": "aunt", "FF": "aunt"},
+        nieceNephew: {"M": "nephew", "F": "niece"},
+        removed: "removed",
     },
 ];
 
@@ -160,6 +188,259 @@ function displaySurname(name) {
 // Searches for the given person
 function personSearch(data, view) {
     var rawStructure = data["structure_raw"];
+
+
+    function relationshipCalculator(person1, person2) {
+        var langArray = getLang();
+
+        var details = data["details"];
+        // Finds the least common ancestor
+        function leastCommonAncestor(person1, person2) {
+            var ancestors1 = details[person1]["ancestors"];
+            var ancestors2 = details[person2]["ancestors"];
+
+            // We include the people themselves
+            ancestors1.push([person1, 0]);
+            ancestors2.push([person2, 0]);
+
+            var commonAncestors = [];
+            for (var i = 0; i < ancestors1.length; i++) {
+                for (var j = 0; j < ancestors2.length; j++) {
+                    if (ancestors1[i][0] == ancestors2[j][0]) {
+                        commonAncestors.push([ancestors1[i][0], ancestors1[i][1] + ancestors2[j][1]]);
+                    }
+                }
+            }
+            
+            // Sort by the generational spacing
+            commonAncestors.sort(function(a, b){return a[1] - b[1]});
+
+            return commonAncestors[0]
+        }
+
+        // FInds how far away the given ancestor is
+        function findAncestorGap(person, ancestor) {
+            var ancestors = details[person]["ancestors"];
+
+            for (var i = 0; i < ancestors.length; i++) {
+                if (ancestors[i][0] == ancestor) {
+                    return ancestors[i][1];
+                }
+            }
+            return null;
+        }
+
+        // Parses the given number into the cousin number
+        function parseCousinNumber(i) {
+            if (currentLanguage = "UA") {
+                return i.toString() + "і ";
+            }
+            else {
+                var j = i % 10,
+                    k = i % 100;
+                if (j == 1 && k != 11) {
+                    return i + "st ";
+                }
+                if (j == 2 && k != 12) {
+                    return i + "nd ";
+                }
+                if (j == 3 && k != 13) {
+                    return i + "rd ";
+                }
+                return i + "th ";
+            }
+        }
+
+        // Parses the given number into "times removed"
+        function parseRemovedNumber(i) {
+            if (currentLanguage = "UA") {
+                if (i == 1) {
+                    return "1 раз ";
+                }
+                else {
+                    return i + " разів ";
+                }
+            }
+            else {
+                if (i == 1) {
+                    return "once ";
+                }
+                else if (i == 2) {
+                    return "twice ";
+                }
+                else {
+                    return i + " times ";
+                }
+            }
+        }
+
+        var lcm = leastCommonAncestor(person1, person2);
+        var generationA = findAncestorGap(person1, lcm[0]);
+        var generationB = findAncestorGap(person2, lcm[0]);
+
+        var sexA = data["structure"][person1]["sex"].toUpperCase();
+        var sexB = data["structure"][person2]["sex"].toUpperCase();
+        var sexes = sexA + sexB;
+
+        // On the same level here
+        if (generationA == generationB) {
+            if (generationA == 0) {
+                return langArray["samePerson"];
+            }
+            if (generationA == 1) {
+                return langArray["siblings"][sexes];
+            }
+            if (generationA >= 2) {
+                var number = parseCousinNumber(generationA-1);
+                return number + langArray["cousins"][sexes];
+            }
+
+        }
+
+        // If person1 is less than person2 (ie. person1 is higher up)
+        if (generationA < generationB) {
+            if (generationA == 0) { 
+                // B is a direct descendant of A
+                if (generationB == 1) {
+                    return langArray["parent"][sexA] + "/" + langArray["child"][sexB];
+                }
+                else if (generationB == 2) {
+                    // grandchild
+                    return langArray["grandparent"][sexA] + "/" + langArray["grandchild"][sexB];
+                }
+                else {
+                    // great-grand
+                    var prefix = "";
+                    for (var i = generationB-2; i > 0; i--) {
+                        prefix += langArray["great"] + "-";
+                    }
+                    return prefix + langArray["grandparent"][sexA] + "/" + prefix + langArray["grandchild"][sexB];
+                }
+            }
+
+            else if (generationA == 1) {
+                // B is a descendant of A's sibling
+                // For Ukrainian: to determine стрійко vs. вуйко
+                var parentsB = data["structure"][person2]["parents"];
+                var parentSex = "F"; // Keep this as a default
+                for (var i = 0; i < parentsB.length; i++) {
+                    var ancestorsB = []
+                    for (var j = 0; j < data["details"][parentsB[i]]["ancestors"].length; j++) {
+                        ancestorsB.push(data["details"][parentsB[i]]["ancestors"][j][0]);
+                    }
+                    if (ancestorsB.includes(lcm[0])) {
+                        // the ancestor is on this parent's side
+                        parentSex = data["structure"][parentsB[i]]["sex"].toUpperCase();
+                    }
+                }
+                if (generationB == 2) {
+                    // B is the child of A's sibling
+                    return langArray["auntUncle"][sexA + parentSex] + "/" + langArray["nieceNephew"][sexB];   
+                }
+                else {
+                    var prefix = "";
+                    for (var i = generationB-2; i > 0; i--) {
+                        prefix += langArray["great"] + "-";
+                    }
+                    return prefix + langArray["auntUncle"][sexA + parentSex] + "/" + prefix + langArray["nieceNephew"][sexB];
+                }
+            }
+
+            else {
+                // General cousin case
+                var number = parseCousinNumber(generationA-1);
+                var removedNumber = parseRemovedNumber(generationB - generationA);
+                var removed = ", " + removedNumber + langArray["removed"];
+                return number + langArray["cousins"][sexes] + removed;
+            }
+        }
+
+        // If person B is less than person A (basically the reverse of the above case)
+        if (generationA > generationB) {
+            if (generationB == 0) {
+                // parent, grandparent, etc
+                // Direct ancestor
+                if (generationA == 1) {
+                    return langArray["child"][sexA] + "/" + langArray["parent"][sexB];
+                }
+                else if (generationA == 2) {
+                    // grandchild
+                    return langArray["grandchild"][sexA] + "/" + langArray["grandparent"][sexB];
+                }
+                else {
+                    // great-grand
+                    var prefix = "";
+                    for (var i = generationA-2; i > 0; i--) {
+                        prefix += langArray["great"] + "-";
+                    }
+                    return prefix + langArray["grandchild"][sexA] + "/" + prefix + langArray["grandparent"][sexB];
+                }
+            }
+            else if (generationB == 1) {
+                // the sibling of a direct ancestor
+                // For Ukrainian: to determine стрійко vs. вуйко
+                var parentsA = data["structure"][person1]["parents"];
+                var parentSex = "F"; // Keep this as a default
+                for (var i = 0; i < parentsA.length; i++) {
+                    var ancestorsA = []
+                    for (var j = 0; j < data["details"][parentsA[i]]["ancestors"].length; j++) {
+                        ancestorsA.push(data["details"][parentsA[i]]["ancestors"][j][0]);
+                    }
+                    if (ancestorsA.includes(lcm[0])) {
+                        // the ancestor is on this parent's side
+                        parentSex = data["structure"][parentsA[i]]["sex"].toUpperCase();
+                    }
+                }
+                if (generationA == 2) {
+                    // Aunt/Uncle
+                    return langArray["nieceNephew"][sexA + parentSex] + "/" + langArray["auntUncle"][sexB];   
+                }
+                else {
+                    var prefix = "";
+                    for (var i = generationA-2; i > 0; i--) {
+                        prefix += langArray["great"] + "-";
+                    }
+                    return prefix + langArray["nieceNephew"][sexA + parentSex] + "/" + prefix + langArray["auntUncle"][sexB];
+                }
+            }
+
+            else {
+                // General cousin case
+                var number = parseCousinNumber(generationB-1);
+                var removedNumber = parseRemovedNumber(generationA - generationB);
+                var removed = ", " + removedNumber + langArray["removed"];
+                return number + langArray["cousins"][sexes] + removed;
+            }
+        }
+    }
+
+    // Testing the same-line relationships out
+    console.log(relationshipCalculator("@I0000@", "@I0001@"));
+    console.log(relationshipCalculator("@I0001@", "@I0000@"));
+    console.log(relationshipCalculator("@I0000@", "@I0011@"));
+    console.log(relationshipCalculator("@I0000@", "@I0031@"));
+    console.log(relationshipCalculator("@I0000@", "@I1091@"));
+
+    console.log("%cTesting A < B", "font-size: 1.3em");
+    console.log(relationshipCalculator("@I0022@", "@I0018@"));
+    console.log(relationshipCalculator("@I0018@", "@I0022@"));
+    console.log(relationshipCalculator("@I0022@", "@I0007@"));
+    console.log(relationshipCalculator("@I0022@", "@I0019@"));
+    console.log(relationshipCalculator("@I0022@", "@I0003@"));
+    console.log(relationshipCalculator("@I0022@", "@I0000@"));
+
+    console.log("%cTesting second branch", "font-size: 1.3em")
+    console.log(relationshipCalculator("@I0040@", "@I0018@"));
+    console.log(relationshipCalculator("@I0040@", "@I0007@"));
+    console.log(relationshipCalculator("@I0040@", "@I0019@"));
+    console.log(relationshipCalculator("@I0040@", "@I0003@"));
+    console.log(relationshipCalculator("@I0040@", "@I0000@"));
+
+    console.log("%cGeneral cousin case", "font-size: 1.3em");
+    console.log(relationshipCalculator("@I0026@", "@I0003@"));
+    console.log(relationshipCalculator("@I0026@", "@I0000@"));
+    //I0040
+    
 
     function generateUtils(dataSrc, titleName) {
         // generate index

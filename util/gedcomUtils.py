@@ -125,13 +125,14 @@ def getPerson(ID, people):
 	return None
 
 # Gets ancestors
-def getAncestors(person, people):
-
-	ancestors = list(person.parents)
+def getAncestors(person, people, i=1):
+	ancestors = []
+	for parent in person.parents:
+		ancestors.append([parent, i])
 
 	for parent in person.parents: # We DON'T want to use ancestors here:
 		# since we keep adding to ancestors, iterating over it causes problems (since we're still adding on to it)
-		ancestors += getAncestors(getPerson(parent, people), people)
+		ancestors += getAncestors(getPerson(parent, people), people, i+1)
 
 	return ancestors
 
@@ -412,15 +413,14 @@ class Person():
 
 
 	def getAllAncestors(self, people):
-		self.ancestors = list(set(getAncestors(self, people)))
-		# We convert to set, then back to list to make sure that there are no duplciates
-		# Duplicates can naturally occur in an incestous loop (ie. two seperate ancestors have the same ancestor, 
-		# so that common ancestor is duplicated in the list)
+		self.ancestors = getAncestors(self, people, 1)
 
 
 	def setsOverlap(self, sets):
 		union = set()
 		for s in sets:
+			if s == []:
+				return False
 			for x in s:
 				if x in union:
 					return True
@@ -497,13 +497,26 @@ class Person():
 
 
 	def checkCommonAncestor(self, people):
-		commonAncestor = False
 		for spouse in self.spouses:
 			spouse = getPerson(spouse, people)
-			spouseCommonAncestor = self.setsOverlap([spouse.ancestors, self.ancestors])
-			commonAncestor = commonAncestor and spouseCommonAncestor
 
-			if spouseCommonAncestor:
+
+			# Clean up the ancestors - remove the generational counts
+			selfAncestors = []
+			for ancestor in self.ancestors:
+				selfAncestors.append(ancestor[0])
+
+			spouseAncestors = []
+			for ancestor in spouse.ancestors:
+				spouseAncestors.append(ancestor[0])
+
+			# Cleans up the tree in case of incest
+			# eg. spouse ancestors could have the same ancestor listed twice, which gives us a false positive in checking
+			# the overlap
+			selfAncestors = list(set(selfAncestors))
+			spouseAncestors = list(set(spouseAncestors))
+
+			if self.setsOverlap([spouseAncestors, selfAncestors]):
 				if self.sex.upper() == "M":
 					male = self
 					fem = spouse
@@ -545,14 +558,6 @@ class Person():
 				people.append(duplicateMale)
 
 				print(male.name, fem.name)
-				#self.redirects = True
-				#self.redirectsTo = ""
-				#self.parentsHidden = False
-				#self.childrenHidden = False
-
-			
-
-
 
 
 

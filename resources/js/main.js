@@ -425,9 +425,10 @@ function View(data) {
             if (node == null) {
                 return;
             }
+
             var ancestors = node.ancestors;
             for (var i = 0; i < ancestors.length; i++) {
-                var ancestorNode = this.tree.lookupNodeById(ancestors[i]);
+                var ancestorNode = this.tree.lookupNodeById(ancestors[i][0]);
                 if (ancestorNode != null) {
                     ancestorNode.ancestorFocus = true;
                 }
