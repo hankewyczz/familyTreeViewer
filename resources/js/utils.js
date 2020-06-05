@@ -37,7 +37,7 @@ var languages = [
         grandchild: {"M": "внук", "F": "внучка"},
         great: "пра",
         auntUncle: {"MM": "стрийко", "MF": "вуйко", "FM": "стриянка", "FF": "тета"},
-        nieceNephew: {"M": "племінник", "F": "племінниця"},
+        nieceNephew: {"MM": "братанець", "MF": "сестрінець", "FM": "братаниця", "FF": "сестріниця"},
         removed: "віддалені",
         relationshipCalculator: "Як ми споріднені?",
         person: "Людина ",
@@ -69,7 +69,7 @@ var languages = [
         grandchild: {"M": "grandson", "F": "granddaughter"},
         great: "great",
         auntUncle: {"MM": "uncle", "MF": "uncle", "FM": "aunt", "FF": "aunt"},
-        nieceNephew: {"M": "nephew", "F": "niece"},
+        nieceNephew: {"MM": "nephew", "MF": "nephew", "FM": "niece", "FF": "niece"},
         removed: "removed",
         relationshipCalculator: "Relationship Calculator",
         person: "Person ",
@@ -356,16 +356,44 @@ function relationshipCalculator(person1, person2, data) {
                     parentSex = data["structure"][parentsB[i]]["sex"].toUpperCase();
                 }
             }
+
+            // We also need to find out what side the younger one is on
+            function getSiblingAncestor(personOne, personTwo) {
+                var parentsA = data["structure"][personOne]["parents"];
+                for (var i = 0; i < parentsA.length; i++) {
+                    var parentChildren = data["structure"][parentsA[i]]["children"];
+                    if (parentChildren.includes(personOne)) {
+                        break;
+                    }
+                }
+
+                var rawAncestors = data["details"][personTwo]["ancestors"];
+                var ancestors = [];
+                for (var i = 0; i < rawAncestors.length; i++) {
+                    ancestors.push(rawAncestors[i][0]);
+                }
+
+
+                for (var j = 0; j < parentChildren.length; j++) {
+                    if (ancestors.includes(parentChildren[j])) {
+                        return data["structure"][parentChildren[j]]["sex"].toUpperCase();
+                    }
+                }
+                return "F"; // Default fallback
+            }
+
+            var siblingSex = getSiblingAncestor(person1, person2);
+
             if (generationB == 2) {
                 // B is the child of A's sibling
-                return langArray["auntUncle"][sexA + parentSex] + "/" + langArray["nieceNephew"][sexB];   
+                return langArray["auntUncle"][sexA + parentSex] + "/" + langArray["nieceNephew"][sexB + siblingSex];   
             }
             else {
                 var prefix = "";
                 for (var i = generationB-2; i > 0; i--) {
                     prefix += langArray["great"] + "-";
                 }
-                return prefix + langArray["auntUncle"][sexA + parentSex] + "/" + prefix + langArray["nieceNephew"][sexB];
+                return prefix + langArray["auntUncle"][sexA + parentSex] + "/" + prefix + langArray["nieceNephew"][sexB + siblingSex];
             }
         }
 
@@ -414,16 +442,17 @@ function relationshipCalculator(person1, person2, data) {
                     parentSex = data["structure"][parentsA[i]]["sex"].toUpperCase();
                 }
             }
+            var siblingSex = getSiblingAncestor(person1, person2);
             if (generationA == 2) {
                 // Aunt/Uncle
-                return langArray["nieceNephew"][sexA] + "/" + langArray["auntUncle"][sexB + parentSex];   
+                return langArray["nieceNephew"][sexA + siblingSex] + "/" + langArray["auntUncle"][sexB + parentSex];   
             }
             else {
                 var prefix = "";
                 for (var i = generationA-2; i > 0; i--) {
                     prefix += langArray["great"] + "-";
                 }
-                return prefix + langArray["nieceNephew"][sexA] + "/" + prefix + langArray["auntUncle"][sexB + parentSex];
+                return prefix + langArray["nieceNephew"][sexA + siblingSex] + "/" + prefix + langArray["auntUncle"][sexB + parentSex];
             }
         }
 
