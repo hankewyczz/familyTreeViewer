@@ -320,6 +320,31 @@ function relationshipCalculator(person1, person2, data) {
 
     }
 
+    // We also need to find out what side the younger one is on
+    function getSiblingAncestor(personOne, personTwo) {
+        var parentsA = data["structure"][personOne]["parents"];
+        for (var i = 0; i < parentsA.length; i++) {
+            var parentChildren = data["structure"][parentsA[i]]["children"];
+            if (parentChildren.includes(personOne)) {
+                break;
+            }
+        }
+
+        var rawAncestors = data["details"][personTwo]["ancestors"];
+        var ancestors = [];
+        for (var i = 0; i < rawAncestors.length; i++) {
+            ancestors.push(rawAncestors[i][0]);
+        }
+
+
+        for (var j = 0; j < parentChildren.length; j++) {
+            if (ancestors.includes(parentChildren[j])) {
+                return data["structure"][parentChildren[j]]["sex"].toUpperCase();
+            }
+        }
+        return "F"; // Default fallback
+    }
+
     // If person1 is less than person2 (ie. person1 is higher up)
     if (generationA < generationB) {
         if (generationA == 0) { 
@@ -355,31 +380,6 @@ function relationshipCalculator(person1, person2, data) {
                     // the ancestor is on this parent's side
                     parentSex = data["structure"][parentsB[i]]["sex"].toUpperCase();
                 }
-            }
-
-            // We also need to find out what side the younger one is on
-            function getSiblingAncestor(personOne, personTwo) {
-                var parentsA = data["structure"][personOne]["parents"];
-                for (var i = 0; i < parentsA.length; i++) {
-                    var parentChildren = data["structure"][parentsA[i]]["children"];
-                    if (parentChildren.includes(personOne)) {
-                        break;
-                    }
-                }
-
-                var rawAncestors = data["details"][personTwo]["ancestors"];
-                var ancestors = [];
-                for (var i = 0; i < rawAncestors.length; i++) {
-                    ancestors.push(rawAncestors[i][0]);
-                }
-
-
-                for (var j = 0; j < parentChildren.length; j++) {
-                    if (ancestors.includes(parentChildren[j])) {
-                        return data["structure"][parentChildren[j]]["sex"].toUpperCase();
-                    }
-                }
-                return "F"; // Default fallback
             }
 
             var siblingSex = getSiblingAncestor(person1, person2);
