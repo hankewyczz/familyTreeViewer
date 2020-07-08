@@ -48,7 +48,7 @@ function getDetails(canvasView, data, curPerson) {
     }
 
 
-    function openRelCalc() {
+    function openRelCalc(person) {
         var container = document.createElement('div');
         container.style.width = "100%";
 
@@ -66,30 +66,6 @@ function getDetails(canvasView, data, curPerson) {
         relCalcContainer.className = "detailRowcontainer";
         relCalcContainer.style.width = "100%";
         relCalcContainer.style.textAlign = "center";
-
-        var person1text = document.createTextNode(langArray["person"] + "1");
-        relCalcContainer.appendChild(person1text)
-
-        // First person search bar
-        var searchArea = document.createElement('div');
-        searchArea.id = "searchAreaP1";
-        searchArea.className = "search";
-
-        var searchtext = document.createElement('input');
-        searchtext.type = "text";
-        searchtext.id = "searchtextP1";
-        searchtext.className = "searchTerm";
-        searchtext.autocomplete = "off";
-        searchtext.placeholder = "Пошук (Search)";
-
-        var searchlist = document.createElement('div');
-        searchlist.id = "searchlistP1";
-
-        searchArea.appendChild(searchtext);
-        searchArea.appendChild(searchlist);
-        relCalcContainer.appendChild(searchArea);
-        relCalcContainer.appendChild(document.createElement('br'));
-
 
         var person2text = document.createTextNode(langArray["person"] + "2");
         relCalcContainer.appendChild(person2text)
@@ -121,16 +97,17 @@ function getDetails(canvasView, data, curPerson) {
 
 
         //finds the given person
-        function findPerson(personName) {
+        function findPerson(personName, id=null) {
             for (var i = 0; i < data["structure_raw"].length; i++) {
-                if (displayName(data["structure_raw"][i]["name"]) == personName.toString()) {
+                if ((displayName(data["structure_raw"][i]["name"]) == personName.toString()) ||
+                (data["structure_raw"][i]["id"] == id)) {
                     return data["structure_raw"][i];
                 }
             }
         }
 
         searchButton.onclick = function(_) {
-            var person1 = findPerson(document.getElementById("searchtextP1").value);
+            var person1 = findPerson(person.names[0], person.id);
             var person2 = findPerson(document.getElementById("searchtextP2").value);
 
             if (person1 == null || person2 == null) {
@@ -159,7 +136,6 @@ function getDetails(canvasView, data, curPerson) {
         container.appendChild(relCalcContainer);
 
         showInfoWindow({"text": container});
-        setSearchEvents(document.getElementById("searchtextP1"), document.getElementById("searchlistP1"), data, canvasView, false);
         setSearchEvents(document.getElementById("searchtextP2"), document.getElementById("searchlistP2"), data, canvasView, false);
     }
 
@@ -171,7 +147,7 @@ function getDetails(canvasView, data, curPerson) {
         personLink.appendChild(linkContent);
 
         personLink.addEventListener("click", function(event) {
-            openRelCalc();
+            openRelCalc(curPerson);
         });
 
         personLink.style.color = "#2D89EF";
