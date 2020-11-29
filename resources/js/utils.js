@@ -25,6 +25,7 @@ var languages = [
         married: {"M": "Одружився з ", "F": "Вийшла за заміж з "},
         divorced: "Розлучились ",
         yearsOld: "років",
+        yearsAgo: "років тому",
         // Relationship calculator
         samePerson: "Та сама людина",
         siblings: {"MM": "брати", "MF": "брат/сестра", 
@@ -43,6 +44,7 @@ var languages = [
         person: "Людина ",
         noRelation: "не безпосередньо споріднені",
         are: " є ",
+        months: ["січ.", "лют.", "бер.", "кві.", "тра.", "чер.", "лип.", "серп.", "вер.", "жов.", "лист.", "гру."], 
     },
     {
         id: "EN", 
@@ -57,6 +59,7 @@ var languages = [
         married: {"M": "Married ", "F": "Married "},
         divorced: "Divorced ",
         yearsOld: "years old",
+        yearsAgo: "years ago",
         // Relationship calculator
         samePerson: "Same person",
         siblings: {"MM": "Brothers", "MF": "Brother/Sister", 
@@ -75,6 +78,7 @@ var languages = [
         person: "Person ",
         noRelation: "not directly related",
         are: " are ",
+        months: ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"],
     },
 ];
 
@@ -742,4 +746,39 @@ function setSearchEvents(searchText, searchList, data, view, link=true) {
                 searchList.style.display="none";  
             }
     })
+}
+
+
+function dateToIso(dateStr) {
+    let strArr = dateStr.split(" ");
+
+    if (strArr.length < 3 || strArr.indexOf("ABT") != -1) {
+        throw new Error("Date cannot be parsed");
+    }
+    
+
+    // Get the index from the english-language array
+    let month = languages[1]["months"].indexOf(strArr[1]) + 1;
+    // If it's valid, we keep it. If not, we fall back to the string
+    month = (month >= 1 && month <= 12) ? month : strArr[1];
+
+    function pad(num, len) {
+        let numStr = num.toString();
+        while (numStr.length < len) {
+            numStr = "0" + numStr;
+        }
+        return numStr;
+    }
+
+    return `${strArr[2]}-${pad(month, 2)}-${pad(strArr[0], 2)}`;
+}
+
+
+function isoToLocale(isoDateStr, months) {
+    let strArr = isoDateStr.split("-");
+    let month = parseInt(strArr[1]);
+
+    month = months[month - 1];
+
+    return `${strArr[2]} ${month} ${strArr[0]}`;
 }

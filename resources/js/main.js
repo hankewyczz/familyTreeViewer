@@ -260,7 +260,7 @@ function getDetails(canvasView, data, curPerson) {
             }
 
             
-
+            let dateStr;
             switch (event[event.length - 1]) { // We take the letter indicating event type
                 case "B": // Birth
                     var birthInfo = document.createElement('span');
@@ -270,19 +270,28 @@ function getDetails(canvasView, data, curPerson) {
                     var birthLocation = event[1] ? langArray["locatedIn"] + event[1] : "";
                     birthInfo.appendChild(document.createTextNode(langArray["born"][sex] + birthLocation));
 
-                    var parents = structure[curPerson.id]["parents"];
-                    if (parents.length > 0) {
-                        birthInfo.appendChild(document.createTextNode(" (" + langArray["parents"] + ": "));
-                        birthInfo.appendChild(makePersonLink(structure[parents[0]].id));
 
-                        if (parents.length > 1) {
-                            birthInfo.appendChild(document.createTextNode(langArray["and"]));
-                            birthInfo.appendChild(makePersonLink(structure[parents[1]].id));
-                            birthInfo.appendChild(document.createTextNode(")"));
+                    
+                    try {
+                        let birthDateIso = dateToIso(birthDate);
+                        dateStr = isoToLocale(birthDateIso, langArray["months"]);
+
+                        if ((birthDate != "") && (birthDate != null)) {
+                            var today = moment();
+                            var bd = moment(birthDateIso);
+
+                            var ageToday = today.diff(bd, 'years');
+                            // MS * Secs * Mins * Hours * Days
+                            birthInfo.appendChild(
+                                document.createTextNode(` (${ageToday.toString()} ${langArray["yearsAgo"]})`));
                         }
+                    } 
+                    catch (e) {
+                        dateStr = birthDate;
                     }
 
-                    field(birthDate, birthInfo);
+                    
+                    field(dateStr, birthInfo);
                     break;
 
                 case "D": // Death
@@ -292,14 +301,20 @@ function getDetails(canvasView, data, curPerson) {
 
                     var ageAtDeath = "";
                     if ((birthDate != "") && (birthDate != null) && (deathDate != "")) {
-                        var dd = new Date(deathDate);
-                        var bd = new Date(birthDate);
-                        var ageAtDeathInt = Math.floor((dd - bd) / (1000*60*60*24*365));
+                        var dd = moment(deathDate);
+                        var bd = moment(birthDate);
                         // MS * Secs * Mins * Hours * Days
-                        ageAtDeath = " (" + ageAtDeathInt.toString() + " " + langArray["yearsOld"] + ")";
+                        ageAtDeath = " (" + ageAtDeath.toString() + " " + langArray["yearsOld"] + ")";
                     }
 
-                    field(deathDate, langArray["died"][sex] + deathLocation + deathType + ageAtDeath);
+                    try {
+                        dateStr = isoToLocale(dateToIso(deathDate), langArray["months"]);
+                    }
+                    catch (e) {
+                        dateStr = deathDate;
+                    }
+
+                    field(dateStr, langArray["died"][sex] + deathLocation + deathType + ageAtDeath);
                     break;
 
                 case "BUR": // Burial data
