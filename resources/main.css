@@ -19,6 +19,19 @@ html, body {
     cursor: default;
 }
 
+a {
+    text-decoration: underline;
+}
+
+/* We make an exception for the info area and the search bar */
+#searchtext, .infoarea, #searchtextP1, #searchtextP2 {
+    user-select: text;
+    -webkit-user-select: text; 
+    -moz-user-select: text; 
+    -ms-user-select: text; 
+    cursor: text;
+}
+
 #canvas {
     position: absolute;
     left: 0;
@@ -43,17 +56,6 @@ html, body {
     color: #9F6018;
     background-image: url('images/error.png');
 }
-
-/* We make an exception for the info area and the search bar */
-#searchtext, .infoarea, #searchtextP1, #searchtextP2 {
-    user-select: text;
-    -webkit-user-select: text; 
-    -moz-user-select: text; 
-    -ms-user-select: text; 
-    cursor: text;
-}
-
-
 
 
 #infowindow {

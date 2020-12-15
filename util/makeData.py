@@ -5,37 +5,27 @@ import argparse
 import datetime
 import dateutil
 import os
-
-
 from gedcom.parser import Parser
 
 
-def ukrSort(part):
+def ukrStrSort(str_lst):
+	''' Long story short - Python sorts by Unicode value, which doesn't work for Ukrainian. 
+
+	The basic Cyrillic alphabet	covers the range of U+0410–U+04FF. 
+	The letters "І/Ї/Є" are not part of this  - they're in the Cyrillic extensions (U+0406).
 	'''
-	We do this due to how the Ukrainian language is represented in Unicode. The basic Cyrillic alphabet
-	covers the range of U+0410–U+04FF. However, the letter "I" is not part of the basic Cyrillic alphabet. 
-	It's part of the Cyrillic extensions (U+0406). Therefore, when trying to alphabetize, the I becomes the first
-	letter in this alphabet. 
 
-	SO, to counter this, we replace any instances of "I" with "И" (the preceeding letter), and two "Я"'s, the last
-	letter. This way, we are almost certain that this will come AFTER all words beginning with "И", but before 
-	any starting with "Ї" (the next letter). 
+	alphabet = ["А", "Б", "В", "Г", "Ґ", "Д", "Е", "Є", "Ж", "З", "И", "І", "Ї", "Й", "К", "Л", 
+	"М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ю", "Я", "Ь", "а", "б", 
+	"в", "г", "ґ", "д", "е", "є", "ж", "з", "и", "і", "ї", "й", "к", "л", "м", "н", "о", "п", "р", 
+	"с", "т", "у", "ф", "х", "ц", "ч", "ш", "щ", "ю", "я", "ь"]
 
-	It's not perfect, but seeing as very few words begin with "И" to begin with, and none (that I know of) have a
-	"ия" letter combination (let alone "ияя"), it does the job well. 
+	string = ''.join(str_lst)
+	# If the given character isn't in the list, then it's not something we need to worry about
+	# Otherwise, we take the index + 1040 (The first letter, "А", has an ord value of 1040)
+	# This allows for proper sorting of multilingual strings 
+	return [ord(char) if char not in alphabet else alphabet.index(char) + 1040 for char in string]
 
-	Since we just use this function to determine the keys, it doesn't affect the name anywhere else, which is perfect
-
-
-	Quick Wiki link for unicode reference:
-	https://en.wikipedia.org/wiki/Cyrillic_script_in_Unicode#Basic_Cyrillic_alphabet
-
-	'''
-	originalI = ["і", "І"]
-	for i in range(0, len(originalI)):
-		part = re.sub(originalI[i], ["ияя", "ИЯЯ"][i], part)
-
-	return part
 
 def sortByNames(x):
 	surnames = []
@@ -44,7 +34,6 @@ def sortByNames(x):
 
 
 	for part in x["name"].split(" "):
-		part = ukrSort(part)
 		inSurname = True if part.startswith("/") else inSurname
 
 		# Check if in surname
@@ -56,7 +45,8 @@ def sortByNames(x):
 		# Checks if we've reached the end of the surname
 		inSurname = False if part.endswith("/") else inSurname
 
-	return surnames + nonSurnames
+
+	return ukrStrSort(surnames + nonSurnames)
 
 
 def isInstanceOf(element, tag):
@@ -92,10 +82,10 @@ def main():
 	dataFolder = "../data/"
 
 	# Data filenames
-	structureOutput = "{0}structure.json".format(dataFolder)
-	detailsOutput = "{0}details.json".format(dataFolder)
-	burialOutput = "{0}burials.json".format(dataFolder)
-	birthdayOutput = "{0}birthdays.json".format(dataFolder)
+	structureOutput = f"{dataFolder}structure.json"
+	detailsOutput = f"{dataFolder}details.json"
+	burialOutput = f"{dataFolder}burials.json"
+	birthdayOutput = f"{dataFolder}birthdays.json"
 
 	# Initialize the structure and details containers
 	structure = []
@@ -114,21 +104,18 @@ def main():
 
 	# No initial person at first
 	initialPerson = None
-	# Loop over all people
 
-	personObjs = []
-	for individual in individuals:
-		personObjs.append(gu.Person(individual, families, objects, notes))
-
+	# Create the person objects
+	personObjs = [gu.Person(indiv, families, objects, notes) for indiv in individuals]
 	
-
+	# We need to generate all the ancestors for everyone before doing anything else
 	for personObj in personObjs:
-		# Generate the ancestor lists for all people
 		personObj.getAllAncestors(personObjs)
 		
-		
+	# Now, we do the real work
 	for personObj in personObjs:
-		# Some sanity checks, just to make sure that the names are valid
+
+		# Sanity check - do the Ukrainian name genders check out?
 		surname = re.search('\/([^\/)]+)', personObj.name[0]).group(1)
 
 		if personObj.sex.upper() == "F":
@@ -163,13 +150,16 @@ def main():
 			"names": personObj.name,
 			"notes": personObj.notes,
 			"events": personObj.birthData + # Birth event
-			gu.sortEventsByDate(
-				# Marriage events
-				personObj.marriageData + 
-				# Divorce events
-				personObj.divorceData +
-				# Occupation events
-				personObj.occupationData) + 
+				# We only bother sorting the middle stuff
+				# Birth, death, and burial order never change (hopefully)
+				gu.sortEventsByDate(
+					# Marriage events
+					personObj.marriageData + 
+					# Divorce events
+					personObj.divorceData +
+					# Occupation events
+					personObj.occupationData
+				) + 
 			# Death event
 			personObj.deathData +
 			# Burial data
@@ -180,7 +170,6 @@ def main():
 			"redirects": personObj.redirects,
 			"redirectsTo": personObj.redirectsTo,
 			"ancestors": personObj.ancestors,
-			
 		}
 
 
@@ -188,22 +177,22 @@ def main():
 
 		details[person["id"]] = detail
 
+
+		# We add the information to the collections - the birthday list and the burial list
+
 		# If birth data exists, and we get rid of the wrapper list, and we have a proper date
-		simpleBirthData = personObj.birthData
-		if simpleBirthData and simpleBirthData[0] and simpleBirthData[0][0]:
-			date = gu.strToDate(simpleBirthData[0][0]).birthData()
+		if personObj.birthData and personObj.birthData[0] and personObj.birthData[0][0]:
+			date = gu.strToDate(personObj.birthData[0][0]).birthData()
 
 			if date != "":
-				birthday = [person["id"], date]
-				birthdays.append(birthday)
+				birthdays.append([person["id"], date])
 
-		burialData = personObj.burialData
-		if burialData and burialData[0] and burialData[0][1]:
-			burialPlace = burialData[0][1]
+		# Burial list
+		if personObj.burialData and personObj.burialData[0] and personObj.burialData[0][1]:
+			burialPlace = personObj.burialData[0][1]
 
-			if burialData != "":
-				burial = [person["id"], burialPlace]
-				burials.append(burial)
+			if burialPlace != "":
+				burials.append([person["id"], burialPlace])
 
 
 	jsonStyling = {"indent": 4, "separators":(',', ':')}
