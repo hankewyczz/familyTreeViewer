@@ -3,7 +3,9 @@ import json
 import gedcomUtils as gu
 import argparse
 import datetime
+import dateutil
 import os
+
 
 from gedcom.parser import Parser
 
@@ -139,7 +141,7 @@ def main():
 
 
 		# We check for a common ancestor among all spouses:
-		personObj.checkCommonAncestor(personObjs)
+		personObj.handleCommonAncestor(personObjs)
 
 		person = {
 			"id": personObj.id,
@@ -148,8 +150,8 @@ def main():
 			"parents": personObj.parents,
 			"spouses": personObj.spouses,
 			"children": personObj.children,
-			"birth": personObj.birthData,
-			"death": personObj.deathData,
+			"birth": personObj.simpleBirthData,
+			"death": personObj.simpleDeathData,
 		}
 		
 		if initialPerson == None:
@@ -160,8 +162,8 @@ def main():
 			"pics": personObj.pics,
 			"names": personObj.name,
 			"notes": personObj.notes,
-			"events": personObj.fullBirthData + # Birth event
-			gu.sortByDate(
+			"events": personObj.birthData + # Birth event
+			gu.sortEventsByDate(
 				# Marriage events
 				personObj.marriageData + 
 				# Divorce events
@@ -169,7 +171,7 @@ def main():
 				# Occupation events
 				personObj.occupationData) + 
 			# Death event
-			personObj.fullDeathData +
+			personObj.deathData +
 			# Burial data
 			personObj.burialData
 			,
@@ -187,9 +189,9 @@ def main():
 		details[person["id"]] = detail
 
 		# If birth data exists, and we get rid of the wrapper list, and we have a proper date
-		birthData = personObj.fullBirthData
-		if birthData and birthData[0] and birthData[0][0]:
-			date = gu.stripBirthData(birthData[0][0])
+		simpleBirthData = personObj.birthData
+		if simpleBirthData and simpleBirthData[0] and simpleBirthData[0][0]:
+			date = gu.strToDate(simpleBirthData[0][0]).birthData()
 
 			if date != "":
 				birthday = [person["id"], date]
@@ -208,7 +210,7 @@ def main():
 
 	# Sort the structures and birthday files file
 	structure.sort(key=sortByNames)
-	birthdays.sort(key=lambda birthday: gu.dateParse(birthday[1]))
+	birthdays.sort(key=lambda birthday: dateutil.parser.parse(birthday[1]))
 	burials.sort(key=lambda burial: burial[1])
 
 
@@ -230,6 +232,9 @@ def main():
 	# Generate the burials file
 	with open(burialOutput, "w+", encoding="utf8") as f:
 		json.dump(burials, f, **jsonStyling)
+
+	# Hang so user can see output before closing
+	input("Done!")
 
 if __name__ == "__main__":
 	main()

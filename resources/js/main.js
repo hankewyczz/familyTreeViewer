@@ -303,6 +303,7 @@ function getDetails(canvasView, data, curPerson) {
                     if ((birthDate != "") && (birthDate != null) && (deathDate != "")) {
                         var dd = moment(deathDate);
                         var bd = moment(birthDate);
+                        ageAtDeath = dd.diff(bd, 'years');
                         // MS * Secs * Mins * Hours * Days
                         ageAtDeath = " (" + ageAtDeath.toString() + " " + langArray["yearsOld"] + ")";
                     }
