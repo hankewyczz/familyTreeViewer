@@ -182,10 +182,10 @@ def main():
 
 		# If birth data exists, and we get rid of the wrapper list, and we have a proper date
 		if personObj.birthData and personObj.birthData[0] and personObj.birthData[0][0]:
-			date = gu.strToDate(personObj.birthData[0][0]).birthData()
+			date = gu.SimpleDate(personObj.birthData[0][0])
 
-			if date != "":
-				birthdays.append([person["id"], date])
+			if date.month and date.day:
+				birthdays.append([person["id"], f"{date.month}-{date.day}"])
 
 		# Burial list
 		if personObj.burialData and personObj.burialData[0] and personObj.burialData[0][1]:
