@@ -85,9 +85,9 @@ def sortEventsByDate(lst):
 
 
 # From a list, get the first element matching the given ID
-def getObj(obj_id, objects, person=False):
+def getObj(obj_id, objects):
     for obj in objects:
-        if (person and obj.id == obj_id) or (obj.get_pointer() == obj_id):
+        if obj.get_pointer() == obj_id:
             return obj
 
     return None
@@ -95,7 +95,11 @@ def getObj(obj_id, objects, person=False):
 
 # Gets a person by their ID
 def getPerson(person_id, people):
-    return getObj(person_id, people, True)
+    for person in people:
+        if person.id == person_id:
+            return person
+
+    return None
 
 
 # Gets ancestors
