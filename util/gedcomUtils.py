@@ -4,8 +4,6 @@ from datetime import datetime
 from dateutil import parser
 from typing import List, Optional
 
-
-
 # Where should we redirect the images to?
 IMAGES_FOLDER = "resources/photos/"
 
@@ -76,7 +74,7 @@ class SimpleDate:
 
 
 # Given a list of events, sorts them chronologically
-def sortEventsByDate(lst):
+def sortEventsByDate(lst: List[List[str]]) -> List[List[str]]:
     # Takes the date from the event (index 0), parses it, and converts to datetime for easy comparison
     lst.sort(key=lambda event: SimpleDate(event[0]).toDateObj())
     return lst
@@ -142,18 +140,16 @@ def getTags(element, tag, value=True):
     return array
 
 
-
-
 # Person object
 class Person:
     # Create a person object
     def __init__(self, individual, families, objects, notes, originalPerson=True):
         # Initialize variables
         self.simpleBirthData: List[str] = []
-        self.birthData: List[str] = []
+        self.birthData: List[List[str]] = []
         self.simpleDeathData: List[str] = []
-        self.deathData: List[str] = []
-        self.burialData: List[str] = []
+        self.deathData: List[List[str]] = []
+        self.burialData: List[List[str]] = []
         self.occupationData: List[List[str]] = []
 
         # Family
@@ -168,8 +164,8 @@ class Person:
         self.notes: List[str] = []
 
         # Events
-        self.marriageData: List[str] = []
-        self.divorceData: List[str] = []
+        self.marriageData: List[List[str]] = []
+        self.divorceData: List[List[str]] = []
 
         # originalPerson checks if this is a normal person (default is true)
         # The only cases this wouldn't be true is for dummy placeholders
@@ -486,4 +482,4 @@ class Person:
                 duplicateP1.spouses = [person2.id]
                 people.append(duplicateP1)
 
-                print(f'\tDuplicate families: {person1.name}, {person2.name}')
+                print(f'Duplicate families: {person1.name}, {person2.name}')
