@@ -2,6 +2,9 @@ import os
 import re
 from datetime import datetime
 from dateutil import parser
+from typing import List, Optional
+
+
 
 # Where should we redirect the images to?
 IMAGES_FOLDER = "resources/photos/"
@@ -12,8 +15,8 @@ IMAGES_FOLDER = "resources/photos/"
 ############################
 
 # Filters out all null values in the given list
-def filterNull(lst):
-    return list(filter(None, lst))
+def filterNull(*args: any) -> List[any]:
+    return list(filter(None, args))
 
 
 ########################
@@ -22,12 +25,14 @@ def filterNull(lst):
 
 # Represents a simple date
 class SimpleDate:
-    def __init__(self, date_string):
-        year, month, day = None, None, None
+    def __init__(self, date_string: str):
+        year: Optional[int] = None
+        month: Optional[int] = None
+        day: Optional[int] = None
         self.approximate = "ABT" in date_string.upper()
 
         # Strip any ABT approximation
-        cleanStr = re.sub("ABT", "", date_string.upper())
+        cleanStr: str = re.sub("ABT", "", date_string.upper())
         cleanStr = cleanStr.strip()
 
         # We set the years if the date isn't an empty string
@@ -52,16 +57,14 @@ class SimpleDate:
         self.day = day
 
     # Returns a string representation of this date
-    def toString(self):
-        prefix = "ABT " if self.approximate else ""
+    def toString(self) -> str:
+        prefix: str = "ABT " if self.approximate else ""
         return prefix + self.dateString()
 
     # Returns a simple string representation of this date (no approximation)
-    def dateString(self):
-        year = f'{self.year}' if self.year else ""
-        month = f'-{self.month}' if self.month else ""
-        day = f'-{self.day}' if self.day else ""
-        return year + month + day
+    def dateString(self) -> str:
+        dateLst: List[int] = filterNull(self.year, self.month, self.day)
+        return '-'.join([str(x) for x in dateLst])
 
     # Returns a datetime object of this date
     def toDateObj(self):
@@ -139,44 +142,67 @@ def getTags(element, tag, value=True):
     return array
 
 
+
+
 # Person object
 class Person:
     # Create a person object
     def __init__(self, individual, families, objects, notes, originalPerson=True):
+        # Initialize variables
+        self.simpleBirthData: List[str] = []
+        self.birthData: List[str] = []
+        self.simpleDeathData: List[str] = []
+        self.deathData: List[str] = []
+        self.burialData: List[str] = []
+        self.occupationData: List[List[str]] = []
+
+        # Family
+        self.parents: List[str] = []
+        self.spouses: List[str] = []
+        self.sFamilies: List = []
+        self.children: List[str] = []
+        self.ancestors = []
+
+        # Objects
+        self.pics: List[str] = []
+        self.notes: List[str] = []
+
+        # Events
+        self.marriageData: List[str] = []
+        self.divorceData: List[str] = []
+
         # originalPerson checks if this is a normal person (default is true)
         # The only cases this wouldn't be true is for dummy placeholders
         # 	Dummy placeholders are placeholder nodes that redirect to the original person
         if originalPerson:
             # Set some default values:
-            self.redirects = False
-            self.redirectsTo = ""
-            self.parentsHidden = False
-            self.childrenHidden = False
-            self.indiv = individual
+            self.redirects: bool = False
+            self.redirectsTo: str = ""
+            self.parentsHidden: bool = False
+            self.childrenHidden: bool = False
 
             # Initialize personal information
-            self.id = self.indiv.get_pointer()
-            self.name = getTags(self.indiv, "NAME")
-            self.sex = getTag(self.indiv, "SEX")[0].lower()
+            self.indiv = individual
+            self.id: str = self.indiv.get_pointer()
+            self.name: List[str] = getTags(self.indiv, "NAME")
+            self.sex: str = getTag(self.indiv, "SEX").lower()
 
-            # Life data
-            self.saveBirthData()
+            # Set life data
             self.saveDeathData()
+            self.saveBirthData()
             self.getOccupationData()
             self.getBurialData()
 
             # Family
             self.getSpousalFamilies(families)
             self.getParents(families)
-            self.getSpouses(families)
-            self.getChildren(families)
-            self.getMarriageData(families)
-            self.getDivorceData(families)
+            self.getSpouses()
+            self.getChildren()
+            self.getMarriageData()
+            self.getDivorceData()
 
-            # Pictures
+            # Pictures and notes
             self.getPics(objects)
-
-            # Notes
             self.getNotes(notes)
 
     ####################
@@ -188,8 +214,8 @@ class Person:
         # Get the basic birth information
         date, location, _x = self.indiv.get_birth_data()
 
-        year = self.indiv.get_birth_year()
-        year = str(year) if year != -1 else ''
+        year_int: int = self.indiv.get_birth_year()
+        year: str = str(year_int) if year_int != -1 else ''
 
         # The simple birth data consists of the year, and the first part of the location
         # eg ["1903", "Kyiv"]
@@ -205,12 +231,12 @@ class Person:
     def saveDeathData(self):
         date, location, _x = self.indiv.get_death_data()
 
-        year = self.indiv.get_death_year()
-        year = str(year) if year != -1 else ''
+        year_int: int = self.indiv.get_death_year()
+        year: str = str(year_int) if year_int != -1 else ''
 
         self.simpleDeathData = [year, location.split(",")[0]]
 
-        dType = ""
+        dType: str = ""
 
         for child in self.indiv.get_child_elements():
             if child.get_tag() == "DEAT":
@@ -231,43 +257,37 @@ class Person:
     def getParents(self, families):
         # Get the family in which this person is a child
         family = getObj(getTag(self.indiv, "FAMC"), families)
-        parents = [getTag(family, "HUSB"), getTag(family, "WIFE")]
-
-        self.parents = filterNull(parents)  # Strip any null values
+        # Grab the parents, and filter any null values (ie. unknown parents)
+        self.parents = filterNull(getTag(family, "HUSB"), getTag(family, "WIFE"))
 
     # Gets all the families in which this person is a spouse
     def getSpousalFamilies(self, families):
-        sFamilies = getTags(self.indiv, "FAMS")
-        # Converts them into objects
-        self.sFamilies = [getObj(family, families) for family in sFamilies]
+        # Gets the FAMS (spousal families), and converts them into objects
+        self.sFamilies = [getObj(family, families) for family in getTags(self.indiv, "FAMS")]
 
     # Gets the spouse of the given family
     def getSpouse(self, family):
-        spouse = [getTag(family, "HUSB"), getTag(family, "WIFE")]
-        spouse = filterNull(spouse)  # Removes any null values
-
-        while self.id in spouse:
-            spouse.remove(self.id)
-
-        return spouse[0]  # Returns the one that isn't this person
+        # We get the husband and wife of the given family (minus any null values)
+        s1, s2 = getTag(family, "HUSB"), getTag(family, "WIFE")
+        return s1 if not s1 == self.id else s2
 
     # Gets this person's spouses
-    def getSpouses(self, families):
+    def getSpouses(self):
         self.spouses = [self.getSpouse(family) for family in self.sFamilies]
 
     # Gets the children of this person (if any)
-    def getChildren(self, families):
+    def getChildren(self):
         self.children = []
-
         for family in self.sFamilies:
             self.children.extend(getTags(family, "CHIL"))
 
     # gets pictures from this person
     def getPics(self, objects):
         # gets the pictures from all of the objects
-        picLst = []
+        picLst: List[str] = []
         # Iterates over all of the objects associated with this person
         for obj in [getObj(obj, objects) for obj in getTags(self.indiv, "OBJE")]:
+            # Get the FILE tag from the object
             imageFileName = getTag(obj, "FILE").split("\\")[-1]
             picLst.append(os.path.join(IMAGES_FOLDER, imageFileName))
 
@@ -279,7 +299,7 @@ class Person:
         rawNotes = [getObj(note, notes) for note in getTags(self.indiv, "NOTE")]
 
         # gets the pictures from all of the objects
-        result = []
+        result: List[str] = []
         for note in rawNotes:
             # Paragraph formatting
             parsedNote = f"\t{note.get_value()}"
@@ -293,15 +313,14 @@ class Person:
         self.notes = result
 
     # Abstract function for divorce and marriage data
-    def getMDData(self, families, type):
+    def getMDData(self, event_type):
         events = []
-        tag = {"M": "MARR", "DIV": "DIV"}[type.upper()]
 
         for family in self.sFamilies:
             date, place = "", ""
 
             for child in family.get_child_elements():
-                if child.get_tag() == tag:
+                if child.get_tag() == event_type:
                     for sub in child.get_child_elements():
                         if sub.get_tag() == "DATE":
                             date = sub.get_value()
@@ -311,15 +330,15 @@ class Person:
             if date == '' and place == '':
                 continue
             else:
-                events.append([date, self.getSpouse(family), place, type.upper()])
+                events.append([date, self.getSpouse(family), place, event_type.upper()])
 
         return events
 
-    def getMarriageData(self, families):
-        self.marriageData = self.getMDData(families, "M")
+    def getMarriageData(self):
+        self.marriageData = self.getMDData("MARR")
 
-    def getDivorceData(self, families):
-        self.divorceData = self.getMDData(families, "DIV")
+    def getDivorceData(self):
+        self.divorceData = self.getMDData("DIV")
 
     # Gets occupation data
     def getOccupationData(self):
@@ -361,9 +380,6 @@ class Person:
         else:
             self.burialData = [[date, place, bType, "BUR"]]
 
-    def getAllAncestors(self, people):
-        self.ancestors = getAncestors(self, people, 1)
-
     def initRedirect(self, redirectingTo, people):
         self.redirects = True
         self.redirectsTo = redirectingTo.id
@@ -373,7 +389,7 @@ class Person:
 
         # Give it an ID that doesn't exist
         ID = redirectingTo.id
-        while getPerson(ID, people) != None:
+        while getPerson(ID, people) is not None:
             ID += "1"
 
         self.id = ID
@@ -384,17 +400,6 @@ class Person:
         self.birthData = list(redirectingTo.birthData)
         self.simpleDeathData = list(redirectingTo.simpleDeathData)
         self.deathData = list(redirectingTo.deathData)
-        self.occupationData = []
-        self.burialData = []
-        self.sFamilies = []
-        self.parents = []
-        self.spouses = []
-        self.children = []
-        self.marriageData = []
-        self.divorceData = []
-        self.pics = []
-        self.notes = []
-        self.ancestors = []
 
     def replaceSpouse(self, old, new):
         # Switch this person's spouses
@@ -417,7 +422,7 @@ class Person:
         # Check if the ancestor lists overlap
         union = set()
         for ancestorSet in [ancestors1, ancestors2]:
-            if ancestorSet == []:
+            if len(ancestorSet) == 0:
                 # Can't be any overlap if one list is empty
                 return False
             for ancestor in ancestorSet:
@@ -431,9 +436,17 @@ class Person:
     # A dummy person is just a link to the real person, but doesn't show any children/parents
     # Therefore, only one set of parents/children shows at once, so the conflict doesn't ever show up
     def handleCommonAncestor(self, people):
-        for spouse in self.spouses:
+        # Get this person's ancestors (if not already gotten)
+        if len(self.ancestors) == 0:
+            self.ancestors = getAncestors(self, people, 1)
+
+        for spouse_id in self.spouses:
             # Get the spouse object
-            spouse = getPerson(spouse, people)
+            spouse = getPerson(spouse_id, people)
+
+            # Get this spouse's ancestors (if not already gotten)
+            if len(spouse.ancestors) == 0:
+                spouse.ancestors = getAncestors(spouse, people, 1)
 
             if self.areAncestorsShared(spouse):
                 if self.name > spouse.name:
@@ -473,4 +486,4 @@ class Person:
                 duplicateP1.spouses = [person2.id]
                 people.append(duplicateP1)
 
-                print(f'Duplicate families: {person1.name}, {person2.name}')
+                print(f'\tDuplicate families: {person1.name}, {person2.name}')

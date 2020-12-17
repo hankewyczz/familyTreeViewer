@@ -2,7 +2,6 @@ import re
 import json
 import gedcomUtils as gu
 import argparse
-import datetime
 import dateutil
 import os
 from gedcom.parser import Parser
@@ -70,6 +69,7 @@ def generateArrays(gedcomParser):
 
 
 def main():
+	print("Running!")
 	# Parses arguments
 	parser = argparse.ArgumentParser(description="Parse GEDCOM files for web viewing")
 	parser.add_argument("--file", "-f", help="Source file", default="familyTree.ged")
@@ -107,10 +107,7 @@ def main():
 
 	# Create the person objects
 	personObjs = [gu.Person(indiv, families, objects, notes) for indiv in individuals]
-	
-	# We need to generate all the ancestors for everyone before doing anything else
-	for personObj in personObjs:
-		personObj.getAllAncestors(personObjs)
+
 		
 	# Now, we do the real work
 	for personObj in personObjs:
