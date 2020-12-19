@@ -1,304 +1,256 @@
-function parseName(names) {
-    var forenames = [];
-    var surnames = []
-    var inSurname = false;
-    // Seperates the name into fore/sur-name arrays
-    
-    map(function(name) {
-        if (name.startsWith("/")) { inSurname = true; }
-        
-        if (inSurname) { surnames.push(displayName(name)); }
-        else { forenames.push(displayName(name)) }
-    }, names);
+// Parses the optional birth/death data
+function makeBirthDeathText(person) {
+    let langArray = getLang();
 
-    return [forenames, surnames];
-}
-
-// Parses the date and place into a string
-function parseDatePlace(date) {
-    var str = date[0];
-    if (date[1]) {
-        var langArray = getLang();
-        str += "," + langArray["locatedIn"] + date[1];
-    }
-    return str.trim();
-}
-
-// Parses the birth and deaths into text
-function parseBirthDeathDate(person, result) {
-    var sex = person["sex"].toUpperCase();
-    var birthStr = parseDatePlace(person["birth"]);
-    var deathStr = parseDatePlace(person["death"]);
-    var langArray = getLang();
-
-    if (birthStr) {
-        result = result.concat([detailFont, "\n" + langArray["born"][sex] + " " + birthStr]);
-    }
-    if (deathStr) {
-        result = result.concat([detailFont, "\n" + langArray["died"][sex] + " " + deathStr]);
+    // Parses the date and place into a string
+    function parseDatePlace(dateAndPlace, eventWord) {
+        let dateStr = dateAndPlace[0];
+        // If we have a location, we add it (otherwise, add nothing)
+        dateStr += dateAndPlace[1] ? `,${langArray["locatedIn"]}${dateAndPlace[1]}` : "";
+        // If we have a year OR location, we formalize this into a statement with the given word
+        return (dateStr !== "") ? `\n${eventWord} ${dateStr.trim()}` : "";
     }
 
-    return result;
-}
+    let sex = person["sex"].toUpperCase();
+    let infoStrs = [parseDatePlace(person["birth"], langArray["born"][sex]),
+        parseDatePlace(person["death"], langArray["died"][sex])];
 
+    // Filter out null/undefined info
+    infoStrs = infoStrs.filter(e => e !== "");
+    // Add the font information
+    return infoStrs.map(infoStr => [detailFont, infoStr]).flat();
+}
 
 // Creates the text for each node
 function makeNodeText(person) {
-    var names = parseName(person["name"].split(" "));
+    let splitName = person["name"].split("/")
+    // Split between non-surnames and surnames
+    let names = [splitName[0].trim(), splitName[1].trim()];
 
-    var formattedName = names[0].join(" ");
-    if (names[1].length > 0 && names[0].length > 0) { // If we lack either fore or sur, it'll all be one line
-        formattedName += "\n";
-    }
-    
-    formattedName += names[1].join(" ");
+    // Filter out null/undefined names
+    names = names.filter(e => e)
 
-    // If we have birth/death data, we append it to the result 
-    var result = [baseFont, formattedName]; // Base name
-    return parseBirthDeathDate(person, result);
+    // Set the font and text
+    let result = [baseFont, names.join("\n")];
+
+    // Now, we handle the optional birth/death data
+    return result.concat(makeBirthDeathText(person));
 }
 
 
 
 // Generates a node
-function Node(_person, pDetails) {
+class PersonNode {
+    constructor(_person, pDetails) {
+        this.person = _person;
+        this.details = pDetails;
 
-    var text = makeNodeText(_person); // Generates the text for this node
-    var textDimensions = null;
-    var imageScaling = scale;
+        this.text = makeNodeText(_person); // Generates the text for this node
+        this.textDimensions = null;
 
-    var bgColor = {"m": "#ACE2F2", "f": "#F8AFD7", "": "#d3d3d3"}; // background colors
-    var sidePadding = 20 * imageScaling;
-    
-    var x = 0;
-    var y = 0;
+        this.imageScaling = scale;
+        this.sidePadding = 20 * this.imageScaling;
 
-    nodeDict =  {
-        ancestorsUp : [], // Top ancestor(s) a level up (ie. first parent)
-        descendentsDown : [], // Direct children a level down
-        generation : 0, // generation
-        mod : 0, // if we need to shift the cell to fit
-        parentsHidden: false, // Are the parents hidden?
-        childrenHidden: false, // Are the children hidden?
-        inFocus: false, // Is this the node currently in focus
-        ancestorFocus: false, // Is this node the ancestor of the currently focused node?
-        group: null, // by default we have no group
-        redirects: pDetails.redirects,
-        redirectsTo: pDetails.redirectsTo,
-        ancestors: pDetails.ancestors,
+        this.bgColor = {"m": "#ACE2F2", "f": "#F8AFD7", "": "#d3d3d3"}; // background colors
 
+        // Location
+        this.x = 0;
+        this.y = 0;
 
-        // Returns the interior node
-        getInteriorNodeById: function(_) { return this; },
-
-        // Establishes relations (determines if any are hidden)
-        relationships: function(structure) {
-            var parents = structure[this.getId()].parents; // gets this person's parents
-            var displayParents = [];
-
-            for (var i = 0; i < this.ancestorsUp.length; i++) {
-                displayParents = displayParents.concat(this.ancestorsUp[i].getIds()); // add to displayParents if shown
-            }
-            
-            for (var i = 0; i < parents.length; i++) {
-                if (displayParents.indexOf(parents[i]) < 0) {
-                    this.parentsHidden = true; // If a parent is not in displayParents, we have a hidden one
-                }
-            }
-                
-            // Same thing, but for children 
-            var children = structure[this.getId()].children;
-            var displayChildren = [];
-
-            for (var j = 0; j < this.descendentsDown.length; j++) {
-                displayChildren = displayChildren.concat(this.descendentsDown[j].getIds());
-            }
-
-            for (var j = 0; j < children.length; j++) {
-                if (displayChildren.indexOf(children[j]) < 0) {
-                    this.childrenHidden = true;
-                }
-            }
-        },
-
-        getChildConnectorPoint: function() {
-            var ax = x + this.getWidth() / 2;
-            var ay = y + this.getHeight() + nodeBorderMargin;
-            return [ax, ay];
-        },
-
-        getParentConnectorPoint: function() {
-            var ax = x + this.getWidth() / 2;
-            var ay = y - nodeBorderMargin;
-            return [ax, ay];
-        },
-
-        getId : function() { return _person.id; },
-        getIds : function() { return [_person.id]; },
-
-        getText : function () { return _text; },
-
-
-        // Positioning
-        getX: function () { return x; },
-        getY: function() { return y; },
-        setX: function(newX) { x = newX; },
-        setY: function(newY) { y = newY; },
-        getPos : function() { return [x,y]; },
-        setPos : function(newX, newY) {
-            x = newX;
-            y = newY;
-        },
-
-
-        // Dimension calculations
-        getScaling: function() { return imageScaling; },
-        setScaling: function(newScale) { imageScaling = newScale; },
-        getWidth : function() { return this.calcDimensions()[0]; },
-        getHeight : function() { return this.calcDimensions()[1]; },
-        calcDimensions : function(canvasView) {
-            if (textDimensions == null) {
-                var dimensions = renderText(text, canvasView, x, y, false);
-                var width = dimensions[0] + (sidePadding * 2);
-                var height = dimensions[1];
-                textDimensions = [width, height];
-            }
-
-            return textDimensions;
-        },
-
-
-        getRect : function(canvasView) {
-            var dimensions = this.calcDimensions(canvasView);
-            var width = dimensions[0];
-            var height = dimensions[1];
-
-            return [x + canvasView.scrollx - nodeBorderMargin, // X
-                    y + canvasView.scrolly - nodeBorderMargin, // Y
-                    width + nodeBorderMargin * 2, // Width
-                    height + nodeBorderMargin * 2]; // Height
-        },
-
-        hitTest : function(canvasView, x, y) {
-            var rect = this.getRect(canvasView);
-            var x1 = rect[0]; // left bounds
-            var y1 = rect[1]; // top bounds
-            var x2 = x1 + rect[2];
-            var y2 = y1 + rect[3];
-
-            var isHit = (x <= x2 && x >= x1) && (y <= y2 && y >= y1); // Checks if within bounds
-            var hitResult = [isHit, ["goto", this]];
-
-            return hitResult;
-        },
-
-        draw : function(canvasView) {
-            var x = this.getX() + canvasView.scrollx;
-            var y = this.getY() + canvasView.scrolly;
-
-
-            var rect = this.getRect(canvasView);
-            var rectX = rect[0];
-            var rectY = rect[1];
-            var width = rect[2];
-            var height = rect[3];
-
-            // If offscreen, don't bother drawing, just return
-            if (x > canvasView.canvas.width || y > canvasView.canvas.height || 
-                x + width < 0 || y + height < 0) {
-                return ;
-            }
-
-
-
-            // Draws the rectangle
-            function drawRect(inFocus, ancestorFocus) {
-                canvasView.context.fillStyle = bgColor[_person["sex"]]; // Fills with the above colors
-                canvasView.context.fillRect(rectX, rectY, width, height);
-                renderText(text, canvasView, x + sidePadding, y, true); // Renders the text
-
-                if (inFocus) { // The focused node
-                    canvasView.context.lineWidth = 3;
-                    canvasView.context.strokeStyle = "#FFFF00";
-                    canvasView.context.strokeRect(rectX + 1, rectY + 1, width - 2, height - 2); 
-                    return;   
-                }
-                else if (ancestorFocus) {
-                    var lineWidth = 2;
-                    var color = "#DD0";
-                }
-                else {
-                    var lineWidth = 1;
-                    var color = "#000000";
-                }
-                canvasView.context.lineWidth = lineWidth;
-                canvasView.context.strokeStyle = color;
-                canvasView.context.strokeRect(rectX, rectY, width, height);    
-                
-            }
-
-
-            // Draws the images
-            function drawImages(self, dim) {
-
-                function hiddenImage(pHidden, cHidden) {
-                    if (pHidden && !cHidden) {
-                        var image = imageIcons.upArrow;
-                    }
-                    else if (!pHidden && cHidden) {
-                        var image = imageIcons.downArrow;
-                    }
-                    else if (pHidden && cHidden) {
-                        var image = imageIcons.doubleArrow;
-                    }
-                    return image;
-                }
-
-                
-                if (self.parentsHidden || self.childrenHidden || pDetails.parentsHidden || pDetails.childrenHidden) {
-                    if (pDetails.parentsHidden || pDetails.childrenHidden) {
-                        var pHidden = pDetails.parentsHidden || self.parentsHidden;
-                        var cHidden = pDetails.childrenHidden || self.childrenHidden;
-                        var image = hiddenImage(pHidden, cHidden);
-                    }
-                    else{
-                        var image = hiddenImage(self.parentsHidden, self.childrenHidden);
-                    }
-                    image.width = dim;
-                    canvasView.context.drawImage(image, x + self.getWidth() - dim, y, dim, dim);
-                }
-
-                if (pDetails["pics"].length > 0) {
-                    // Icon image - we just use the first one
-                    var image = loadImage(pDetails["pics"][0]);
-
-                    if (image.height > 0 && image.width > 0) { // If already loaded, then we draw
-                        canvasView.context.drawImage(image, x, y, dim, dim);
-                    }
-                    
-                }
-                else if (pDetails["notes"].length > 0) {
-                    /* If we have any notes and NO custom image, denote it with the notes icon */
-                    canvasView.context.drawImage(imageIcons.notes, x, y, dim, dim);
-                }
-                else { // Default icon
-                    canvasView.context.drawImage(imageIcons.defaultPerson, x, y, dim, dim);
-                }
-            }
-
-            drawRect(this.inFocus, this.ancestorFocus);
-            drawImages(this, 15 * this.getScaling());
-            
-        },
-
-        drawLines : function(canvasView) {
-            for (var i = 0; i < this.descendentsDown.length; i++) {
-                drawParentLine(canvasView, this, this.descendentsDown[i]);
-            }
-        },
+        this.ancestorsUp = [];       // Top ancestor(s) a level up (ie. first parent)
+        this.descendentsDown = [];   // Direct children a level down
+        this.generation = 0;         // What generation is this person on?
+        this.mod = 0;                // If we need to shift the cell to fit
+        this.parentsHidden = false;  // Are the parents hidden?
+        this.childrenHidden = false; // Are the children hidden?
+        this.inFocus = false;        // Is this the node currently in focus
+        this.ancestorFocus = false;  // Is this node the ancestor of the currently focused node?
+        this.group = null;           // by default we have no group
+        this.redirects = pDetails.redirects;
+        this.redirectsTo = pDetails.redirectsTo;
+        this.ancestors = pDetails.ancestors;
     }
 
-    return nodeDict;
+    // Inherited from NodeGroup
+    getInteriorNodeById(_) {
+        return this;
+    }
+
+    // Establishes relations (determines if any are hidden)
+    areRelationsShown(structure) {
+        // Gets the list of parents and children currently shown
+        let displayParents = this.ancestorsUp.map(ancestor => ancestor.getIds()).flat();
+        let displayKids = this.descendentsDown.map(desc => desc.getIds()).flat();
+
+        // Are any of this person's parents/children currently not being shown?
+        this.parentsHidden = structure[this.getId()].parents.some(p => !displayParents.includes(p));
+        this.childrenHidden = structure[this.getId()].children.some(k => !displayKids.includes(k));
+    }
+
+    getChildConnectorPoint() {
+        let newX = this.x + this.getWidth() / 2;
+        let newY = this.y + this.getHeight() + nodeBorderMargin;
+        return [newX, newY];
+    }
+
+    getParentConnectorPoint() {
+        let newX = this.x + this.getWidth() / 2;
+        let newY = this.y - nodeBorderMargin;
+        return [newX, newY];
+    }
+
+    getId() {
+        return this.person.id;
+    }
+
+    getIds() {
+        return [this.person.id];
+    }
+
+    // Positioning
+    getX() {
+        return this.x;
+    }
+    getY() {
+        return this.y;
+    }
+    setX(newX) {
+        this.x = newX;
+    }
+    setY(newY) {
+        this.y = newY;
+    }
+    getPos() {
+        return [this.x, this.y];
+    }
+    setPos(newX, newY) {
+        this.setX(newX);
+        this.setY(newY);
+    }
+
+    // Dimension calculations
+    getScaling() {
+        return this.imageScaling;
+    }
+    setScaling(newScale) {
+        this.imageScaling = newScale;
+    }
+    getWidth() {
+        return this.calcDimensions()[0];
+    }
+    getHeight() {
+        return this.calcDimensions()[1];
+    }
+    calcDimensions(canvasView) {
+        if (this.textDimensions == null) {
+            let dimensions = renderText(this.text, canvasView, this.x, this.y, false);
+            let width = dimensions[0] + (this.sidePadding * 2);
+            let height = dimensions[1];
+            this.textDimensions = [width, height];
+        }
+
+        return this.textDimensions;
+    }
+
+    getRect(canvasView) {
+        let dimensions = this.calcDimensions(canvasView);
+        let width = dimensions[0];
+        let height = dimensions[1];
+
+        return [this.x + canvasView.scrollx - nodeBorderMargin, // X
+            this.y + canvasView.scrolly - nodeBorderMargin, // Y
+            width + nodeBorderMargin * 2, // Width
+            height + nodeBorderMargin * 2]; // Height
+    }
+
+    hitTest(canvasView, x, y) {
+        let rect = this.getRect(canvasView);
+        let x1 = rect[0]; // left bounds
+        let y1 = rect[1]; // top bounds
+        let x2 = x1 + rect[2];
+        let y2 = y1 + rect[3];
+
+        let isHit = (x <= x2 && x >= x1) && (y <= y2 && y >= y1); // Checks if within bounds
+        return [isHit, ["goto", this]];
+    }
+
+    draw(canvasView) {
+        let x = this.getX() + canvasView.scrollx;
+        let y = this.getY() + canvasView.scrolly;
+
+        let rect = this.getRect(canvasView);
+        let rectX = rect[0];
+        let rectY = rect[1];
+        let width = rect[2];
+        let height = rect[3];
+
+        // If offscreen, don't bother drawing, just return
+        if (x > canvasView.canvas.width || y > canvasView.canvas.height ||
+            x + width < 0 || y + height < 0) {
+            return;
+        }
+
+        // Draws the rectangle
+        canvasView.context.fillStyle = this.bgColor[this.person["sex"]];
+        canvasView.context.fillRect(rectX, rectY, width, height);
+        renderText(this.text, canvasView, x + this.sidePadding, y, true);
+
+        // Defaults
+        let lineWidth = (this.inFocus || this.ancestorFocus) ? 3 : 1;
+        let color = "#000"
+
+        // Special colors
+        if (this.inFocus || this.ancestorFocus) {
+            color = this.inFocus ? "#FF0" : "#DD0";
+        }
+
+        canvasView.context.lineWidth = lineWidth;
+        canvasView.context.strokeStyle = color;
+        canvasView.context.strokeRect(rectX, rectY, width, height);
+
+        // Draws the images
+        const dim = 15 * this.getScaling();
+
+        // Which aspect is hidden?
+        function hiddenImage(pHidden, cHidden) {
+            let image;
+            if (pHidden && cHidden) {
+                image = imageIcons.doubleArrow;
+            }
+            else if (pHidden) {
+                image = imageIcons.upArrow;
+            }
+            else if (cHidden) {
+                image = imageIcons.downArrow;
+            }
+            return image;
+        }
+
+        if (this.parentsHidden || this.childrenHidden) {
+            let image = hiddenImage(this.parentsHidden, this.childrenHidden);
+            image.width = dim;
+            canvasView.context.drawImage(image, x + this.getWidth() - dim, y, dim, dim);
+        }
+
+
+        // What should we use as the user image?
+        let userIcon;
+        if (this.details["pics"].length > 0) {
+            userIcon = loadImage(this.details["pics"][0]);
+        } else if (this.details["notes"].length > 0) {
+            /* If we have any notes and NO custom image, denote it with the notes icon */
+            userIcon = imageIcons.notes;
+        } else { // Default icon
+            userIcon = imageIcons.defaultPerson;
+        }
+        canvasView.context.drawImage(userIcon, x, y, dim, dim);
+    }
+
+    drawLines(canvasView) {
+        for (let desc of this.descendentsDown) {
+            drawParentLine(canvasView, this, desc);
+        }
+    }
 }
 
 
@@ -332,7 +284,7 @@ function NodeGroup(_nodes) {
             return null;
         },
 
-        relationships: function(structure) {
+        areRelationsShown: function(structure) {
             // Gets the displayed group
             function displayedGroup(group) {
                 var displayGroup = [];
@@ -359,7 +311,7 @@ function NodeGroup(_nodes) {
                 _nodes[i].group = this; // set each nodes group to this
 
                 // Deal w/ parent relationships
-                var parents = structure[_nodes[i].getId()].parents;    
+                var parents = structure[_nodes[i].getId()].parents;
                 var displayParents = displayedGroup(this.ancestorsUp);
                 // Determine if this node's parents are hidden
                  _nodes[i].parentsHidden = anyHidden(parents, displayParents);
@@ -505,12 +457,12 @@ function Layout(person, structure, details) {
 
         // Spouses
         if (getSpouses(person).length == 0) { // No spouses
-            var newNode = Node(structure[person], details[person]);
+            var newNode = new PersonNode(structure[person], details[person]);
             mappedNodes[person] = newNode;
         } 
         else {
             var spouseList = [person].concat(getSpouses(person)); // well, spouses and the given person
-            var newNode = NodeGroup(map(function(p) { return Node(structure[p], details[p]) }, spouseList));
+            var newNode = NodeGroup(map(function(p) { return new PersonNode(structure[p], details[p]) }, spouseList));
 
             map(function(p) { mappedNodes[p] = newNode; }, spouseList);
         }
@@ -535,7 +487,7 @@ function Layout(person, structure, details) {
                 map(function(c) { newNode.descendentsDown.push(makeNode(c, generation + 1)); }, children);
             }
         }
-        newNode.relationships(structure);
+        newNode.areRelationsShown(structure);
         return newNode;
     }
 

@@ -50,10 +50,10 @@ function TextAttr(_size, _font, _style, _color, _baseSize) {
 
 
 //// FONTS
-var baseFontSize = 13;
-var detailFontSize = 11;
-var baseFont = TextAttr(baseFontSize * scale, "sans-serif", "normal", "#000000", baseFontSize);
-var detailFont = TextAttr(detailFontSize * scale, "sans-serif", "normal", "#333", detailFontSize);
+const baseFontSize = 13;
+const detailFontSize = 11;
+const baseFont = TextAttr(baseFontSize * scale, "sans-serif", "normal", "#000000", baseFontSize);
+const detailFont = TextAttr(detailFontSize * scale, "sans-serif", "normal", "#333", detailFontSize);
 
 
 
