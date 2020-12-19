@@ -1,0 +1,19 @@
+node_modules
+bower_components
+
+# Editors
+.idea
+*.iml
+
+# Ignore built ts files
+dist/**/*
+
+__pycache__
+.git/
+
+util/__pycache__/
+util/backups
+util/familyTree.ged
+util/familyTreeBak.ged
+data/
+resources/photos/
