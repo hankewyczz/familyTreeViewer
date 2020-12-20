@@ -334,6 +334,7 @@ function getDetails(canvasView, data, curPerson) {
                     break;
 
                 case "M": // Marriage
+                case "MARR":
                     var marriageLocation = event[2] ? langArray["locatedIn"] + event[2] : "";
                     var marriageLink = makePersonLink(event[1]);
                     
@@ -348,7 +349,7 @@ function getDetails(canvasView, data, curPerson) {
                     break;
 
                 default: // Catch case
-                    console.log("Could not parse event type");
+                    console.log("Could not parse event type" + event[event.length - 1]);
             }
             rowGroupContainer.appendChild(eventDiv);
         }

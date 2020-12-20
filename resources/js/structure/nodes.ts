@@ -1,9 +1,9 @@
 // Parses the optional birth/death data
-function makeBirthDeathText(person) {
-    let langArray = getLang();
+function makeBirthDeathText(person: PersonStructure): string[] {
+    let langArray: any = getLang();
 
     // Parses the date and place into a string
-    function parseDatePlace(dateAndPlace, eventWord) {
+    function parseDatePlace(dateAndPlace: string[], eventWord: string): string {
         let dateStr = dateAndPlace[0];
         // If we have a location, we add it (otherwise, add nothing)
         dateStr += dateAndPlace[1] ? `,${langArray["locatedIn"]}${dateAndPlace[1]}` : "";
@@ -22,7 +22,7 @@ function makeBirthDeathText(person) {
 }
 
 // Creates the text for each node
-function makeNodeText(person) {
+function makeNodeText(person: PersonStructure): string[] {
     let splitName = person["name"].split("/")
     // Split between non-surnames and surnames
     let names = [splitName[0].trim(), splitName[1].trim()];
@@ -41,11 +41,37 @@ function makeNodeText(person) {
 
 // Generates a node
 class PersonNode {
-    constructor(_person, pDetails) {
-        this.person = _person;
-        this.details = pDetails;
+    person: PersonStructure;
+    details: PersonDetails;
+    id: string;
+    text: string[];
+    textDimensions: null|number[];
+    imageScaling: number;
+    sidePadding: number;
+    bgColor: {[key: string]: string };
+    x: number;
+    y: number;
+    ancestorsUp: PersonNode[];
+    descendentsDown: PersonNode[];
+    generation: number;
+    mod: number;
+    parentsHidden: boolean;
+    childrenHidden: boolean;
+    inFocus: boolean;
+    ancestorFocus: boolean;
+    group: PersonNodeGroup | null;
+    redirects: boolean;
+    redirectsTo: string;
+    ancestors: Array<Array<number | string>>;
 
-        this.text = makeNodeText(_person); // Generates the text for this node
+
+
+    constructor(person: PersonStructure, pDetails: PersonDetails) {
+        this.person = person;
+        this.details = pDetails;
+        this.id = this.person.id;
+
+        this.text = makeNodeText(person); // Generates the text for this node
         this.textDimensions = null;
 
         this.imageScaling = scale;
@@ -71,59 +97,59 @@ class PersonNode {
         this.ancestors = pDetails.ancestors;
     }
 
-    // Inherited from NodeGroup
-    getInteriorNodeById(_) {
+    // Inherited from PersonNodeGroup
+    getInteriorNodeById(_: any): PersonNode {
         return this;
     }
 
     // Establishes relations (determines if any are hidden)
-    areRelationsShown(structure) {
+    areRelationsShown(structure: {  [key: string]: PersonStructure }): void {
         // Gets the list of parents and children currently shown
         let displayParents = this.ancestorsUp.map(ancestor => ancestor.getIds()).flat();
         let displayKids = this.descendentsDown.map(desc => desc.getIds()).flat();
 
         // Are any of this person's parents/children currently not being shown?
-        this.parentsHidden = structure[this.getId()].parents.some(p => !displayParents.includes(p));
-        this.childrenHidden = structure[this.getId()].children.some(k => !displayKids.includes(k));
+        this.parentsHidden = structure[this.id].parents.some(p => !displayParents.includes(p));
+        this.childrenHidden = structure[this.id].children.some(k => !displayKids.includes(k));
     }
 
-    getChildConnectorPoint() {
+    getChildConnectorPoint(): number[] {
         let newX = this.x + this.getWidth() / 2;
         let newY = this.y + this.getHeight() + nodeBorderMargin;
         return [newX, newY];
     }
 
-    getParentConnectorPoint() {
+    getParentConnectorPoint(): number[] {
         let newX = this.x + this.getWidth() / 2;
         let newY = this.y - nodeBorderMargin;
         return [newX, newY];
     }
 
-    getId() {
+    getId(): string {
         return this.person.id;
     }
 
-    getIds() {
+    getIds(): string[] {
         return [this.person.id];
     }
 
     // Positioning
-    getX() {
+    getX(): number {
         return this.x;
     }
-    getY() {
+    getY(): number {
         return this.y;
     }
-    setX(newX) {
+    setX(newX: number) {
         this.x = newX;
     }
-    setY(newY) {
+    setY(newY: number) {
         this.y = newY;
     }
     getPos() {
         return [this.x, this.y];
     }
-    setPos(newX, newY) {
+    setPos(newX: number, newY: number) {
         this.setX(newX);
         this.setY(newY);
     }
@@ -132,7 +158,7 @@ class PersonNode {
     getScaling() {
         return this.imageScaling;
     }
-    setScaling(newScale) {
+    setScaling(newScale: number) {
         this.imageScaling = newScale;
     }
     getWidth() {
@@ -141,7 +167,7 @@ class PersonNode {
     getHeight() {
         return this.calcDimensions()[1];
     }
-    calcDimensions(canvasView) {
+    calcDimensions(canvasView = null) {
         if (this.textDimensions == null) {
             let dimensions = renderText(this.text, canvasView, this.x, this.y, false);
             let width = dimensions[0] + (this.sidePadding * 2);
@@ -152,7 +178,7 @@ class PersonNode {
         return this.textDimensions;
     }
 
-    getRect(canvasView) {
+    getRect(canvasView: any) {
         let dimensions = this.calcDimensions(canvasView);
         let width = dimensions[0];
         let height = dimensions[1];
@@ -163,7 +189,7 @@ class PersonNode {
             height + nodeBorderMargin * 2]; // Height
     }
 
-    hitTest(canvasView, x, y) {
+    hitTest(canvasView: any, x: number, y: number) {
         let rect = this.getRect(canvasView);
         let x1 = rect[0]; // left bounds
         let y1 = rect[1]; // top bounds
@@ -174,7 +200,7 @@ class PersonNode {
         return [isHit, ["goto", this]];
     }
 
-    draw(canvasView) {
+    draw(canvasView: any) {
         let x = this.getX() + canvasView.scrollx;
         let y = this.getY() + canvasView.scrolly;
 
@@ -211,42 +237,32 @@ class PersonNode {
         // Draws the images
         const dim = 15 * this.getScaling();
 
-        // Which aspect is hidden?
-        function hiddenImage(pHidden, cHidden) {
-            let image;
-            if (pHidden && cHidden) {
+        if (this.parentsHidden || this.childrenHidden) {
+            let image: HTMLImageElement;
+            if (this.parentsHidden && this.childrenHidden) {
                 image = imageIcons.doubleArrow;
             }
-            else if (pHidden) {
+            else if (this.parentsHidden) {
                 image = imageIcons.upArrow;
             }
-            else if (cHidden) {
+            else {
                 image = imageIcons.downArrow;
             }
-            return image;
-        }
-
-        if (this.parentsHidden || this.childrenHidden) {
-            let image = hiddenImage(this.parentsHidden, this.childrenHidden);
             image.width = dim;
             canvasView.context.drawImage(image, x + this.getWidth() - dim, y, dim, dim);
         }
 
 
         // What should we use as the user image?
-        let userIcon;
         if (this.details["pics"].length > 0) {
-            userIcon = loadImage(this.details["pics"][0]);
+            canvasView.context.drawImage(loadImage(this.details["pics"][0]), x, y, dim, dim);
         } else if (this.details["notes"].length > 0) {
             /* If we have any notes and NO custom image, denote it with the notes icon */
-            userIcon = imageIcons.notes;
-        } else { // Default icon
-            userIcon = imageIcons.defaultPerson;
+            canvasView.context.drawImage(imageIcons.notes, x, y, dim, dim);
         }
-        canvasView.context.drawImage(userIcon, x, y, dim, dim);
     }
 
-    drawLines(canvasView) {
+    drawLines(canvasView: any) {
         for (let desc of this.descendentsDown) {
             drawParentLine(canvasView, this, desc);
         }
@@ -254,183 +270,183 @@ class PersonNode {
 }
 
 
-function NodeGroup(_nodes) {
-    var imageScaling = scale;
-    var spousalSpacing = 20 * imageScaling;
-    var minHeight = 0;
 
-    function reposition(_) {
-        for (var i = 1; i < _nodes.length; i++) {
-            // the X of the prev + width + the extra spousalSpacing
-            _nodes[i].setX(_nodes[i-1].getX() + _nodes[i-1].getWidth() + spousalSpacing);
-            _nodes[i].setY(_nodes[i-1].getY());
+// A group of nodes (representing a spousal relationship)
+class PersonNodeGroup {
+    nodes: PersonNode[];
+    imageScaling: number;
+    spousalSpacing: number;
+    minHeight: number;
+    prevDimensions: null | number[];
+    ancestorsUp: PersonNode[];
+    descendentsDown: PersonNode[];
+    generation: number;
+    mod: number;
+
+    constructor(_nodes: PersonNode[]) {
+        this.nodes = _nodes;
+        this.imageScaling = scale;
+        this.spousalSpacing = 20 * this.imageScaling;
+        this.minHeight = 0;
+        this.prevDimensions = null;
+        this.ancestorsUp = [];
+        this.descendentsDown = [];
+        this.generation = 0;
+        this.mod = 0;
+    }
+
+    // Ensures that the group is properly scaled relative to the first node
+    // We store everything display-wise in the first node, and then adjust the rest to match here
+    reposition() {
+        for (let i = 1; i < this.nodes.length; i++) {
+            // The x-coord of the previous node, plus the width of the previous node
+            let startX = this.nodes[i-1].getX() + this.nodes[i-1].getWidth();
+            this.nodes[i].setX(startX + this.spousalSpacing);   // Don't forget the spacing!
+            this.nodes[i].setY(this.nodes[i-1].getY());         // Y is constant for the group
         }
     }
 
-    var prevDimensions = null;
+    getInteriorNodeById(nodeId: string) {
+        let matchingId = this.nodes.filter(n => n.getId() === nodeId);
+        // If we get a hit, return it. Otherwise, return null
+        return matchingId.length >= 1 ? matchingId[0] : null;
+    }
 
-    var nodeGroupDict = {
-        ancestorsUp : [],
-        descendentsDown : [],
-        generation : 0,
-        mod : 0,
+    areRelationsShown(structure: {  [key: string]: PersonStructure }) {
+        for (let node of this.nodes) {
+            node.group = this; // set each nodes group to this
 
-        getInteriorNodeById: function(nodeId) {
-            for (var i = 0; i < _nodes.length; i++) {
-                if (_nodes[i].getId() == nodeId) {
-                    return _nodes[i];
+            // Deal w/ parent relationships
+            let parents = structure[node.getId()].parents;
+            let displayParents = this.ancestorsUp.map(g => g.getIds()).flat()
+            node.parentsHidden = parents.some(p => !displayParents.includes(p));
+
+            // Deal w/ children relationships
+            let children = structure[node.getId()].children;
+            let displayChildren = this.descendentsDown.map(g => g.getIds()).flat();
+            node.childrenHidden = children.some(c => !displayChildren.includes(c));
+
+            // Get all of the children of this node
+            for (let child of this.descendentsDown) {
+                // We check if this child of the Group is also a child of this Node
+                if (structure[node.getId()].children.includes(child.getId())) {
+                    // If it is, then the child is visible - add it to the node
+                    addUnique(child, node.descendentsDown);
                 }
-            }
-            return null;
-        },
-
-        areRelationsShown: function(structure) {
-            // Gets the displayed group
-            function displayedGroup(group) {
-                var displayGroup = [];
-                for (var j = 0; j < group.length; j++) {
-                    displayGroup = displayGroup.concat(group[j].getIds());
-                }
-                return displayGroup;
-            }
-
-            // Checks if any people in the group are NOT displayed
-            function anyHidden(group, displayedGroup) {
-                var hidden = false;
-                map(function(person) {
-                    if (displayedGroup.indexOf(person) < 0) {
-                        hidden = true;
-                    }
-                }, group);
-
-                return hidden;
-            }
-
-
-            for (var i = 0; i < _nodes.length; i++) {
-                _nodes[i].group = this; // set each nodes group to this
-
-                // Deal w/ parent relationships
-                var parents = structure[_nodes[i].getId()].parents;
-                var displayParents = displayedGroup(this.ancestorsUp);
-                // Determine if this node's parents are hidden
-                 _nodes[i].parentsHidden = anyHidden(parents, displayParents);
-
-
-                // Deal w/ children relationships
-                var children = structure[_nodes[i].getId()].children;
-                var displayChildren = displayedGroup(this.descendentsDown);
-                // Determine if this node's children are hidden
-                _nodes[i].childrenHidden = anyHidden(children, displayChildren);
-
-                // Get all of the children of this node
-                for (var j = 0; j < this.descendentsDown.length; j++) {
-                    var childId = this.descendentsDown[j].getId()
-                    var parentId = _nodes[i].getId();
-                    if (structure[parentId].children.indexOf(childId)>=0) {
-                        addUnique(this.descendentsDown[j], _nodes[i].descendentsDown);
-                    }
-                }
-            }
-        },
-
-        getParentConnectorPoint: function() { return _nodes[0].getParentConnectorPoint(); },
-
-
-        getId : function() { return _nodes[0].getId(); },
-        getIds : function() { return map(function(n) { return n.getId(); }, _nodes); },
-        getMembers : function() { return _nodes; },
-
-
-        getText : function() { return ""; },
-        getX: function() { return _nodes[0].getX(); },
-        getY: function() { return _nodes[0].getY(); },
-        setX: function(newX) {
-            _nodes[0].setX(newX);
-            reposition();
-        },
-        setY: function(newY) {
-            _nodes[0].setY(newY);
-            reposition();
-        },
-        getPos : function() { return [_nodes[0].getX(),_nodes[0].getY()]; },
-        setPos : function(newX, newY) {
-            _nodes[0].setX(newX);
-            _nodes[0].setY(newY);
-        },
-
-
-        // Dimension calculations
-        getScaling: function() { return _nodes[0].getScaling(); },
-        setScaling: function(newScale) { _nodes[0].setScaling(newScale); },
-        getWidth : function() { return this.calcDimensions()[0]; },
-        getHeight : function() { return this.calcDimensions()[1]; },
-
-        calcDimensions : function(canvasView) {
-            if (prevDimensions == null) {
-                for (var i=0; i<_nodes.length; i++) {
-                    _nodes[i].calcDimensions(canvasView);
-                }
-                // We reposition after all of the dimensions have been recalculated
-
-                reposition(canvasView);
-                var left = _nodes[0].getX();
-                var right = _nodes[_nodes.length - 1].getX() + _nodes[_nodes.length - 1].getWidth();
-
-                
-
-                var maxHeight = 0;
-                for (var i = 0; i < _nodes.length; i++) {
-                    maxHeight = Math.max(maxHeight, _nodes[i].getHeight());
-                }
-
-                var width = right - left;
-                var height = maxHeight;
-
-                prevDimensions = [width, height];
-
-                minHeight = _nodes[0].getHeight();
-                for (var i = 1; i < _nodes.length; i++) {
-                    minHeight = Math.min(minHeight, _nodes[i].getHeight());
-                }
-            }
-            return prevDimensions;
-        },
-
-        hitTest : function(canvasView, x, y) {
-            for (var i = 0; i < _nodes.length; i++) {
-                var nodeHit = _nodes[i].hitTest(canvasView, x, y);
-                var isHit = nodeHit[0];
-                var value = nodeHit[1];
-
-                if (isHit) {
-                    return [isHit, value];
-                }
-            }
-            return [false, "none"];
-        },
-
-        draw : function(canvasView) {
-            var lineWidth = 10 * scale; // Spouse line
-            var y = this.getY() + (minHeight / 2); // Minheight make sure we work w/ the smallest one (ie. we fit all)
-            var x2 = this.getX() + this.getWidth();
-
-            simpleLine(canvasView, this.getX(), y, x2, y, lineWidth, "#777");
-
-            for (var i = 0; i < _nodes.length; i++) {
-                _nodes[i].draw(canvasView);
-            }
-        },
-
-        drawLines : function(canvasView) {
-            _nodes[0].drawLines(canvasView);
-
-            for (var i = 2; i < _nodes.length; i++) { // For multiple spouses
-                _nodes[i].drawLines(canvasView);
             }
         }
     }
-    return nodeGroupDict;
+
+    getParentConnectorPoint() {
+        return this.nodes[0].getParentConnectorPoint();
+    }
+
+
+    getId() {
+        return this.nodes[0].getId()
+    }
+
+    getIds() {
+        return this.nodes.map(n => n.getId());
+    }
+
+    getMembers() {
+        return this.nodes;
+    }
+
+
+    getX() {
+        return this.nodes[0].getX();
+    }
+    getY() {
+        return this.nodes[0].getY();
+    }
+    setX(newX: number) {
+        this.nodes[0].setX(newX);
+        this.reposition();
+    }
+    setY(newY: number) {
+        this.nodes[0].setY(newY);
+        this.reposition();
+    }
+    getPos() {
+        return [this.nodes[0].getX(),this.nodes[0].getY()];
+    }
+    setPos(newX: number, newY: number) {
+        this.nodes[0].setX(newX);
+        this.nodes[0].setY(newY);
+    }
+
+
+    // Dimension calculations
+    getScaling() {
+        return this.nodes[0].getScaling();
+    }
+    setScaling(newScale: number) {
+        this.nodes[0].setScaling(newScale);
+    }
+    getWidth() {
+        return this.calcDimensions()[0];
+    }
+    getHeight() {
+        return this.calcDimensions()[1];
+    }
+
+    calcDimensions(canvasView = null) {
+        if (this.prevDimensions == null) {
+            for (let node of this.nodes) {
+                node.calcDimensions(canvasView);
+            }
+
+            // We reposition after all of the dimensions have been recalculated
+            this.reposition();
+            let left = this.nodes[0].getX();
+            let right = this.nodes[this.nodes.length - 1].getX() +  // X position of the last node
+                this.nodes[this.nodes.length - 1].getWidth();       // Width of the last node
+
+            let heights = this.nodes.map(n => n.getHeight());
+            let maxHeight = Math.max(...heights);
+            this.minHeight = Math.min(...heights);
+
+            let width = right - left;
+
+            this.prevDimensions = [width, maxHeight];
+        }
+        return this.prevDimensions;
+    }
+
+    hitTest(canvasView: any, x: number, y: number) {
+        for (let node of this.nodes) {
+            let nodeHit = node.hitTest(canvasView, x, y);
+            let isHit = nodeHit[0];
+            let value = nodeHit[1];
+
+            if (isHit) {
+                return [isHit, value];
+            }
+        }
+        return [false, "none"];
+    }
+
+    draw(canvasView: any) {
+        let lineWidth = 10 * scale; // Spouse line
+        let y = this.getY() + (this.minHeight / 2); // Minheight make sure we work w/ the smallest one (ie. we fit all)
+        let x2 = this.getX() + this.getWidth();
+
+        simpleLine(canvasView, this.getX(), y, x2, y, lineWidth, "#777");
+
+        for (let node of this.nodes) {
+            node.draw(canvasView);
+        }
+    }
+
+    drawLines(canvasView: any) {
+        this.nodes[0].drawLines(canvasView);
+
+        for (let i = 2; i < this.nodes.length; i++) { // For multiple spouses
+            this.nodes[i].drawLines(canvasView);
+        }
+    }
 }
 
 
@@ -442,7 +458,8 @@ function NodeGroup(_nodes) {
 
 function Layout(person, structure, details) {
     // Utility functions
-    function getSpouses(person) { return structure[person].spouses; }
+    function getSpouses(person) {
+        return structure[person].spouses; }
     function getParents(person) { return structure[person].parents; }
     function getChildren(person) { return structure[person].children; }
 
@@ -456,15 +473,15 @@ function Layout(person, structure, details) {
         }
 
         // Spouses
-        if (getSpouses(person).length == 0) { // No spouses
+        if (getSpouses(person).length === 0) { // No spouses
             var newNode = new PersonNode(structure[person], details[person]);
             mappedNodes[person] = newNode;
         } 
         else {
             var spouseList = [person].concat(getSpouses(person)); // well, spouses and the given person
-            var newNode = NodeGroup(map(function(p) { return new PersonNode(structure[p], details[p]) }, spouseList));
+            var newNode = new PersonNodeGroup(spouseList.map(p => new PersonNode(structure[p], details[p])));
 
-            map(function(p) { mappedNodes[p] = newNode; }, spouseList);
+            spouseList.map(p => { mappedNodes[p] = newNode;});
         }
 
         newNode.generation = generation;
