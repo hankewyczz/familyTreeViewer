@@ -20,8 +20,8 @@ interface INode {
     setPos: (newX: number, newY: number) => void;
     getScaling: () => number;
     setScaling: (newScale: number) => void;
-    getWidth: () => number;
-    getHeight: () => number;
+    getWidth: (canvasView?: any) => number;
+    getHeight: (canvasView?: any) => number;
     calcDimensions: (canvasView: any) => number[];
     hitTest: (canvasView: any, x: number, y: number) => any[];
     draw: (canvasView: any) => void;
@@ -198,13 +198,13 @@ class PersonNode implements INode {
     setScaling(newScale: number) {
         this.imageScaling = newScale;
     }
-    getWidth() {
+    getWidth(canvasView: any = null) {
         //@ts-ignore
-        return this.calcDimensions()[0];
+        return this.calcDimensions(canvasView)[0];
     }
-    getHeight() {
+    getHeight(canvasView: any = null) {
         //@ts-ignore
-        return this.calcDimensions()[1];
+        return this.calcDimensions(canvasView)[1];
     }
     calcDimensions(canvasView: any) {
         if (this.textDimensions == null) {
@@ -434,13 +434,13 @@ class PersonNodeGroup implements INode {
     setScaling(newScale: number) {
         this.nodes[0].setScaling(newScale);
     }
-    getWidth() {
+    getWidth(canvasView: any = null) {
         //@ts-ignore
-        return this.calcDimensions()[0];
+        return this.calcDimensions(canvasView)[0];
     }
-    getHeight() {
+    getHeight(canvasView: any = null) {
         //@ts-ignore
-        return this.calcDimensions()[1];
+        return this.calcDimensions(canvasView)[1];
     }
 
     calcDimensions(canvasView: any) {
@@ -455,7 +455,7 @@ class PersonNodeGroup implements INode {
             let right = this.nodes[this.nodes.length - 1].getX() +  // X position of the last node
                 (this.nodes[this.nodes.length - 1].getWidth() as number);       // Width of the last node
 
-            let heights = this.nodes.map(n => (n.getHeight() as number));
+            let heights = this.nodes.map(n => (n.getHeight(canvasView) as number));
             let maxHeight = Math.max(...heights);
             this.minHeight = Math.min(...heights);
 
@@ -590,7 +590,7 @@ class Layout {
         let maxHeights: {[key: number]: number} = {};
         for (let node of nodeList) {
             let gen = node.generation;
-            maxHeights[gen] = Math.max(maxHeights[gen] || 0, (node.getHeight() as number));
+            maxHeights[gen] = Math.max(maxHeights[gen] || 0, (node.getHeight(canvasView) as number));
         }
 
         // calculate the summed heights

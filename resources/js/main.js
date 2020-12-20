@@ -418,7 +418,6 @@ function View(data) {
             var ancestor = getTopAncestor(nodeid);
             // Handle ancestor errors
             if (ancestor == null) {
-                throw new Error();
                 showError("No ancestor (" + nodeid + ") was found", true);
                 return null;
             }

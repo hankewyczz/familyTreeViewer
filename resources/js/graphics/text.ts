@@ -103,7 +103,7 @@ function parseTextAsArray(texts: any[]) {
   return newText;
 }
 // TOdo canvasview
-function renderText(text: any[], view: any, _x: number, _y: number, real) {
+function renderText(text: any[], view: any, _x: number, _y: number, real: any) {
   let lastFont = baseFont;
   view.context.textBaseline = "top";
   let maxWidth = 0;

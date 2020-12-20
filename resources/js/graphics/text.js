@@ -79,7 +79,7 @@ function parseTextAsArray(texts) {
     }
     return newText;
 }
-// TOdo canvasview, what is "real"?
+// TOdo canvasview
 function renderText(text, view, _x, _y, real) {
     let lastFont = baseFont;
     view.context.textBaseline = "top";

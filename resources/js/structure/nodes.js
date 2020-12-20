@@ -119,13 +119,13 @@ class PersonNode {
     setScaling(newScale) {
         this.imageScaling = newScale;
     }
-    getWidth() {
+    getWidth(canvasView = null) {
         //@ts-ignore
-        return this.calcDimensions()[0];
+        return this.calcDimensions(canvasView)[0];
     }
-    getHeight() {
+    getHeight(canvasView = null) {
         //@ts-ignore
-        return this.calcDimensions()[1];
+        return this.calcDimensions(canvasView)[1];
     }
     calcDimensions(canvasView) {
         if (this.textDimensions == null) {
@@ -310,13 +310,13 @@ class PersonNodeGroup {
     setScaling(newScale) {
         this.nodes[0].setScaling(newScale);
     }
-    getWidth() {
+    getWidth(canvasView = null) {
         //@ts-ignore
-        return this.calcDimensions()[0];
+        return this.calcDimensions(canvasView)[0];
     }
-    getHeight() {
+    getHeight(canvasView = null) {
         //@ts-ignore
-        return this.calcDimensions()[1];
+        return this.calcDimensions(canvasView)[1];
     }
     calcDimensions(canvasView) {
         if (this.prevDimensions == null) {
@@ -328,7 +328,7 @@ class PersonNodeGroup {
             let left = this.nodes[0].getX();
             let right = this.nodes[this.nodes.length - 1].getX() + // X position of the last node
                 this.nodes[this.nodes.length - 1].getWidth(); // Width of the last node
-            let heights = this.nodes.map(n => n.getHeight());
+            let heights = this.nodes.map(n => n.getHeight(canvasView));
             let maxHeight = Math.max(...heights);
             this.minHeight = Math.min(...heights);
             let width = right - left;
@@ -431,7 +431,7 @@ class Layout {
         let maxHeights = {};
         for (let node of nodeList) {
             let gen = node.generation;
-            maxHeights[gen] = Math.max(maxHeights[gen] || 0, node.getHeight());
+            maxHeights[gen] = Math.max(maxHeights[gen] || 0, node.getHeight(canvasView));
         }
         // calculate the summed heights
         let sumHeights = { 0: 0 };

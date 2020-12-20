@@ -537,7 +537,6 @@ function View(data: any) {
             var ancestor = getTopAncestor(nodeid);
             // Handle ancestor errors
             if (ancestor == null) {
-                throw new Error();
                 showError("No ancestor (" + nodeid + ") was found", true);
                 return null;
             }
@@ -610,6 +609,7 @@ function View(data: any) {
             // @ts-ignore
             this.focusId = node; // Focus on the given node
             window.location.hash = node; // Change window hash
+
             // @ts-ignore
             this.tree.position(this);
 
