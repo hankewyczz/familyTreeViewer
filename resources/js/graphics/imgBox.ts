@@ -1,19 +1,19 @@
 // SOURCE:
 // https://gist.github.com/scf37/b9eed984a705243c27527a2036f09c0f
 
-options = {
+let options = {
     bgColor: 'rgba(0,0,0,0.9)', // background color
     fadeDurationMs: 500, // Fading durations
     zIndex: 9999, // Z index - just to cover everything
 };
 
 // Show the given image
-function imgBox(source) {
-    var container = initContainer();
-    var imgUrl = typeof source === 'string' ? source : source.src;
-    var bodyOverflow = document.body.style.overflow;
+function imgBox(source: any) {
+    let container = initContainer();
+    let imgUrl = typeof source === 'string' ? source : source.src;
+    let bodyOverflow = document.body.style.overflow;
 
-    var image = new Image();
+    let image = new Image();
     image.src = imgUrl;
     image.style.maxWidth = '90%';
     image.style.maxHeight = '90%';
@@ -38,15 +38,16 @@ function imgBox(source) {
     container.addEventListener('click', onClick)
 }
 
-var imgboxContainer;
+let imgboxContainer: any;
+
 function initContainer() {
     if (imgboxContainer) {
         return imgboxContainer;
     }
 
-    var divBox = document.createElement('div');
+    let divBox = document.createElement('div');
     divBox.innerHTML =
-        '<div id="imgBox" style="top:0px;left:0px;opacity:0;width:100%;height:100%;display:none;position:fixed;' +
+        '<div id="imgBox" style="top:0;left:0;opacity:0;width:100%;height:100%;display:none;position:fixed;' +
         'cursor:pointer;z-index:' + options.zIndex +';background-color:' + options.bgColor +
         ';transition:opacity ' + options.fadeDurationMs + 'ms"/>';
 

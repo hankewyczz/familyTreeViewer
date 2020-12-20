@@ -1,114 +1,136 @@
 // Text attributes
-function TextAttr(_size, _font, _style, _color, _baseSize) {
-    // Calculates the true font height on the canvas
-    function calcFontHeight(fontStyle) {
-        var body = document.getElementsByTagName("body")[0];
-        var tempDiv = document.createElement("div");
-        var tempText = document.createTextNode("DUMMY TEXT");
+class TextAttr {
+  size: number;
+  prevHeight: number;
+  font: string;
+  style: string;
+  color: string;
+  baseSize: number;
 
-        tempDiv.appendChild(tempText);
-        tempDiv.setAttribute("style", fontStyle);
+  constructor(_size: number, _font: string, _style: string, _color: string, _baseSize: number) {
+    this.size = _size;
+    this.prevHeight = 0;
+    this.font = _font;
+    this.style = _style;
+    this.color = _color;
+    this.baseSize = _baseSize;
+  }
 
-        body.appendChild(tempDiv);
-        var height = tempDiv.offsetHeight;
-        body.removeChild(tempDiv);
+  // Calculates the true font height on the canvas
+  calcFontHeight(fontStyle: string) {
+    let body = document.getElementsByTagName("body")[0];
+    let tempDiv = document.createElement("div");
+    let tempText = document.createTextNode("DUMMY TEXT");
 
-        return height;
+    tempDiv.appendChild(tempText);
+    tempDiv.setAttribute("style", fontStyle);
+
+    body.appendChild(tempDiv);
+    let height = tempDiv.offsetHeight;
+    body.removeChild(tempDiv);
+
+    // Remove the references
+    // @ts-ignore
+    body = null;
+    // @ts-ignore
+    tempDiv = null;
+    // @ts-ignore
+    tempText = null;
+
+    return height;
+  }
+
+  getBaseSize() {
+    return this.baseSize;
+  }
+
+  getSize() {
+    return this.size;
+  }
+
+  setSize(newSize: number) {
+    this.size = newSize;
+    this.prevHeight = 0; // We have to recalculate the height
+  }
+  getHeight() {
+    if (this.prevHeight <= 0) { // In this case, we haven't calculated it yet
+      this.prevHeight = this.calcFontHeight("font: " + this.asText());
     }
+    return this.prevHeight;
+  }
 
-    var size = _size;
-    var prevHeight = 0;
+  asText() {
+    return this.style + " " + this.size + "px " + this.font;
+  }
 
-    funcs =  {
-        getBaseSize : function() {
-            return _baseSize;
-        },
-        getSize : function() { return size; },
-        
-        setSize : function(newSize) {
-            size = newSize;
-            prevHeight = 0; // We have to recalculate the height
-        },
-
-        getheight : function() {
-            if (prevHeight <= 0) { // In this case, we haven't calculated it yet
-                prevHeight = calcFontHeight("font: " + this.astext());
-            }
-            return prevHeight;
-        },
-        astext : function() { return _style + " " + size + "px " + _font; },
-        apply : function(elem) {
-            // set the style
-            elem.context.font = this.astext();
-            // set the color
-            elem.context.fillStyle = _color;
-        },
-    }
-    return funcs;
+  // TODO - what element shoud this be?
+  apply(elem: any) {
+    // set the style
+    elem.context.font = this.asText();
+    // set the color
+    elem.context.fillStyle = this.color;
+  }
 }
-
 
 
 //// FONTS
 const baseFontSize = 13;
 const detailFontSize = 11;
-const baseFont = TextAttr(baseFontSize * scale, "sans-serif", "normal", "#000000", baseFontSize);
-const detailFont = TextAttr(detailFontSize * scale, "sans-serif", "normal", "#333", detailFontSize);
+const baseFont = new TextAttr(baseFontSize * scale, "sans-serif", "normal",
+    "#000000", baseFontSize);
+const detailFont = new TextAttr(detailFontSize * scale, "sans-serif", "normal",
+    "#333", detailFontSize);
 
 
+// TODO - is this ever anythig but a string?
+function parseTextAsArray(texts: any[]) {
+  let newText = [];
+  for (let text of texts) {
+    if (typeof text === "string") {
+      let s = text.split("\n");
 
-function parseTextAsArray(text) {
-    var newText = [];
-    for (var i = 0; i < text.length; i++) {
-        if (typeof text[i] == "string") {
-            var s = text[i].split("\n");
-            
-            for (var j = 0; j < s.length; j++) {
-                newText.push(s[j]);
-                if (j < s.length - 1) {
-                    newText.push("\n");
-                }
-            }
-        } 
-        else {
-            newText.push(text[i]);
+      for (let j = 0; j < s.length; j++) {
+        newText.push(s[j]);
+        if (j < s.length - 1) {
+          newText.push("\n");
         }
+      }
+    } else {
+      newText.push(text);
     }
+  }
 
-    return newText;
+  return newText;
 }
+// TOdo canvasview
+function renderText(text: any[], view: any, _x: number, _y: number, real) {
+  let lastFont = baseFont;
+  view.context.textBaseline = "top";
+  let maxWidth = 0;
+  let maxLineHeight = 0;
 
-function renderText(_text, _view, _x, _y, real) {
-    var x = _x;
-    var y = _y;
-    var lastFont = baseFont;
-    _view.context.textBaseline = "top";
-    var maxwidth = 0;
-    var maxLineHeight = 0;
+  let x = _x;
+  let y = _y;
 
-
-    map(function(elem) {
-        if (typeof elem == "string") {
-            if (elem == "\n") {
-                x = _x // Reset X
-                y += maxLineHeight; // Add to the max height
-                maxLineHeight = 0; // reset line height
-            } 
-            else { // just show the text
-                if (real) {
-                    _view.context.fillText(elem, x, y);
-                }
-
-                x += _view.context.measureText(elem).width;
-                maxwidth = Math.max(maxwidth, x - _x);
-                maxLineHeight = Math.max(maxLineHeight, lastFont.getheight());
-            }
-        } 
-        else { // it is a TextAttr
-            lastFont = elem;
-            elem.apply(_view);
+  parseTextAsArray(text).map(e => {
+    if (typeof e == "string") {
+      if (e == "\n") {
+        x = _x // Reset X
+        y += maxLineHeight; // Add to the max height
+        maxLineHeight = 0; // reset line height
+      } else { // just show the text
+        if (real) {
+          view.context.fillText(e, x, y);
         }
-    }, parseTextAsArray(_text));
 
-    return [maxwidth, (y + maxLineHeight) - _y];
+        x += view.context.measureText(e).width;
+        maxWidth = Math.max(maxWidth, x - _x);
+        maxLineHeight = Math.max(maxLineHeight, lastFont.getHeight());
+      }
+    } else { // it is a TextAttr
+      lastFont = e;
+      e.apply(view);
+    }
+  })
+  return [maxWidth, (y + maxLineHeight) - _y];
 }

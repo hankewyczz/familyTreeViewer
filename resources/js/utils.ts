@@ -1,17 +1,17 @@
 // Some formatting options
-var scale = 1;
-var baseVM = 50;
-var baseHM = 20;
-var baseBM = 5;
-var verticalMargin = baseVM * scale;
-var horizontalMargin = baseHM * scale;
-var nodeBorderMargin = baseBM * scale;
-var generationLimit = 6;
-var mouseClickRadius = 70;
-var xmlRTimeout = 20000;
+let scale = 1;
+let baseVM = 50;
+let baseHM = 20;
+let baseBM = 5;
+let verticalMargin = baseVM * scale;
+let horizontalMargin = baseHM * scale;
+let nodeBorderMargin = baseBM * scale;
+const generationLimit = 6;
+const mouseClickRadius = 70;
+const xmlRTimeout = 20000;
 
-var currentLanguage = "UA";
-var languages = [
+let currentLanguage = "UA";
+const languages = [
     {
         id: "UA", 
         name : "УКР",
@@ -83,11 +83,12 @@ var languages = [
 ];
 
 function getLang() {
-    for (var i = 0; i < languages.length; i++) {
-        if (languages[i]["id"] == currentLanguage) {
-            return languages[i];
+    for (let lang of languages) {
+        if (lang["id"] == currentLanguage) {
+            return lang;
         }
     }
+    throw new Error(`Language ${currentLanguage} not found`);
 }
 
 
@@ -101,7 +102,7 @@ String.prototype.trim = function() {
 
 
 // Updates the scaling
-function updateScale(newScale) {
+function updateScale(newScale: number) {
 	scale = newScale;
 	verticalMargin = baseVM * scale;
 	horizontalMargin = baseHM * scale;
@@ -110,24 +111,18 @@ function updateScale(newScale) {
 
 
 // Checks the visibility of an element
-function isVisible(element) {
+function isVisible(element: HTMLElement) {
     return element.offsetWidth > 0 || element.offsetHeight > 0;
 }
 
-// essentially the Array.map() function, but I define it manually since
-// IE didn't support it until IE9 (of course)
-function map(func, array) {
-    var result = [];
-    for (var i = 0; i < array.length; i++) {
-        result.push(func(array[i]));
-    }
-    return result;
-}
+
 
 // Only add an item to a list if it doesn't exist in the list
-function addUnique(value, lst) {
-    for (var i = 0; i < lst.length;i++) {
-        if (lst[i] == value) return;
+function addUnique(value: any, lst: any[]) {
+    for (let elem of lst) {
+        if (elem == value) {
+            return;
+        }
     }
     lst.push(value);
 }
@@ -136,15 +131,15 @@ function addUnique(value, lst) {
 
 
 // Loads an image
-function loadImage(source) {
-    var image = new Image();
+function loadImage(source: string) {
+    let image = new Image();
     image.src = source;
     return image
 }
 
 
 // Empties the given container element
-function makeEmpty(container) {
+function makeEmpty(container: HTMLElement) {
     while (container.firstChild) {
         container.removeChild(container.firstChild);
     }        
@@ -152,21 +147,22 @@ function makeEmpty(container) {
 
 
 // Generates the info window with the following
-function showInfoWindow(content) {
-    var info = document.getElementById("textinfo");
+function showInfoWindow(content: {[key: string]: any}) {
+    let info = document.getElementById("textinfo") as HTMLElement;
     makeEmpty(info);
 
     info.appendChild(content["text"]);
     info.scrollTop = 0;
 
-    fadeIn(document.getElementById("infowindow"),  0.05, "block");
+    fadeIn(document.getElementById("infowindow") as HTMLElement,
+        0.05, "block");
 }
 
 
 
 // Gets the hash string
 function getHashString() {
-    var hash = window.location.hash;
+    let hash = window.location.hash;
     if (hash[0] == "#") {
         hash = hash.substr(1);
     }
@@ -174,60 +170,38 @@ function getHashString() {
 }
 
 // Parses the name for display
-function displayName(name) {
+function displayName(name: string) {
     return name.replace(/\//g,"");
 }
 
 // PArses only the first string
-function displayFirstName(name) {
-    var names = name.split(" ");
-    var firstName = ""
-
-    for (var i = 0; i < names.length; i++) {
-        if (names[i].startsWith("/")) { 
-            return firstName;
-        }
-        else {
-            firstName += firstName != "" ? " " + names[i] : names[i];
-        }
-    }
-
-    return firstName.trim();
+function displayFirstName(name: string) {
+    return name.split("/")[0].trim();
 }
 
 // Parses the surname for display
-function displaySurname(name) {
-    var surnames = [];
-    var inSurname = false;
-    var names = name.split(" ");
-
-    for (var i = 0; i < names.length; i++) {
-        if (names[i].startsWith("/")) { inSurname = true; }
-        
-        if (inSurname) { surnames.push(names[i]); }
-        
-        if (names[i].endsWith("/")) { return surnames.join(" ").replace(/\//g, ""); }
-    }
-
-    return "";
+function displaySurname(name: string) {
+    let s = name.split("/", 2);
+    return s.length == 2 ? s[1].trim() : "";
+    // FOr some reason, this returned "" before in ALL CASES
 }
 
-function relationshipCalculator(person1, person2, data) {
-    var langArray = getLang();
+function relationshipCalculator(person1: string, person2: string, data: any) {
+    const langArray: any = getLang();
 
-    var details = data["details"];
+    const details = data["details"];
     // Finds the least common ancestor
-    function leastCommonAncestor(person1, person2) {
-        var ancestors1 = details[person1]["ancestors"];
-        var ancestors2 = details[person2]["ancestors"];
+    function leastCommonAncestor(p1: string, p2: string) {
+        let ancestors1 = details[p1]["ancestors"];
+        let ancestors2 = details[p2]["ancestors"];
 
         // We include the people themselves
-        ancestors1.push([person1, 0]);
-        ancestors2.push([person2, 0]);
+        ancestors1.push([p1, 0]);
+        ancestors2.push([p2, 0]);
 
-        var commonAncestors = [];
-        for (var i = 0; i < ancestors1.length; i++) {
-            for (var j = 0; j < ancestors2.length; j++) {
+        let commonAncestors = [];
+        for (let i = 0; i < ancestors1.length; i++) {
+            for (let j = 0; j < ancestors2.length; j++) {
                 if (ancestors1[i][0] == ancestors2[j][0]) {
                     commonAncestors.push([ancestors1[i][0], ancestors1[i][1] + ancestors2[j][1]]);
                 }
@@ -240,26 +214,24 @@ function relationshipCalculator(person1, person2, data) {
         return commonAncestors[0]
     }
 
-    // FInds how far away the given ancestor is
-    function findAncestorGap(person, ancestor) {
-        var ancestors = details[person]["ancestors"];
-
-        for (var i = 0; i < ancestors.length; i++) {
-            if (ancestors[i][0] == ancestor) {
-                return ancestors[i][1];
+    // Finds how far away the given ancestor is
+    function findAncestorGap(person: string, ancestor: string) {
+        for (let a of details[person]["ancestors"]) {
+            if (a[0] == ancestor) {
+                return a[1];
             }
         }
         return null;
     }
 
     // Parses the given number into the cousin number
-    function parseCousinNumber(i) {
+    function parseCousinNumber(i: number) {
         if (currentLanguage == "UA") {
             return i.toString() + "і ";
         }
         else {
-            var j = i % 10,
-                k = i % 100;
+            let j = i % 10;
+            let k = i % 100;
             if (j == 1 && k != 11) {
                 return i + "st ";
             }
@@ -274,7 +246,7 @@ function relationshipCalculator(person1, person2, data) {
     }
 
     // Parses the given number into "times removed"
-    function parseRemovedNumber(i) {
+    function parseRemovedNumber(i: number) {
         if (currentLanguage == "UA") {
             if (i == 1) {
                 return "1 раз ";
@@ -302,12 +274,12 @@ function relationshipCalculator(person1, person2, data) {
         return langArray["noRelation"];
     }
 
-    var generationA = findAncestorGap(person1, lcm[0]);
-    var generationB = findAncestorGap(person2, lcm[0]);
+    const generationA = findAncestorGap(person1, lcm[0]);
+    const generationB = findAncestorGap(person2, lcm[0]);
 
-    var sexA = data["structure"][person1]["sex"].toUpperCase();
-    var sexB = data["structure"][person2]["sex"].toUpperCase();
-    var sexes = sexA + sexB;
+    const sexA = data["structure"][person1]["sex"].toUpperCase();
+    const sexB = data["structure"][person2]["sex"].toUpperCase();
+    const sexes = sexA + sexB;
 
     // On the same level here
     if (generationA == generationB) {
@@ -325,19 +297,20 @@ function relationshipCalculator(person1, person2, data) {
     }
 
     // We also need to find out what side the younger one is on
-    function getSiblingAncestor(personOne, personTwo) {
-        var parentsA = data["structure"][personOne]["parents"];
-        for (var i = 0; i < parentsA.length; i++) {
-            var parentChildren = data["structure"][parentsA[i]]["children"];
+    function getSiblingAncestor(personOne: string, personTwo: string) {
+        let parentsA = data["structure"][personOne]["parents"];
+        let parentChildren;
+        for (let parent of parentsA) {
+            parentChildren = data["structure"][parent]["children"];
             if (parentChildren.includes(personOne)) {
                 break;
             }
         }
 
-        var rawAncestors = data["details"][personTwo]["ancestors"];
-        var ancestors = [];
-        for (var i = 0; i < rawAncestors.length; i++) {
-            ancestors.push(rawAncestors[i][0]);
+        let rawAncestors = data["details"][personTwo]["ancestors"];
+        let ancestors = [];
+        for (let ra of rawAncestors) {
+            ancestors.push(ra[0]);
         }
 
 
@@ -473,26 +446,27 @@ function relationshipCalculator(person1, person2, data) {
 
 
 // Searches for the given person
-function personSearch(data, view) {
+function personSearch(data: any, view: any) {
     var rawStructure = data["structure_raw"];
     
 
-    function generateUtils(dataSrc, titleName) {
+    // Todo fix data src
+    function generateUtils(dataSrc: any, titleName: string) {
         // generate index
         function makeIndex() {
             var divContainer = document.createElement('div');
             divContainer.className = "container";
 
-            var leftDiv = null;
+            var leftDiv: null | HTMLElement = null;
             var previousItem = "";
 
             // Handle linking to the person
-            function personLink(event) {
+            function personLink(event: any) {
                 view.setFocus(event.currentTarget["link_person_id"]);
             }
 
             // Handles a specific person
-            function handle(i) {
+            function handle(i: any) {
                 var newItem = dataSrc[i][1];
                 var newRow = newItem != previousItem;
 
@@ -521,17 +495,17 @@ function personSearch(data, view) {
                     name.style.marginTop = "10px"; // Add a space between each name if not in a new row
                 }
 
-                var link = document.createElement("a");
+                var link: HTMLAnchorElement = document.createElement("a");
                 link.style.cursor = "pointer";
                 var person = data["structure"][dataSrc[i][0]];
                 var personName = displayName(person["name"]);
                 previousItem = newItem;
 
                 link.appendChild(document.createTextNode(personName));
-                link["link_person_id"] = dataSrc[i][0];
+                (link as any)["link_person_id"] = dataSrc[i][0];
                 link.addEventListener("click", personLink);
                 name.appendChild(link);
-                leftDiv.appendChild(name);
+                (leftDiv as HTMLElement).appendChild(name);
             }
 
             var styleNumber = 0;
@@ -559,7 +533,7 @@ function personSearch(data, view) {
     }
 
     // Index button
-    document.getElementById("indexbutton").onclick = function(_) {
+    (document.getElementById("indexbutton") as HTMLElement).onclick = function(_) {
         var namesArray = [];
 
         // Generate the names array first
@@ -569,90 +543,96 @@ function personSearch(data, view) {
             namesArray.push([id, surname]);
         }
 
-        generateUtils(namesArray, "Index/Індех");
-    } 
+        return generateUtils(namesArray, "Index/Індех");
+    };
 
     // Birthdays button
-    document.getElementById("birthdaybutton").onclick = function(_) {
-        generateUtils(data["birthdays"], "Birthdays")
-    } 
+    (document.getElementById("birthdaybutton") as HTMLElement).onclick = function(_) {
+        return generateUtils(data["birthdays"], "Birthdays")
+    };
 
     
-    // Burial button 
-    document.getElementById("burialbutton").onclick = function(_) {
+    // Burial button
+    (document.getElementById("burialbutton") as HTMLElement).onclick = function(_) {
         generateUtils(data["burials"], "Burials")
-    }
+    };
 
 
     // HELP BUTTON
-    document.getElementById("helpbutton").onclick = function(_) {
-    	showInfoWindow({"text": document.getElementById("helpDivHidden").cloneNode(true)});
-    }
+    (document.getElementById("helpbutton") as HTMLElement).onclick = function(_) {
+    	showInfoWindow({"text": (document.getElementById("helpDivHidden") as HTMLElement).cloneNode(true)});
+    };
 
     // Change the languages
-    document.getElementById("languagebutton").onclick = function(_) {
+    (document.getElementById("languagebutton") as HTMLElement).onclick = function(_) {
+        let newIndex = 0;
         // Gets the next language
         for (var i = 0; i < languages.length; i++) {
             if (languages[i]["id"] == currentLanguage) {
                 if (i + 1 < languages.length) {
-                    var newIndex = i + 1;
+                    newIndex = i + 1;
                 }
                 else {
-                    var newIndex = 0;
+                    newIndex = 0;
                 }
             }
         }
         currentLanguage = languages[newIndex]["id"];
 
         // Update the button
-        document.getElementById("languagebutton").innerHTML = languages[newIndex]["name"];
+        (document.getElementById("languagebutton") as HTMLElement).innerHTML = languages[newIndex]["name"];
 
         view.recreateTree(); // Redraw
-
-    }
+    };
 
 
     // Zoom handling
-    document.getElementById("zoomin").onclick = function(_) {
+    (document.getElementById("zoomin") as HTMLElement).onclick = function(_) {
         view.zoomIn();
-    }
-    document.getElementById("zoomout").onclick = function(_) {
+    };
+    (document.getElementById("zoomout") as HTMLElement).onclick = function(_) {
         view.zoomOut();
-    }
+    };
  
 
-    setSearchEvents(document.getElementById("searchtext"), document.getElementById("searchlist"), data, view);
+    setSearchEvents(document.getElementById("searchtext") as HTMLInputElement,
+        document.getElementById("searchlist") as HTMLInputElement, data, view);
 }
 
 
 
 // Executes a direct search (name must match person's name EXACTLY)
-function executeSearch(name, rawStructure) {
-    var cleanName = name.toLowerCase().trim();
+function executeSearch(name: string, rawStructure: PersonStructure[]) {
+    return;
 
-    if (cleanName == "") return; // Kill the empty case
+    // todo fix - view is not defined here (do i even want to fix this?)
 
-    for (var i = 0; i < rawStructure.length; i++) {
-        if (displayName(rawStructure[i]["name"]).toLowerCase() == cleanName) {
-            // Only take direct matches
-            view.setFocus(rawStructure[i]["id"]);
-            return;
-        }
-    }
-
-    showError('"' + cleanName + '" could not be found in the tree (names must exactly match)');
+    // var cleanName = name.toLowerCase().trim();
+    //
+    // if (cleanName == "") return; // Kill the empty case
+    //
+    // for (var i = 0; i < rawStructure.length; i++) {
+    //     if (displayName(rawStructure[i]["name"]).toLowerCase() == cleanName) {
+    //         // Only take direct matches
+    //         view.setFocus(rawStructure[i]["id"]);
+    //         return;
+    //     }
+    // }
+    //
+    // showError('"' + cleanName + '" could not be found in the tree (names must exactly match)');
 }
 
 
 
 // Sets all the events for any search bar
-function setSearchEvents(searchText, searchList, data, view, link=true) {
+function setSearchEvents(searchText: HTMLInputElement, searchList: HTMLElement, data: any, view: any, link=true) {
     var rawStructure = data["structure_raw"];
 
     // On focus, we automatically select all existing text
     searchText.addEventListener("focus", 
         function(event){
-            event.currentTarget.setSelectionRange(0, event.currentTarget.value.length);
+            (event.currentTarget as HTMLInputElement).setSelectionRange(0,
+                (event.currentTarget as HTMLInputElement).value.length);
     });
 
     // On enter, try searching
@@ -670,7 +650,7 @@ function setSearchEvents(searchText, searchList, data, view, link=true) {
     });
 
     // Event listener for each individual search result
-    function searchResultEL(event) {
+    function searchResultEL(event: any) {
         searchText.value = displayName(data["structure"][event.currentTarget["data-search_id"]]["name"]);
         if (link) {
             view.setFocus(event.currentTarget["data-search_id"]);
@@ -679,26 +659,19 @@ function setSearchEvents(searchText, searchList, data, view, link=true) {
     }
 
     // Clears the list of any children
-    function clearList(lst) {
+    function clearList(lst: HTMLElement) {
         while (lst.firstChild) { // Empty the list and begin anew
             lst.removeChild(lst.firstChild); 
         }
     }
 
     // Checks if the names match
-    function namesMatch(query, name) {
-        var nameMatches = true; // Assume true, show false for all cases
-        
-        map(function(q) {
-            if (name.indexOf(q) < 0) {
-                nameMatches = false;
-            }
-        }, query);
-        return nameMatches;
+    function namesMatch(query: string[], name: string) {
+        return query.some(q => !name.includes(q));
     }
 
     // SHows the result
-    function showResult(person) {
+    function showResult(person: PersonStructure) {
         var result = document.createElement('div');
         result.className = "searchresult";
 
@@ -711,7 +684,7 @@ function setSearchEvents(searchText, searchList, data, view, link=true) {
         result.textContent = displayName(person["name"]) + range;
         result.addEventListener("mousedown", searchResultEL);
 
-        result["data-search_id"] = person["id"];
+        (result as any)["data-search_id"] = person["id"];
 
         return result;
     }
@@ -749,7 +722,7 @@ function setSearchEvents(searchText, searchList, data, view, link=true) {
 }
 
 
-function dateToIso(dateStr) {
+function dateToIso(dateStr: string) {
     let strArr = dateStr.split(" ");
 
     if (strArr.length < 3 || strArr.indexOf("ABT") != -1) {
@@ -758,11 +731,11 @@ function dateToIso(dateStr) {
     
 
     // Get the index from the english-language array
-    let month = languages[1]["months"].indexOf(strArr[1]) + 1;
+    let month: number = languages[1]["months"].indexOf(strArr[1]) + 1;
     // If it's valid, we keep it. If not, we fall back to the string
-    month = (month >= 1 && month <= 12) ? month : strArr[1];
+    month = (month >= 1 && month <= 12) ? month : parseInt(strArr[1]);
 
-    function pad(num, len) {
+    function pad(num: number|string, len: number) {
         let numStr = num.toString();
         while (numStr.length < len) {
             numStr = "0" + numStr;
@@ -774,11 +747,9 @@ function dateToIso(dateStr) {
 }
 
 
-function isoToLocale(isoDateStr, months) {
+function isoToLocale(isoDateStr: string, months: string[]) {
     let strArr = isoDateStr.split("-");
-    let month = parseInt(strArr[1]);
-
-    month = months[month - 1];
+    let month = months[parseInt(strArr[1]) - 1];
 
     return `${strArr[2]} ${month} ${strArr[0]}`;
 }

@@ -1,5 +1,3 @@
-"use strict";
-
 var imageIcons = {
     defaultPerson: loadImage('resources/images/person.png'),
     downArrow: loadImage('resources/images/downarrow.png'),
@@ -10,7 +8,7 @@ var imageIcons = {
 
 
 
-function getDetails(canvasView, data, curPerson) {
+function getDetails(canvasView: any, data: any, curPerson: PersonDetails) {
     var structure = data["structure"];
     var sex = structure[curPerson["id"]]["sex"].toUpperCase();
 
@@ -24,7 +22,7 @@ function getDetails(canvasView, data, curPerson) {
 
 
     // Localizaiton
-    var langArray = getLang();
+    var langArray: any = getLang();
 
     // If we have multiple names
     for (var i = 0; i < curPerson.names.length; i++) {
@@ -48,7 +46,7 @@ function getDetails(canvasView, data, curPerson) {
     }
 
 
-    function openRelCalc(person) {
+    function openRelCalc(person: PersonDetails) {
         var container = document.createElement('div');
         container.style.width = "100%";
 
@@ -97,7 +95,7 @@ function getDetails(canvasView, data, curPerson) {
 
 
         //finds the given person
-        function findPerson(personName, id=null) {
+        function findPerson(personName: string, id: null|string=null) {
             for (var i = 0; i < data["structure_raw"].length; i++) {
                 if ((displayName(data["structure_raw"][i]["name"]) == personName.toString()) ||
                 (data["structure_raw"][i]["id"] == id)) {
@@ -108,7 +106,7 @@ function getDetails(canvasView, data, curPerson) {
 
         searchButton.onclick = function(_) {
             var person1 = findPerson(person.names[0], person.id);
-            var person2 = findPerson(document.getElementById("searchtextP2").value);
+            var person2 = findPerson((document.getElementById("searchtextP2") as HTMLInputElement).value);
 
             if (person1 == null || person2 == null) {
                 showError("Names must be entered exactly and in full");
@@ -118,7 +116,7 @@ function getDetails(canvasView, data, curPerson) {
             names += langArray["are"];
             var relationship = relationshipCalculator(person1.id, person2.id, data);
 
-            document.getElementById("relCalResponse").innerHTML = names + relationship;
+            (document.getElementById("relCalResponse") as HTMLElement).innerHTML = names + relationship;
 
         } 
             
@@ -136,11 +134,12 @@ function getDetails(canvasView, data, curPerson) {
         container.appendChild(relCalcContainer);
 
         showInfoWindow({"text": container});
-        setSearchEvents(document.getElementById("searchtextP2"), document.getElementById("searchlistP2"), data, canvasView, false);
+        setSearchEvents((document.getElementById("searchtextP2") as HTMLInputElement),
+            (document.getElementById("searchlistP2") as HTMLElement), data, canvasView, false);
     }
 
     // Creates a link to the relationship calculator
-    function relCalcLink(content) {
+    function relCalcLink(content: any) {
         var personLink = document.createElement('a');
         personLink.style.cursor = "pointer";
         var linkContent = document.createTextNode(content);
@@ -217,7 +216,7 @@ function getDetails(canvasView, data, curPerson) {
 
 
             // Creates a field with a date and string
-            function field(date, str) {
+            function field(date: string, str: string|HTMLElement) {
                 var dateDiv = document.createElement('div');
                 dateDiv.className = 'rowDate';
                 dateDiv.appendChild(document.createTextNode(date));
@@ -232,7 +231,7 @@ function getDetails(canvasView, data, curPerson) {
             }
 
             // Creates a relationship event (marriage or divorce)
-            function relationship(relArray) {
+            function relationship(relArray: any[]) {
                 var relDiv = document.createElement('div');
 
                 for (var i = 0; i < relArray.length; i++) {
@@ -245,15 +244,15 @@ function getDetails(canvasView, data, curPerson) {
             }
 
             // Creates a link to another person
-            function makePersonLink(personId) {
+            function makePersonLink(personId: string) {
                 var personLink = document.createElement('a');
                 personLink.style.cursor = "pointer";
                 var linkContent = document.createTextNode(displayName(structure[personId].name));
                 personLink.appendChild(linkContent);
-                personLink["linked_person_id"] = personId;
+                (personLink as any)["linked_person_id"] = personId;
 
                 personLink.addEventListener("click", function(event) {
-                    canvasView.setFocus(event.currentTarget["linked_person_id"]);
+                    canvasView.setFocus((event.currentTarget as any)["linked_person_id"]);
                 });
 
                 return personLink;
@@ -261,14 +260,15 @@ function getDetails(canvasView, data, curPerson) {
 
             
             let dateStr;
+            let birthDate;
             switch (event[event.length - 1]) { // We take the letter indicating event type
                 case "B": // Birth
                     var birthInfo = document.createElement('span');
-                    var birthDate = event[0] || "";
+                    birthDate = event[0] || "";
 
                     // If we have a birth location, we parse it properly
                     var birthLocation = event[1] ? langArray["locatedIn"] + event[1] : "";
-                    birthInfo.appendChild(document.createTextNode(langArray["born"][sex] + birthLocation));
+                    birthInfo.appendChild(document.createTextNode((langArray["born"] as any)[sex] + birthLocation));
 
 
                     
@@ -277,13 +277,14 @@ function getDetails(canvasView, data, curPerson) {
                         dateStr = isoToLocale(birthDateIso, langArray["months"]);
 
                         if ((birthDate != "") && (birthDate != null)) {
-                            var today = moment();
-                            var bd = moment(birthDateIso);
+                            let bd = new Date(birthDateIso);
 
-                            var ageToday = today.diff(bd, 'years');
+                            let ageToday = new Date(Date.now() - bd.valueOf());
+                            let yearsOld = Math.abs(ageToday.getUTCFullYear() - 1970);
+
                             // MS * Secs * Mins * Hours * Days
                             birthInfo.appendChild(
-                                document.createTextNode(` (${ageToday.toString()} ${langArray["yearsAgo"]})`));
+                                document.createTextNode(` (${yearsOld.toString()} ${langArray["yearsAgo"]})`));
                         }
                     } 
                     catch (e) {
@@ -300,12 +301,14 @@ function getDetails(canvasView, data, curPerson) {
                     var deathDate = event[0] || "";
 
                     var ageAtDeath = "";
+                    let ageAtDeathStr = "";
                     if ((birthDate != "") && (birthDate != null) && (deathDate != "")) {
-                        var dd = moment(deathDate);
-                        var bd = moment(birthDate);
-                        ageAtDeath = dd.diff(bd, 'years');
+                        var dd = new Date(deathDate);
+                        var bd = new Date(birthDate);
+                        let ageApart = new Date(dd.valueOf() - bd.valueOf());
+                        let ageAtDeath = Math.abs(ageApart.getUTCFullYear() - 1970);
                         // MS * Secs * Mins * Hours * Days
-                        ageAtDeath = " (" + ageAtDeath.toString() + " " + langArray["yearsOld"] + ")";
+                        ageAtDeathStr = " (" + ageAtDeath.toString() + " " + langArray["yearsOld"] + ")";
                     }
 
                     try {
@@ -315,7 +318,7 @@ function getDetails(canvasView, data, curPerson) {
                         dateStr = deathDate;
                     }
 
-                    field(dateStr, langArray["died"][sex] + deathLocation + deathType + ageAtDeath);
+                    field(dateStr, (langArray["died"] as any)[sex] + deathLocation + deathType + ageAtDeathStr);
                     break;
 
                 case "BUR": // Burial data
@@ -371,7 +374,7 @@ function getDetails(canvasView, data, curPerson) {
                 eventDiv.style.textAlign = "center";
 
                 // Get the pictures set up
-                function makePicture(src) {
+                function makePicture(src: string) {
                     var image = document.createElement('img');
                     image.onclick = function() { imgBox(this) };
                     image.style.width = "90%";
@@ -401,17 +404,17 @@ function getDetails(canvasView, data, curPerson) {
 
 
 // Handles the canvasView
-function View(data) {
+function View(data: any) {
     // Grabs the necessary parts
     var structure = data["structure"];
     var details = data["details"];
 
 
     // Gets the top ancestor possible (up to X generations)
-    function getTopAncestor(personid, generations=4) {
+    function getTopAncestor(personid: string, generations=4) {
         // Gets all the ancestors up to the given
-        function getAncestorsInGen(person, gen) {
-            var result = [];
+        function getAncestorsInGen(person: string, gen: number): any {
+            var result: any[] = [];
 
             // we're not going further, just return this person
             if (gen == 0) { 
@@ -456,7 +459,9 @@ function View(data) {
 
         // initializes the canvas
         initCanvas: function() {
+            // @ts-ignore
             this.canvas = document.getElementById("canvas");
+            // @ts-ignore
             this.context = this.canvas.getContext("2d");
         },  
 
@@ -465,9 +470,13 @@ function View(data) {
         ////////////////////////
 
         // Helper function for mousePosition and touchPosition
-        parseEventPosition: function(event) {
+        // @ts-ignore
+        parseEventPosition: function(event: any): number[] {
+            // @ts-ignore
             var boundingRect = this.canvas.getBoundingClientRect();
+            // @ts-ignore
             var x = (event.clientX - boundingRect.left) * (this.canvas.width / boundingRect.width);
+            // @ts-ignore
             var y = (event.clientY - boundingRect.top) * (this.canvas.height / boundingRect.height);
 
             return [x, y];
@@ -475,19 +484,23 @@ function View(data) {
 
 
         // gets the true mouse position
+        // @ts-ignore
         getMousePosition: function(event) { return this.parseEventPosition(event); },
         // Gets the touch position (for mobile devices)
+        // @ts-ignore
         getTouchPosition: function(event) {
             // If this is the last touch
             if (event.touches.length == 0) {
+                // @ts-ignore
                 return [this.lastclickposx,this.lastclickposy];
             }
             return this.parseEventPosition(event.touches[0]);
         },
 
         // Animation for the dragging
+        // @ts-ignore
         draggingAnim: function() {
-            var elem = this;
+            var elem: any = this;
             if (elem.dragTimer != null) {
                 return;
             }
@@ -520,29 +533,33 @@ function View(data) {
         //////////////////////
 
         // Generate the tree
-        makeTree: function(nodeid) {
+        makeTree: function(nodeid: string) {
             var ancestor = getTopAncestor(nodeid);
             // Handle ancestor errors
             if (ancestor == null) {
+                throw new Error();
                 showError("No ancestor (" + nodeid + ") was found", true);
                 return null;
             }
-            return Tree(structure, details, ancestor);
+            return new Tree(structure, details, ancestor);
         },
-
+        // @ts-ignore
         recreateTree: function() { this.setFocus(this.focusId); }, // we just set focus to current node, redraw tree
 
         // Gets the true screen center
         findScreenCenter: function() {
             var left = 0;
             var top = 0;
+            // @ts-ignore
             var right = this.canvas.width;
+            // @ts-ignore
             var bottom = this.canvas.height;
 
             // We take the infowindow into account here
-            var infoWindow = document.getElementById("infowindow");
+            var infoWindow = (document.getElementById("infowindow") as HTMLElement);
             if (isVisible(infoWindow)) {
                 // Check for mobile (infoWindow will never be this wide normally)
+                // @ts-ignore
                 if (infoWindow.offsetWidth >= this.canvas.width * 0.8) {
                     bottom -= infoWindow.offsetHeight;
                 } 
@@ -554,13 +571,14 @@ function View(data) {
             return {"x": left + ((right - left) / 2), "y": top + ((bottom - top) / 2)}; 
         },
 
-        setAncestors: function(node) {
+        setAncestors: function(node: PersonNode) {
             if (node == null) {
                 return;
             }
 
             var ancestors = node.ancestors;
             for (var i = 0; i < ancestors.length; i++) {
+                // @ts-ignore
                 var ancestorNode = this.tree.lookupNodeById(ancestors[i][0]);
                 if (ancestorNode != null) {
                     ancestorNode.ancestorFocus = true;
@@ -569,13 +587,18 @@ function View(data) {
 
         }, 
 
-        setFocus: function(node) {
+        setFocus: function(node: string) {
 
+
+            console.log(node);
+            // @ts-ignore
             this.tree = this.makeTree(node);
-            
+
+            // @ts-ignore
             if (this.tree == null) { return; }
 
 
+            // @ts-ignore
             var theNode = this.tree.lookupNodeById(node);
             if (theNode.redirects) {
                 node = theNode.redirectsTo;
@@ -584,31 +607,40 @@ function View(data) {
             }
 
             this.setAncestors(theNode); // highlight ancestors
+            // @ts-ignore
             this.focusId = node; // Focus on the given node
             window.location.hash = node; // Change window hash
+            // @ts-ignore
             this.tree.position(this);
 
             var center = this.findScreenCenter();
 
 
+            // @ts-ignore
             this.scrollx = this.targetx = center.x - theNode.getX() - (theNode.getWidth() / 2);
+            // @ts-ignore
             this.scrolly = this.targety = center.y - theNode.getY() - (theNode.getHeight() / 2);
             
-            theNode.inFocus = true; 
+            theNode.inFocus = true;
+            // @ts-ignore
             this.canvas.focus();
             this.redraw();
 
-            if (isVisible(document.getElementById("infowindow"))) {
+            if (isVisible(document.getElementById("infowindow") as HTMLElement)) {
                 this.showDetailedView(node); // If the info window is open, update it
             }
 
         },
-        setFocusPosition: function(node, x, y) {
+        setFocusPosition: function(node: string, x: number, y: number) {
+            // @ts-ignore
             this.tree = this.makeTree(node);
+            // @ts-ignore
             if (this.tree == null) {
                 return;
             }
+            // @ts-ignore
             this.tree.position(this);
+            // @ts-ignore
             var theNode = this.tree.lookupNodeById(node);
             
 
@@ -619,28 +651,35 @@ function View(data) {
             }
             this.setAncestors(theNode);
 
+            // @ts-ignore
             this.focusId = node;
-            window.location.hash = node; 
-            
+            window.location.hash = node;
+
+            // @ts-ignore
             this.scrollx = x - theNode.getX();
+            // @ts-ignore
             this.scrolly = y - theNode.getY();
             
             theNode.inFocus = true;
+            // @ts-ignore
             this.canvas.focus();
             this.redraw();
 
-            if (isVisible(document.getElementById("infowindow"))) {
+            if (isVisible(document.getElementById("infowindow") as HTMLElement)) {
                 this.showDetailedView(node);
             }
 
             var center = this.findScreenCenter();
+            // @ts-ignore
             this.targetx = center.x - theNode.getX() - (theNode.getWidth() / 2);
+            // @ts-ignore
             this.targety = center.y - theNode.getY() - (theNode.getHeight() / 2);
             this.draggingAnim();
         },
 
 
-        hitTest: function(mousePosition) {
+        hitTest: function(mousePosition: number[]) {
+            // @ts-ignore
             var hitTest = this.tree.hitTest(this, mousePosition[0], mousePosition[1]);
             var isHit = hitTest[0];
             var hitData = hitTest[1];
@@ -652,7 +691,8 @@ function View(data) {
         },
 
 
-        mouseUp: function(_, mousePosition) {
+        mouseUp: function(_: any, mousePosition: number[]) {
+            // @ts-ignore
             var wasDragging = this.dragging;
             this.stopDragging(); // stop dragging
 
@@ -667,6 +707,7 @@ function View(data) {
 
 
             // Hittest for the last click
+            // @ts-ignore
             var hitTest2 = this.hitTest([this.lastclickposx,this.lastclickposy]);
             var hitType2 = hitTest2[0];
             var hitData2 = hitTest2[1];
@@ -687,23 +728,24 @@ function View(data) {
                 if (clickType1 == "info") {
                     this.showDetailedView(node1.getId());
                 }
+                // @ts-ignore
                 this.setFocusPosition(node1.getId(), node1.getX() + this.scrollx, node1.getY() + this.scrolly);
             }
         },
 
 
         // DETAILS
-        lookupDetails: function(personId, callback) {
+        lookupDetails: function(personId: string, callback: any) {
             if (personId in details) {
                 callback(details[personId]);
                 return;
             }
         },
-        showDetailedView: function(personId) {
+        showDetailedView: function(personId: string) {
             var thisEl = this;
 
             this.lookupDetails(personId, 
-                function(thisDetails) {
+                function(thisDetails: any) {
                     if(thisDetails == null) {
                         showError("Person lookup failed", true);
                     }
@@ -717,42 +759,61 @@ function View(data) {
 
         // Mouse Functions
         stopDragging: function() {
+            // @ts-ignore
             this.dragging = false;
+            // @ts-ignore
             this.ismousedown = false;
             this.adjustVisibleArea();
         },
         // On mousemove
+        // @ts-ignore
         mouseMove: function(buttons, mousePosition) {
+            // @ts-ignore
             if (window.event) { buttons = window.event.button || buttons; }
 
             if (buttons == 0) { this.stopDragging(); } // if no longer holding
-            
+
+            // @ts-ignore
             var x = mousePosition[0] - this.lastclickposx;
+            // @ts-ignore
             var y = mousePosition[1] - this.lastclickposy;
 
+            // @ts-ignore
             if (this.dragging) {
+                // @ts-ignore
                 this.targetx = this.lastscrollposx + x;
+                // @ts-ignore
                 this.targety = this.lastscrollposy + y;
                 this.draggingAnim();
             }
+            // @ts-ignore
             else if (this.ismousedown) {
                 if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) > mouseClickRadius) {
+                    // @ts-ignore
                     this.dragging = true;
                 }
             }
         },
 
         // On mousedown
+        // @ts-ignore
         mouseDown: function(buttons, mousePosition) {
+            // @ts-ignore
             this.lastclickposx = mousePosition[0];
+            // @ts-ignore
             this.lastclickposy = mousePosition[1];
+            // @ts-ignore
             this.lastscrollposx = this.scrollx;
+            // @ts-ignore
             this.lastscrollposy = this.scrolly;
 
             var hitTest = this.hitTest(mousePosition);
+            // @ts-ignore
             if (hitTest[0] == "none" && !this.dragging) { // Only start dragging if it isn't a node
+                // @ts-ignore
                 this.dragging = true;
             }
+            // @ts-ignore
             this.ismousedown = true;
         },
 
@@ -761,20 +822,21 @@ function View(data) {
             var width = Math.min(window.outerWidth, window.innerWidth);
             var height = Math.min(window.outerHeight, window.innerHeight);
 
+            // @ts-ignore
             this.canvas.width = width;
+            // @ts-ignore
             this.canvas.height = height;
         },
 
 
         /// SCALING
-        changeScale: function(newScale) {
+        changeScale: function(newScale: number) {
             if (newScale > 2 || newScale < 0.2) {
                 return;
             }
             scale = newScale;
             updateScale(scale); // takes care of our default variables
-            map(function(font) { font.setSize(font.getBaseSize() * scale); }, [baseFont, detailFont]);
-
+            [baseFont, detailFont].map(f => f.setSize(f.getBaseSize() * scale));
 
             this.recreateTree();
         },
@@ -792,7 +854,7 @@ function View(data) {
         },
 
 
-        init: function(intialPerson) {
+        init: function(intialPerson: string) {
             var curView = this;
 
             // Intitialize
@@ -801,32 +863,39 @@ function View(data) {
             this.setFocus(intialPerson);
 
             // Event listeners
+            // @ts-ignore
             this.canvas.addEventListener("mousedown", function(mEvent) { 
                     curView.mouseDown(mEvent.buttons, curView.getMousePosition(mEvent)); }, false);
-            
+
+            // @ts-ignore
             this.canvas.addEventListener("mouseup", function(mEvent){ 
                     curView.mouseUp(mEvent.buttons, curView.getMousePosition(mEvent)); }, false);
-            
+
+            // @ts-ignore
             this.canvas.addEventListener("mousemove", function(mEvent){ 
                     curView.mouseMove(mEvent.buttons, curView.getMousePosition(mEvent)); }, false);
-            
+
+            // @ts-ignore
             this.canvas.addEventListener("touchstart", function(mEvent){ 
                     curView.mouseDown(1, curView.getTouchPosition(mEvent));
                     mEvent.preventDefault(); // just to be safe
                     mEvent.stopPropagation(); }, false);
 
+            // @ts-ignore
             this.canvas.addEventListener("touchend", function(mEvent){ 
                     curView.mouseUp(1, curView.getTouchPosition(mEvent)); 
                     mEvent.preventDefault();
                     mEvent.stopPropagation(); }, false);
 
-            this.canvas.addEventListener("touchmove", function(mEvent){ 
+            // @ts-ignore
+            this.canvas.addEventListener("touchmove", function(mEvent){
                     curView.mouseMove(1, curView.getTouchPosition(mEvent)); 
                     mEvent.stopPropagation();
                     mEvent.preventDefault(); }, false);
 
             // KEY EVENT LISTENERS //
             // Finds the next relation in the groups given
+            // @ts-ignore
             function upDown(relations, groupRelations) {
                 if (relations.length > 0) {
                     return relations[0]; // If we can go up/down, target is the first one
@@ -836,8 +905,10 @@ function View(data) {
                 }
             }
 
+            // @ts-ignore
             function moveSiblings(lowerBound, upperBound, change) {
                 var target = null;
+                // @ts-ignore
                 var node = curView.tree.lookupNodeById(curView.focusId);
                 var groupUp = node.group ? node.group.ancestorsUp : null;
                 var parentNode = upDown(node.ancestorsUp, groupUp) || null;
@@ -857,6 +928,7 @@ function View(data) {
                 return target;
             }
 
+            // @ts-ignore
             function keyEventListeners(keyEvent){
                 var target = null;
 
@@ -877,12 +949,14 @@ function View(data) {
                         keyEvent.preventDefault(); break
 
                     case 38: case 87: // up arrow and W
+                        // @ts-ignore
                         var node = curView.tree.lookupNodeById(curView.focusId);
                         var groupUp = node.group ? node.group.ancestorsUp : null;
                         target = upDown(node.ancestorsUp, groupUp);
                         keyEvent.preventDefault(); break;
 
                     case 40: case 83: // Down arrow and S key
+                        // @ts-ignore
                         var node = curView.tree.lookupNodeById(curView.focusId);
                         var groupDown = node.group ? node.group.descendentsDown : null;
                         target = upDown(node.descendentsDown, groupDown);
@@ -901,7 +975,8 @@ function View(data) {
                         keyEvent.preventDefault(); break;
 
                     case 9: // Tab
-                        // Switch spouses                            
+                        // Switch spouses
+                        // @ts-ignore
                         var node = curView.tree.lookupNodeById(curView.focusId);
                         if (node.group) {
                             var spouses = node.group.getMembers();
@@ -915,13 +990,16 @@ function View(data) {
                 }
 
                 if (target != null) {
+                    // @ts-ignore
                     var x = target.getX() + curView.scrollx;
+                    // @ts-ignore
                     var y = target.getY() + curView.scrolly
                     curView.setFocusPosition(target.getId(), x, y);
                 }
             }
 
 
+            // @ts-ignore
             this.canvas.addEventListener("keydown", function(keyEvent) {
                 keyEventListeners(keyEvent); }, false);
 
@@ -935,6 +1013,7 @@ function View(data) {
                 if (hash == "") {
                     hash = intialPerson;
                 }
+                // @ts-ignore
                 if (curView.focusId == hash) {
                     return;
                 }
@@ -943,22 +1022,31 @@ function View(data) {
 
         adjustVisibleArea: function() {
             var changed = false;
+            // @ts-ignore
             var boundaries = this.tree.getBoundaries();
 
 
+            // @ts-ignore
             if (boundaries[2] + this.scrollx < 0) {
+                // @ts-ignore
                 this.targetx = (this.canvas.width / 2) - boundaries[2];
                 changed = true;
             }
+            // @ts-ignore
             if (boundaries[3] + this.scrolly < 0) {
+                // @ts-ignore
                 this.targety = (this.canvas.height / 2) - boundaries[3];
                 changed = true;
             }
+            // @ts-ignore
             if (boundaries[0] + this.scrollx > this.canvas.width) {
+                // @ts-ignore
                 this.targetx = (this.canvas.width / 2) + boundaries[0];
                 changed = true;
             }
+            // @ts-ignore
             if (boundaries[1] + this.scrolly > this.canvas.height) {
+                // @ts-ignore
                 this.targety = (this.canvas.height / 2) - boundaries[1];
                 changed = true;
             }
@@ -969,9 +1057,12 @@ function View(data) {
         },
 
         redraw: function() {
+            // @ts-ignore
             this.context.clearRect(0, 0, canvas.width, canvas.height);
-            
+
+            // @ts-ignore
             if (this.tree != null) {
+                // @ts-ignore
                 this.tree.draw(this);
             }
         },
@@ -979,12 +1070,15 @@ function View(data) {
 
     // Sets the default tree variables
     for (var i = 0; i < initialNull.length; i++) {
+        // @ts-ignore
         initialDict[initialNull[i]] = null;
     }
     for (var i = 0; i < initialFalse.length; i++) {
+        // @ts-ignore
         initialDict[initialFalse[i]] = false;
     }
     for (var i = 0; i < initialZero.length; i++) {
+        // @ts-ignore
         initialDict[initialZero[i]] = 0;
     }
 
@@ -992,7 +1086,7 @@ function View(data) {
 }
 
 // Parses the hash
-function parseHash(initPerson) {
+function parseHash(initPerson: string) {
     var showHelp = false;
     var initialPerson = initPerson;
     if (getHashString()) {
@@ -1016,20 +1110,22 @@ function showHelp() {
 
         clearInterval(helpInterval); // Kill the interval
         // Show the info window for help
-        showInfoWindow({"text": document.getElementById("helpDivHidden").cloneNode(true)});
+        showInfoWindow({"text": (document.getElementById("helpDivHidden") as HTMLElement).cloneNode(true)});
     }, 200);
 }
 
 
+// @ts-ignore
 function numPeople(data) {
     var num = Object.keys(data).length;
-    document.getElementById("numPeople").innerHTML = "<strong>" + num + "</strong> people in this tree";
+    (document.getElementById("numPeople") as HTMLElement).innerHTML = "<strong>" + num + "</strong> people in this tree";
 }
 
 function main() {
+    // @ts-ignore
     loadData(function(data) {
         console.log("%cDone", "font-weight:bold; font-size: 1.2em;");
-        fadeOut(document.getElementById("loadingwindow"), 0.07); // fade out once we load all the data
+        fadeOut((document.getElementById("loadingwindow") as HTMLElement), 0.07); // fade out once we load all the data
 
         if (data == null) { showError("Data could not be loaded", true); return; }
 
@@ -1042,6 +1138,8 @@ function main() {
         }
 
         var hashParsed = parseHash(initialPerson);
+
+        // @ts-ignore
         canvasView.init(hashParsed[1]); // Initialize with the initial user
 
         // If the hash requires help:
