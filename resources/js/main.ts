@@ -570,7 +570,7 @@ function View(data: any) {
             return {"x": left + ((right - left) / 2), "y": top + ((bottom - top) / 2)}; 
         },
 
-        setAncestors: function(node: PersonNode) {
+        setAncestors: function(node: any) {
             if (node == null) {
                 return;
             }

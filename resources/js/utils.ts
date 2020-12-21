@@ -170,7 +170,7 @@ function getHashString() {
 }
 
 // Parses the name for display
-function displayName(name: string) {
+function displayName(name: string): string {
     return name.replace(/\//g,"");
 }
 

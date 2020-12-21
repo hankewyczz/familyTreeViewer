@@ -17,14 +17,14 @@ function flattenTree(node: INode) {
 
 // Main tree function
 class Tree {
-    layout: Layout;
+    layout: any;
     isPositioned: boolean;
     nodes: INode[];
 
     constructor(structure: {  [key: string]: PersonStructure },
                 details: {[key: string]: PersonDetails}, personId: string) {
 
-        this.layout = new Layout(personId, structure, details);
+        this.layout = Layout(personId, structure, details);
         this.isPositioned = false;
         this.nodes = flattenTree(this.layout.nodes);
     }

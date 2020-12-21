@@ -16,7 +16,7 @@ function flattenTree(node) {
 // Main tree function
 class Tree {
     constructor(structure, details, personId) {
-        this.layout = new Layout(personId, structure, details);
+        this.layout = Layout(personId, structure, details);
         this.isPositioned = false;
         this.nodes = flattenTree(this.layout.nodes);
     }
