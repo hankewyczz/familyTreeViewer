@@ -95,6 +95,8 @@ function renderText(text, view, _x, _y, real) {
                 maxLineHeight = 0; // reset line height
             }
             else { // just show the text
+                // If this is "real" text, we want to display it. If not real, that means we probably
+                // did this to calculate dimensions, so we don't want to show it.
                 if (real) {
                     view.context.fillText(e, x, y);
                 }

@@ -21,9 +21,9 @@ interface INode {
     setPos: (newX: number, newY: number) => void;
     getScaling: () => number;
     setScaling: (newScale: number) => void;
-    getWidth: (canvasView?: any) => number;
-    getHeight: (canvasView?: any) => number;
-    calcDimensions: (canvasView: any) => number[];
+    getWidth: () => number;
+    getHeight: () => number;
+    calcDimensions: (canvasView?: any) => number[];
     hitTest: (canvasView: any, x: number, y: number) => any[];
     draw: (canvasView: any) => void;
     drawLines: (canvasView: any) => void;
@@ -67,7 +67,7 @@ function makeNodeText(person: PersonStructure) {
 // Generates a node
 class PersonNode implements INode {
     person: PersonStructure;
-    pDetails: PersonDetails;
+    details: PersonDetails;
     text: any[];
     textDimensions: number[]|null;
     imageScaling: number;
@@ -93,7 +93,7 @@ class PersonNode implements INode {
 
     constructor(_person: PersonStructure, pDetails: PersonDetails) {
         this.person = _person;
-        this.pDetails = pDetails;
+        this.details = pDetails;
         this.text = makeNodeText(_person); // Generates the text for this node
         this.textDimensions = null;
         this.imageScaling = scale;
@@ -124,45 +124,26 @@ class PersonNode implements INode {
     }
 
     // Establishes relations (determines if any are hidden)
-    areRelationsShown(structure: any) {
+    areRelationsShown(structure: {[key: string]: PersonStructure}) {
+        // Gets the list of parents and children currently shown
+        let displayParents = this.ancestorsUp.map(ancestor => ancestor.getIds()).flat();
+        let displayKids = this.descendentsDown.map(desc => desc.getIds()).flat();
 
-
-        var parents = structure[this.getId()].parents; // gets this person's parents
-        var displayParents: string[] = this.ancestorsUp.map(a => a.getIds()).flat();
-        console.log(this.getId())
-        for (var i = 0; i < parents.length; i++) {
-            if (displayParents.indexOf(parents[i]) < 0) {
-                this.parentsHidden = true; // If a parent is not in displayParents, we have a hidden one
-            }
-        }
-
-        // Same thing, but for children
-        var children = structure[this.getId()].children;
-        var displayChildren: string[] = [];
-
-        for (var j = 0; j < this.descendentsDown.length; j++) {
-            // @ts-ignore
-            displayChildren = displayChildren.concat(this.descendentsDown[j].getIds());
-        }
-
-        for (var j = 0; j < children.length; j++) {
-            if (displayChildren.indexOf(children[j]) < 0) {
-                this.childrenHidden = true;
-            }
-        }
-        console.log(this.parentsHidden, this.childrenHidden)
+        // Are any of this person's parents/children currently not being shown?
+        this.parentsHidden = structure[this.getId()].parents.some(p => !displayParents.includes(p));
+        this.childrenHidden = structure[this.getId()].children.some(k => !displayKids.includes(k));
     }
 
     getChildConnectorPoint() {
-        var ax = this.x + this.getWidth() / 2;
-        var ay = this.y + this.getHeight() + nodeBorderMargin;
-        return [ax, ay];
+        let newX = this.x + this.getWidth() / 2;
+        let newY = this.y + this.getHeight() + nodeBorderMargin;
+        return [newX, newY];
     }
 
     getParentConnectorPoint() {
-        var ax = this.x + this.getWidth() / 2;
-        var ay = this.y - nodeBorderMargin;
-        return [ax, ay];
+        let newX = this.x + this.getWidth() / 2;
+        let newY = this.y - nodeBorderMargin;
+        return [newX, newY];
     }
 
     getId() {
@@ -177,30 +158,52 @@ class PersonNode implements INode {
 
 
     // Positioning
-    getX() { return this.x; }
-    getY() { return this.y; }
-    setX(newX: number) { this.x = newX; }
-    setY(newY: number) { this.y = newY; }
-    getPos() { return [this.x, this.y]; }
-    setPos(newX: number, newY: number) {
+    getX(): number {
+        return this.x;
+    }
+    getY(): number {
+        return this.y;
+    }
+    setX(newX: number) {
         this.x = newX;
+    }
+    setY(newY: number) {
         this.y = newY;
+    }
+    getPos() {
+        return [this.x, this.y];
+    }
+    setPos(newX: number, newY: number) {
+        this.setX(newX);
+        this.setY(newY);
     }
 
 
     // Dimension calculations
-    getScaling() { return this.imageScaling; }
-    setScaling(newScale: number) { this.imageScaling = newScale; }
+    getScaling() {
+        return this.imageScaling;
+    }
+    setScaling(newScale: number) {
+        this.imageScaling = newScale;
+    }
 
-    getWidth() { // @ts-ignore
-        return this.calcDimensions()[0]; }
-    getHeight() { // @ts-ignore
-        return this.calcDimensions()[1]; }
-    calcDimensions(canvasView: any) {
+    // Dimensions
+    getWidth() {
+        return this.calcDimensions()[0];
+    }
+    getHeight() {
+        return this.calcDimensions()[1];
+    }
+
+    calcDimensions(canvasView?: any): number[] {
         if (this.textDimensions == null) {
-            var dimensions = renderText(this.text, canvasView, this.x, this.y, false);
-            var width = dimensions[0] + (this.sidePadding * 2);
-            var height = dimensions[1];
+            if (typeof canvasView === 'undefined') {
+                throw new Error("Cannot determine dimensions without a given canvas view");
+            }
+
+            let dimensions = renderText(this.text, canvasView, this.x, this.y, false);
+            let width = dimensions[0] + (this.sidePadding * 2);
+            let height = dimensions[1];
             this.textDimensions = [width, height];
         }
 
@@ -209,9 +212,9 @@ class PersonNode implements INode {
 
 
     getRect(canvasView: any) {
-        var dimensions = this.calcDimensions(canvasView);
-        var width = dimensions[0];
-        var height = dimensions[1];
+        let dimensions = this.calcDimensions(canvasView);
+        let width = dimensions[0];
+        let height = dimensions[1];
 
         return [this.x + canvasView.scrollx - nodeBorderMargin, // X
             this.y + canvasView.scrolly - nodeBorderMargin, // Y
@@ -219,62 +222,52 @@ class PersonNode implements INode {
             height + nodeBorderMargin * 2]; // Height
     }
 
+    // TODO - CanvasView class
+    // TODO - scrap hitTest
     hitTest(canvasView: any, x: number, y: number) {
-        var rect = this.getRect(canvasView);
-        var x1 = rect[0]; // left bounds
-        var y1 = rect[1]; // top bounds
-        var x2 = x1 + rect[2];
-        var y2 = y1 + rect[3];
+        let rect = this.getRect(canvasView);
+        let x1 = rect[0]; // left bounds
+        let y1 = rect[1]; // top bounds
+        let x2 = x1 + rect[2];
+        let y2 = y1 + rect[3];
 
-        var isHit = (x <= x2 && x >= x1) && (y <= y2 && y >= y1); // Checks if within bounds
-        var hitResult = [isHit, ["goto", this]];
-
-        return hitResult;
+        let isHit = (x <= x2 && x >= x1) && (y <= y2 && y >= y1); // Checks if within bounds
+        return [isHit, ["goto", this]];
     }
 
     draw(canvasView: any) {
-        var x = this.getX() + canvasView.scrollx;
-        var y = this.getY() + canvasView.scrolly;
+        let x = this.getX() + canvasView.scrollx;
+        let y = this.getY() + canvasView.scrolly;
 
-
-        var rect = this.getRect(canvasView);
-        var rectX = rect[0];
-        var rectY = rect[1];
-        var width = rect[2];
-        var height = rect[3];
+        let rect = this.getRect(canvasView);
+        let rectX = rect[0];
+        let rectY = rect[1];
+        let width = rect[2];
+        let height = rect[3];
 
         // If offscreen, don't bother drawing, just return
         if (x > canvasView.canvas.width || y > canvasView.canvas.height ||
             x + width < 0 || y + height < 0) {
-            return ;
-        }
-
-
-
-        // Draws the rectangle
-        canvasView.context.fillStyle = this.bgColor[this.person["sex"]]; // Fills with the above colors
-        canvasView.context.fillRect(rectX, rectY, width, height);
-        renderText(this.text, canvasView, x + this.sidePadding, y, true); // Renders the text
-
-        if (this.inFocus) { // The focused node
-            canvasView.context.lineWidth = 3;
-            canvasView.context.strokeStyle = "#FFFF00";
-            canvasView.context.strokeRect(rectX + 1, rectY + 1, width - 2, height - 2);
             return;
         }
-        else if (this.ancestorFocus) {
-            var lineWidth = 2;
-            var color = "#DD0";
+
+        // Draws the rectangle
+        canvasView.context.fillStyle = this.bgColor[this.person["sex"]];
+        canvasView.context.fillRect(rectX, rectY, width, height);
+        renderText(this.text, canvasView, x + this.sidePadding, y, true);
+
+        // Defaults
+        let lineWidth = (this.inFocus || this.ancestorFocus) ? 3 : 1;
+        let color = "#000"
+
+        // Special colors
+        if (this.inFocus || this.ancestorFocus) {
+            color = this.inFocus ? "#FF0" : "#DD0";
         }
-        else {
-            var lineWidth = 1;
-            var color = "#000000";
-        }
+
         canvasView.context.lineWidth = lineWidth;
         canvasView.context.strokeStyle = color;
         canvasView.context.strokeRect(rectX, rectY, width, height);
-
-
 
         // Draws the images
         const dim = 15 * this.getScaling();
@@ -293,28 +286,18 @@ class PersonNode implements INode {
             canvasView.context.drawImage(image, x + this.getWidth() - dim, y, dim, dim);
         }
 
-        if (this.pDetails["pics"].length > 0) {
-            // Icon image - we just use the first one
-            let image = loadImage(this.pDetails["pics"][0]);
-
-            if (image.height > 0 && image.width > 0) { // If already loaded, then we draw
-                canvasView.context.drawImage(image, x, y, dim, dim);
-            }
-
-        }
-        else if (this.pDetails["notes"].length > 0) {
+        // What should we use as the user image?
+        if (this.details["pics"].length > 0) {
+            canvasView.context.drawImage(loadImage(this.details["pics"][0]), x, y, dim, dim);
+        } else if (this.details["notes"].length > 0) {
             /* If we have any notes and NO custom image, denote it with the notes icon */
             canvasView.context.drawImage(imageIcons.notes, x, y, dim, dim);
-        }
-        else { // Default icon
-            canvasView.context.drawImage(imageIcons.defaultPerson, x, y, dim, dim);
         }
     }
 
     drawLines(canvasView: any) {
-        for (var i = 0; i < this.descendentsDown.length; i++) {
-            // @ts-ignore
-            drawParentLine(canvasView, this, this.descendentsDown[i]);
+        for (let desc of this.descendentsDown) {
+            drawParentLine(canvasView, this, desc);
         }
     }
 }

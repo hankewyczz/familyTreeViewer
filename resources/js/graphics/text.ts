@@ -103,7 +103,7 @@ function parseTextAsArray(texts: any[]) {
   return newText;
 }
 // TOdo canvasview
-function renderText(text: any[], view: any, _x: number, _y: number, real: any) {
+function renderText(text: any[], view: any, _x: number, _y: number, real: boolean) {
   let lastFont = baseFont;
   view.context.textBaseline = "top";
   let maxWidth = 0;
@@ -118,7 +118,10 @@ function renderText(text: any[], view: any, _x: number, _y: number, real: any) {
         x = _x // Reset X
         y += maxLineHeight; // Add to the max height
         maxLineHeight = 0; // reset line height
-      } else { // just show the text
+      }
+      else { // just show the text
+        // If this is "real" text, we want to display it. If not real, that means we probably
+        // did this to calculate dimensions, so we don't want to show it.
         if (real) {
           view.context.fillText(e, x, y);
         }
