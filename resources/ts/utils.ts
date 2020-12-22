@@ -667,7 +667,7 @@ function setSearchEvents(searchText: HTMLInputElement, searchList: HTMLElement, 
 
     // Checks if the names match
     function namesMatch(query: string[], name: string) {
-        return query.some(q => !name.includes(q));
+        return !query.some(q => name.indexOf(q) < 0);
     }
 
     // SHows the result

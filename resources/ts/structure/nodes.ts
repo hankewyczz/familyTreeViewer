@@ -5,36 +5,41 @@ interface INode {
     descendentsDown: INode[];
     generation: number;
     mod: number;
-    prevDimensions: number[]|null;
+    prevDimensions: number[] | null;
     imageScaling: number;
+    ancestorFocus: boolean;
 
     // Methods
-    getInteriorNodeById: (_: string) => (INode | null);
+    getInteriorNodeById: (_: string) => (PersonNode | null);
     areRelationsShown: (structure: { [key: string]: PersonStructure }) => void;
     getChildConnectorPoint: () => number[];
     getParentConnectorPoint: () => number[];
+    // IDs
     getId: () => string;
     getIds: () => string[];
+    // Positioning
     getX: () => number;
     getY: () => number;
     setX: (newX: number) => void;
     setY: (newY: number) => void;
     getPos: () => number[];
     setPos: (newX: number, newY: number) => void;
+    // Dimensions
     getScaling: () => number;
     setScaling: (newScale: number) => void;
     getWidth: () => number;
     getHeight: () => number;
-    calcDimensions: (canvasView?: any) => number[];
-    hitTest: (canvasView: any, x: number, y: number) => any[];
-    draw: (canvasView: any) => void;
-    drawLines: (canvasView: any) => void;
+    calcDimensions: (canvasView?: View) => number[];
+    // Other
+    isHit: (canvasView: View, x: number, y: number) => PersonNode | null;
+    draw: (canvasView: View) => void;
+    drawLines: (canvasView: View) => void;
 }
 
 
 
 // Creates the text for each node
-function makeNodeText(person: PersonStructure) {
+function makeNodeText(person: PersonStructure): (string|TextAttr)[] {
     // Splits between the forenames and surnames
     let names = person["name"].split("/", 2);
     // Joins them with a linebreak in between the two
@@ -70,8 +75,8 @@ function makeNodeText(person: PersonStructure) {
 class PersonNode implements INode {
     person: PersonStructure;
     details: PersonDetails;
-    text: any[];
-    prevDimensions: number[]|null;
+    text: (string | TextAttr)[];
+    prevDimensions: null | number[];
     imageScaling: number;
     bgColor: {[key: string]: string};
     sidePadding: number;
@@ -87,10 +92,10 @@ class PersonNode implements INode {
     childrenHidden: boolean;
     inFocus: boolean;
     ancestorFocus: boolean;
-    group: any;
+    group: null | PersonNodeGroup;
     redirects: boolean;
     redirectsTo: string;
-    ancestors: any[];
+    ancestors: Array<Array<number | string>>;
 
 
     constructor(_person: PersonStructure, pDetails: PersonDetails) {
@@ -121,7 +126,7 @@ class PersonNode implements INode {
     }
 
     // Returns the interior node
-    getInteriorNodeById(_: string): INode {
+    getInteriorNodeById(_: string): PersonNode {
         return this;
     }
 
@@ -154,9 +159,6 @@ class PersonNode implements INode {
     getIds() {
         return [this.person.id];
     }
-
-    // unused
-    //getText : function () { return _text; },
 
 
     // Positioning
@@ -197,7 +199,7 @@ class PersonNode implements INode {
         return this.calcDimensions()[1];
     }
 
-    calcDimensions(canvasView?: any): number[] {
+    calcDimensions(canvasView?: View): number[] {
         if (this.prevDimensions == null) {
             if (typeof canvasView === 'undefined') {
                 throw new Error("Cannot determine dimensions without a given canvas view");
@@ -212,21 +214,19 @@ class PersonNode implements INode {
         return this.prevDimensions;
     }
 
-
-    getRect(canvasView: any) {
+    // Get the rectangle bounding this PersonNode
+    getRect(canvasView: View) {
         let dimensions = this.calcDimensions(canvasView);
-        let width = dimensions[0];
-        let height = dimensions[1];
 
         return [this.x + canvasView.scrollx - nodeBorderMargin, // X
             this.y + canvasView.scrolly - nodeBorderMargin, // Y
-            width + nodeBorderMargin * 2, // Width
-            height + nodeBorderMargin * 2]; // Height
+            dimensions[0] + nodeBorderMargin * 2, // Width
+            dimensions[1] + nodeBorderMargin * 2]; // Height
     }
 
     // TODO - CanvasView class
     // TODO - scrap hitTest
-    hitTest(canvasView: any, x: number, y: number) {
+    isHit(canvasView: View, x: number, y: number) {
         let rect = this.getRect(canvasView);
         let x1 = rect[0]; // left bounds
         let y1 = rect[1]; // top bounds
@@ -234,10 +234,10 @@ class PersonNode implements INode {
         let y2 = y1 + rect[3];
 
         let isHit = (x <= x2 && x >= x1) && (y <= y2 && y >= y1); // Checks if within bounds
-        return [isHit, ["goto", this]];
+        return (isHit) ? this : null;
     }
 
-    draw(canvasView: any) {
+    draw(canvasView: View) {
         let x = this.getX() + canvasView.scrollx;
         let y = this.getY() + canvasView.scrolly;
 
@@ -297,7 +297,7 @@ class PersonNode implements INode {
         }
     }
 
-    drawLines(canvasView: any) {
+    drawLines(canvasView: View) {
         for (let desc of this.descendentsDown) {
             drawParentLine(canvasView, this, desc);
         }
@@ -317,6 +317,7 @@ class PersonNodeGroup implements INode {
     imageScaling: number;
     spousalSpacing: number;
     minHeight: number;
+    ancestorFocus: boolean = false;
 
 
     constructor(_nodes: any[]) {
@@ -430,7 +431,7 @@ class PersonNodeGroup implements INode {
     getHeight() {
         return this.calcDimensions()[1]; }
 
-    calcDimensions(canvasView?: any) {
+    calcDimensions(canvasView?: View) {
         if (this.prevDimensions == null) {
             for (let node of this.nodes) {
                 node.calcDimensions(canvasView);
@@ -453,20 +454,18 @@ class PersonNodeGroup implements INode {
         return this.prevDimensions;
     }
 
-    hitTest(canvasView: any, x: number, y: number) {
+    isHit(canvasView: View, x: number, y: number) {
         for (let node of this.nodes) {
-            let nodeHit = node.hitTest(canvasView, x, y);
-            let isHit = nodeHit[0];
-            let value = nodeHit[1];
+            let nodeHit = node.isHit(canvasView, x, y);
 
-            if (isHit) {
-                return [isHit, value];
+            if (nodeHit !== null) {
+                return nodeHit;
             }
         }
-        return [false, "none"];
+        return null;
     }
 
-    draw(canvasView: any) {
+    draw(canvasView: View) {
         let lineWidth = 10 * scale; // Spouse line
         let y = this.getY() + (this.minHeight / 2); // Min-height make sure we work w/ the smallest one (ie. we fit all)
         let x2 = this.getX() + this.getWidth();
@@ -478,7 +477,7 @@ class PersonNodeGroup implements INode {
         }
     }
 
-    drawLines(canvasView: any) {
+    drawLines(canvasView: View) {
         this.nodes[0].drawLines(canvasView);
 
         for (let i = 2; i < this.nodes.length; i++) { // For multiple spouses
@@ -494,292 +493,289 @@ class PersonNodeGroup implements INode {
 
 
 
-class Layout {
-    person: string;
-    structure: {  [key: string]: PersonStructure };
-    details: { [key: string]: PersonDetails};
-    mappedNodes: { [key: string]: INode};
-    boundaries: null | number[];
-    nodes: INode;
-
-    constructor(person: string,
-                structure: {  [key: string]: PersonStructure },
-                details: {[key: string]: PersonDetails}) {
-        this.person = person;
-        this.structure = structure;
-        this.details = details;
-        this.mappedNodes = {};
-        this.boundaries = null;
-        this.nodes = this.makeNode(person, 0); // Start with the base person, generation 0
-
-    }
-
-    // Utility functions
-    // Returns an array of this person's spouses
-    getSpouses(person: string) {
-        return this.structure[person].spouses;
-    }
-    getParents(person: string) {
-        return this.structure[person].parents;
-    }
-    getChildren(person: string) {
-        return this.structure[person].children;
-    }
-
-
-    // Makes the nodes
-    makeNode(person: string, generation: number): INode {
-        if (person in this.mappedNodes) {
-            return this.mappedNodes[person]; // The node already exists, just return it
-        }
-
-        let newNode: INode;
-        if (this.getSpouses(person).length === 0) {
-            // This person has no spouses - they're not a PersonNodeGroup
-            newNode = new PersonNode(this.structure[person], this.details[person]);
-            this.mappedNodes[person] = newNode;
-        }
-        else {
-            let personList = [person].concat(this.getSpouses(person));
-            let nodes = personList.map(p => new PersonNode(this.structure[p], this.details[p]));
-            newNode = new PersonNodeGroup(nodes);
-
-            // Update the mapped list
-            personList.map(p => { this.mappedNodes[p] = newNode;});
-        }
-
-        newNode.generation = generation;
-
-        // Generate the parents as well
-        let parents = this.getParents(person);
-        if (parents.length > 0) {
-            // TODO - is this check necessary?
-            if (parents[0] in this.mappedNodes) {
-                newNode.ancestorsUp = [this.makeNode(parents[0], generation - 1)];
-            }
-        }
-        else {
-            newNode.ancestorsUp = [];
-        }
-
-        // Children
-        let children = this.getChildren(person);
-        if (children.length > 0) {
-            // Should we display this, or is it out of the generation limit?
-            if (Math.abs(generation) < generationLimit) {
-                newNode.descendentsDown = children.map(c => this.makeNode(c, generation + 1));
-            }
-        }
-        // Generate the relationship indicators (hidden children/parents)
-        newNode.areRelationsShown(this.structure);
-        return newNode;
-    }
-
-
-    // Equalize the vertical spacing, so that each generation is on the same level
-    verticalSpacing(canvasView: any, nodeList: INode[]) {
-        // We get the max height per generation, so they're all aligned
-        let maxHeights: {[key: number]: number} = {};
-        for (let node of nodeList) {
-            let height = node.calcDimensions(canvasView)[1];
-            maxHeights[node.generation] = Math.max(maxHeights[node.generation] || 0, height);
-        }
-
-
-        // calculate the summed heights
-        let sumHeights: {[key: number]: number} = {0: 0};
-        for (let i = 1; i in maxHeights; i++) {
-            // The bottom x-coord of the row below + the height of the row below + the margin
-            sumHeights[i] = sumHeights[i-1] + maxHeights[i-1] + verticalMargin;
-        }
-        // Ditto, but for any rows below generation 0
-        // Todo - is this still necessary?
-        for (let i = -1; i in maxHeights; i--) {
-            sumHeights[i] = sumHeights[i+1] - maxHeights[i] - verticalMargin;
-        }
-
-        for (let node of nodeList) {
-            // Establish the new position (using the same X as before)
-            node.setPos(node.getX(), sumHeights[node.generation]);
-        }
-    }
-
-    isNodeLeaf(node: INode): boolean {
-        // If we have no descendants, its a leaf
-        return node.descendentsDown.length == 0;
-    }
-
-    isNodeLeftmost(node: INode): boolean {
-        // If we have no direct ancestors, it must be the top (and technically leftmost)
-        if (node.ancestorsUp.length == 0) {
-            return true;
-        }
-        // Are we the first descendent of our first ancestor? If so, we're leftmost
-        return node.ancestorsUp[0].descendentsDown[0] == node;
-    }
-
-    getPrevSibling(node: INode): (INode | void) {
-        if (node.ancestorsUp.length > 0) {
-            let position = node.ancestorsUp[0].descendentsDown.indexOf(node);
-            return node.ancestorsUp[0].descendentsDown[position - 1];
-        }
-        else {
-            console.log("Top level - no siblings")
-        }
-    }
-
-    getLeftContour(node: INode): {[key: number]: number} {
-        function leftHelper(n: INode, values: {[key: number]: number}, modSum: number) {
-            let gen = n.generation;
-
-            let val = n.getX() + modSum;
-            values[gen] = (gen in values) ? Math.min(val, values[gen]) : val;
-
-            for (let desc of n.descendentsDown) {
-                leftHelper(desc, values, modSum + n.mod);
-            }
-        }
-        let values = {};
-        leftHelper(node, values, 0);
-        return values;
-    }
-
-    getRightContour(node: any): {[key: number]: number} {
-        function rightHelper(n: any, values: any, modSum: any) {
-            let gen = n.generation;
-
-            if (gen in values) {
-                values[gen] = Math.max(values[gen], n.getX() + n.getWidth() + modSum);
-            }
-            else {
-                values[gen] = n.getX() + n.getWidth() + modSum;
-            }
-
-            modSum += n.mod;
-            for (let desc of n.descendentsDown) {
-                rightHelper(desc, values, modSum);
-            }
-        }
-        let values = {};
-        rightHelper(node, values, 0);
-        return values;
-    }
-
-    // Check for subtree conflicts, and recalculate
-    checkForConflicts(node: INode) {
-        // Distance between subtrees (eg. cousins)
-        let subtreeSpacing = 30 * scale;
-        let shift = 0; // How much more we need to shift these nodes over
-        let leftContour = this.getLeftContour(node);
-
-        if (node.ancestorsUp.length == 0) {
-            return; // if we're at the top of the tree, we've got nothing to do
-        }
-
-        for (let curNode of node.ancestorsUp[0].descendentsDown) { // or There and Back Again
-            // We only go up to this node - dont' care about the rest
-            if (curNode == node) {
-                break;
-            }
-            let siblingContour = this.getRightContour(curNode);
-
-            for (let j = node.generation + 1; j in leftContour && j in siblingContour; j++) {
-                let distance = leftContour[j] - siblingContour[j];
-
-                // If we need to make up the difference here, we boost shift
-                if (distance + shift < subtreeSpacing) {
-                    shift = subtreeSpacing - distance;
-                }
-            }
-            // We set and reset shift here
-            if (shift > 0) {
-                node.setX(node.getX() + shift); // Update the X coordinate
-                node.mod += shift; // Alter mod
-                shift = 0;
-                leftContour = this.getLeftContour(node); // After adjustment, update the contour of the changed nodes
-            }
-        }
-    }
-
-    // Calculate the initial X position of a node
-    calculateInitialX(node: INode) {
-        node.descendentsDown.map(n => this.calculateInitialX(n));
-
-        if (this.isNodeLeaf(node)) {
-            if (this.isNodeLeftmost(node)) {
-                node.setX(0); // The leftmost leaf is our 0 point
-            }
-            else {
-                // This node isn't leftmost, so it must have a previous sibling
-                let prevSibling = this.getPrevSibling(node) as INode;
-                node.setX(prevSibling.getX() + (prevSibling.getWidth() as number) + horizontalMargin);
-            }
-        }
-
-        else {
-            let lastChild = node.descendentsDown[node.descendentsDown.length - 1];
-
-            const left = node.descendentsDown[0].getX(); // Gets the first child
-            const right = lastChild.getX() + (lastChild.getWidth() as number);  // Right side of the last child
-            const mid = (left + right) / 2;
-
-            if (this.isNodeLeftmost(node)) {
-                node.setX(mid - ((node.getWidth() as number) / 2));
-            }
-            else {
-                // We checked - this must have a previous sibling
-                let prevSibling = this.getPrevSibling(node) as INode;
-                // We can calculate it using the sibling here
-                node.setX(prevSibling.getX() + (prevSibling.getWidth() as number) + horizontalMargin);
-                node.mod = node.getX() - mid + (node.getWidth() as number) / 2;
-            }
-        }
-
-        // If we have kids, and this isn't the leftmost node, we have to work around it
-        if (node.descendentsDown.length > 0 && !this.isNodeLeftmost(node)) {
-            this.checkForConflicts(node);
-        }
-    }
-
-    calculateFinalPos(node: INode, modSum: number) {
-        node.setX(node.getX() + modSum); // Update the X
-        modSum += node.mod;
-
-        node.descendentsDown.map(n => this.calculateFinalPos(n, modSum));
-
-        let x1 = node.getX();
-        let y1 = node.getY();
-        let x2 = node.getX() + (node.getWidth() as number);
-        let y2 = node.getY() + (node.getHeight() as number);
-
-        if (this.boundaries != null) {
-            // We get the outer point for all
-            x1 = Math.min(x1, this.boundaries[0]);
-            y1 = Math.min(y1, this.boundaries[1]);
-            x2 = Math.max(x2, this.boundaries[2]);
-            y2 = Math.max(y2, this.boundaries[3]);
-        }
-        // Update the boundaries
-        this.boundaries = [x1, y1, x2, y2];
-    }
-
-
-
-    getBoundaries() {
-        return this.boundaries;
-    }
-    lookupNodeById(person_id: string) { // Gets us the node by ID if it exists
-        if (person_id in this.mappedNodes) {
-            return this.mappedNodes[person_id];
-        }
-        else {
-            return null;
-        }
-    }
-
-    position(canvasView: any) {
-        this.verticalSpacing(canvasView, flattenTree(this.nodes));
-        this.calculateInitialX(this.nodes);
-        this.calculateFinalPos(this.nodes, 0);
-    }
-}
+// class Layout {
+//     structure: {  [key: string]: PersonStructure };
+//     details: { [key: string]: PersonDetails};
+//     mappedNodes: { [key: string]: INode};
+//     boundaries: null | number[];
+//     nodes: INode;
+//
+//     constructor(person: string,
+//                 structure: {  [key: string]: PersonStructure },
+//                 details: {[key: string]: PersonDetails}) {
+//         this.structure = structure;
+//         this.details = details;
+//         this.mappedNodes = {};
+//         this.boundaries = null;
+//         this.nodes = this.makeNode(person, 0); // Start with the base person, generation 0
+//     }
+//
+//     // Utility functions
+//     // Returns an array of this person's spouses
+//     getSpouses(person: string) {
+//         return this.structure[person].spouses;
+//     }
+//     getParents(person: string) {
+//         return this.structure[person].parents;
+//     }
+//     getChildren(person: string) {
+//         return this.structure[person].children;
+//     }
+//
+//
+//     // Makes the nodes
+//     makeNode(person: string, generation: number): INode {
+//         if (person in this.mappedNodes) {
+//             return this.mappedNodes[person]; // The node already exists, just return it
+//         }
+//
+//         let newNode: INode;
+//         if (this.getSpouses(person).length === 0) {
+//             // This person has no spouses - they're not a PersonNodeGroup
+//             newNode = new PersonNode(this.structure[person], this.details[person]);
+//             this.mappedNodes[person] = newNode;
+//         }
+//         else {
+//             let personList = [person].concat(this.getSpouses(person));
+//             let nodes = personList.map(p => new PersonNode(this.structure[p], this.details[p]));
+//             newNode = new PersonNodeGroup(nodes);
+//
+//             // Update the mapped list
+//             personList.map(p => { this.mappedNodes[p] = newNode;});
+//         }
+//
+//         newNode.generation = generation;
+//
+//         // Generate the parents as well
+//         let parents = this.getParents(person);
+//         if (parents.length > 0) {
+//             // TODO - is this check necessary?
+//             if (parents[0] in this.mappedNodes) {
+//                 newNode.ancestorsUp = [this.makeNode(parents[0], generation - 1)];
+//             }
+//         }
+//         else {
+//             newNode.ancestorsUp = [];
+//         }
+//
+//         // Children
+//         let children = this.getChildren(person);
+//         if (children.length > 0) {
+//             // Should we display this, or is it out of the generation limit?
+//             if (Math.abs(generation) < generationLimit) {
+//                 newNode.descendentsDown = children.map(c => this.makeNode(c, generation + 1));
+//             }
+//         }
+//         // Generate the relationship indicators (hidden children/parents)
+//         newNode.areRelationsShown(this.structure);
+//         return newNode;
+//     }
+//
+//
+//     // Equalize the vertical spacing, so that each generation is on the same level
+//     verticalSpacing(canvasView: any, nodeList: INode[]) {
+//         // We get the max height per generation, so they're all aligned
+//         let maxHeights: {[key: number]: number} = {};
+//         for (let node of nodeList) {
+//             let height = node.calcDimensions(canvasView)[1];
+//             maxHeights[node.generation] = Math.max(maxHeights[node.generation] || 0, height);
+//         }
+//
+//
+//         // calculate the summed heights
+//         let sumHeights: {[key: number]: number} = {0: 0};
+//         for (let i = 1; i in maxHeights; i++) {
+//             // The bottom x-coord of the row below + the height of the row below + the margin
+//             sumHeights[i] = sumHeights[i-1] + maxHeights[i-1] + verticalMargin;
+//         }
+//         // Ditto, but for any rows below generation 0
+//         // Todo - is this still necessary?
+//         for (let i = -1; i in maxHeights; i--) {
+//             sumHeights[i] = sumHeights[i+1] - maxHeights[i] - verticalMargin;
+//         }
+//
+//         for (let node of nodeList) {
+//             // Establish the new position (using the same X as before)
+//             node.setPos(node.getX(), sumHeights[node.generation]);
+//         }
+//     }
+//
+//     isNodeLeaf(node: INode): boolean {
+//         // If we have no descendants, its a leaf
+//         return node.descendentsDown.length == 0;
+//     }
+//
+//     isNodeLeftmost(node: INode): boolean {
+//         // If we have no direct ancestors, it must be the top (and technically leftmost)
+//         if (node.ancestorsUp.length == 0) {
+//             return true;
+//         }
+//         // Are we the first descendent of our first ancestor? If so, we're leftmost
+//         return node.ancestorsUp[0].descendentsDown[0] == node;
+//     }
+//
+//     getPrevSibling(node: INode): (INode | void) {
+//         if (node.ancestorsUp.length > 0) {
+//             let position = node.ancestorsUp[0].descendentsDown.indexOf(node);
+//             return node.ancestorsUp[0].descendentsDown[position - 1];
+//         }
+//         else {
+//             console.log("Top level - no siblings")
+//         }
+//     }
+//
+//     getLeftContour(node: INode): {[key: number]: number} {
+//         function leftHelper(n: INode, values: {[key: number]: number}, modSum: number) {
+//             let gen = n.generation;
+//
+//             let val = n.getX() + modSum;
+//             values[gen] = (gen in values) ? Math.min(val, values[gen]) : val;
+//
+//             for (let desc of n.descendentsDown) {
+//                 leftHelper(desc, values, modSum + n.mod);
+//             }
+//         }
+//         let values = {};
+//         leftHelper(node, values, 0);
+//         return values;
+//     }
+//
+//     getRightContour(node: any): {[key: number]: number} {
+//         function rightHelper(n: any, values: any, modSum: any) {
+//             let gen = n.generation;
+//
+//             if (gen in values) {
+//                 values[gen] = Math.max(values[gen], n.getX() + n.getWidth() + modSum);
+//             }
+//             else {
+//                 values[gen] = n.getX() + n.getWidth() + modSum;
+//             }
+//
+//             modSum += n.mod;
+//             for (let desc of n.descendentsDown) {
+//                 rightHelper(desc, values, modSum);
+//             }
+//         }
+//         let values = {};
+//         rightHelper(node, values, 0);
+//         return values;
+//     }
+//
+//     // Check for subtree conflicts, and recalculate
+//     checkForConflicts(node: INode) {
+//         // Distance between subtrees (eg. cousins)
+//         let subtreeSpacing = 30 * scale;
+//         let shift = 0; // How much more we need to shift these nodes over
+//         let leftContour = this.getLeftContour(node);
+//
+//         if (node.ancestorsUp.length == 0) {
+//             return; // if we're at the top of the tree, we've got nothing to do
+//         }
+//
+//         for (let curNode of node.ancestorsUp[0].descendentsDown) { // or There and Back Again
+//             // We only go up to this node - dont' care about the rest
+//             if (curNode == node) {
+//                 break;
+//             }
+//             let siblingContour = this.getRightContour(curNode);
+//
+//             for (let j = node.generation + 1; j in leftContour && j in siblingContour; j++) {
+//                 let distance = leftContour[j] - siblingContour[j];
+//
+//                 // If we need to make up the difference here, we boost shift
+//                 if (distance + shift < subtreeSpacing) {
+//                     shift = subtreeSpacing - distance;
+//                 }
+//             }
+//             // We set and reset shift here
+//             if (shift > 0) {
+//                 node.setX(node.getX() + shift); // Update the X coordinate
+//                 node.mod += shift; // Alter mod
+//                 shift = 0;
+//                 leftContour = this.getLeftContour(node); // After adjustment, update the contour of the changed nodes
+//             }
+//         }
+//     }
+//
+//     // Calculate the initial X position of a node
+//     calculateInitialX(node: INode) {
+//         node.descendentsDown.map(n => this.calculateInitialX(n));
+//
+//         if (this.isNodeLeaf(node)) {
+//             if (this.isNodeLeftmost(node)) {
+//                 node.setX(0); // The leftmost leaf is our 0 point
+//             }
+//             else {
+//                 // This node isn't leftmost, so it must have a previous sibling
+//                 let prevSibling = this.getPrevSibling(node) as INode;
+//                 node.setX(prevSibling.getX() + (prevSibling.getWidth() as number) + horizontalMargin);
+//             }
+//         }
+//
+//         else {
+//             let lastChild = node.descendentsDown[node.descendentsDown.length - 1];
+//
+//             const left = node.descendentsDown[0].getX(); // Gets the first child
+//             const right = lastChild.getX() + (lastChild.getWidth() as number);  // Right side of the last child
+//             const mid = (left + right) / 2;
+//
+//             if (this.isNodeLeftmost(node)) {
+//                 node.setX(mid - ((node.getWidth() as number) / 2));
+//             }
+//             else {
+//                 // We checked - this must have a previous sibling
+//                 let prevSibling = this.getPrevSibling(node) as INode;
+//                 // We can calculate it using the sibling here
+//                 node.setX(prevSibling.getX() + (prevSibling.getWidth() as number) + horizontalMargin);
+//                 node.mod = node.getX() - mid + (node.getWidth() as number) / 2;
+//             }
+//         }
+//
+//         // If we have kids, and this isn't the leftmost node, we have to work around it
+//         if (node.descendentsDown.length > 0 && !this.isNodeLeftmost(node)) {
+//             this.checkForConflicts(node);
+//         }
+//     }
+//
+//     calculateFinalPos(node: INode, modSum: number) {
+//         node.setX(node.getX() + modSum); // Update the X
+//         modSum += node.mod;
+//
+//         node.descendentsDown.map(n => this.calculateFinalPos(n, modSum));
+//
+//         let x1 = node.getX();
+//         let y1 = node.getY();
+//         let x2 = node.getX() + (node.getWidth() as number);
+//         let y2 = node.getY() + (node.getHeight() as number);
+//
+//         if (this.boundaries != null) {
+//             // We get the outer point for all
+//             x1 = Math.min(x1, this.boundaries[0]);
+//             y1 = Math.min(y1, this.boundaries[1]);
+//             x2 = Math.max(x2, this.boundaries[2]);
+//             y2 = Math.max(y2, this.boundaries[3]);
+//         }
+//         // Update the boundaries
+//         this.boundaries = [x1, y1, x2, y2];
+//     }
+//
+//
+//
+//     getBoundaries() {
+//         return this.boundaries;
+//     }
+//     lookupNodeById(person_id: string): null | INode { // Gets us the node by ID if it exists
+//         if (person_id in this.mappedNodes) {
+//             return this.mappedNodes[person_id];
+//         }
+//         else {
+//             return null;
+//         }
+//     }
+//
+//     position(canvasView: any) {
+//         this.verticalSpacing(canvasView, flattenTree(this.nodes));
+//         this.calculateInitialX(this.nodes);
+//         this.calculateFinalPos(this.nodes, 0);
+//     }
+// }
