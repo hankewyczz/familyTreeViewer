@@ -7,747 +7,669 @@ let verticalMargin = baseVM * scale;
 let horizontalMargin = baseHM * scale;
 let nodeBorderMargin = baseBM * scale;
 const generationLimit = 6;
-const mouseClickRadius = 70;
+const mouseClickRadius = 50;
 const xmlRTimeout = 20000;
-const bgColor: {[key: string]: string} = {"m": "#ACE2F2", "f": "#F8AFD7", "": "#d3d3d3"}; // background colors
+const bgColor: { [key: string]: string } = {"m": "#ACE2F2", "f": "#F8AFD7", "": "#d3d3d3"}; // background colors
 
 let currentLanguage = "UA";
 const languages = [
-    {
-        id: "UA", 
-        name : "УКР",
-        locatedIn: " в ",
-        born: {"M": "Народився", "F": "Народилася"},
-        died: {"M": "Помер", "F": "Померла"},
-        parents: "Батьки",
-        and: " і ",
-        buried: {"M": "Похований", "F": "Похована"},
-        occupation: "Праця",
-        married: {"M": "Одружився з ", "F": "Вийшла за заміж з "},
-        divorced: "Розлучились ",
-        yearsOld: "років",
-        yearsAgo: "років тому",
-        // Relationship calculator
-        samePerson: "Та сама людина",
-        siblings: {"MM": "брати", "MF": "брат/сестра", 
-        "FM": "сестра/брат", "FF": "сестри"},
-        cousins: {"MM": "кузини", "MF": "кузини", "FM": "кузини",
-        "FF": "кузинки"},
-        child: {"M": "син", "F": "дочка"},
-        parent: {"M": "батько", "F": "мама"},
-        grandparent: {"M": "дідо", "F": "баба"},
-        grandchild: {"M": "внук", "F": "внучка"},
-        great: "пра",
-        auntUncle: {"MM": "стрийко", "MF": "вуйко", "FM": "стриянка", "FF": "тета"},
-        nieceNephew: {"MM": "братанець", "MF": "сестрінець", "FM": "братаниця", "FF": "сестріниця"},
-        removed: "віддалені",
-        relationshipCalculator: "Як ми споріднені?",
-        person: "Людина ",
-        noRelation: "не безпосередньо споріднені",
-        are: " є ",
-        months: ["січ.", "лют.", "бер.", "кві.", "тра.", "чер.", "лип.", "серп.", "вер.", "жов.", "лист.", "гру."], 
+  {
+    id: "UA",
+    name: "УКР",
+    locatedIn: " в ",
+    born: {"M": "Народився", "F": "Народилася"},
+    died: {"M": "Помер", "F": "Померла"},
+    parents: "Батьки",
+    and: " і ",
+    buried: {"M": "Похований", "F": "Похована"},
+    occupation: "Праця",
+    married: {"M": "Одружився з ", "F": "Вийшла за заміж з "},
+    divorced: "Розлучились ",
+    yearsOld: "років",
+    yearsAgo: "років тому",
+    // Relationship calculator
+    samePerson: "та сама людина",
+    siblings: {
+      "MM": "брати", "MF": "брат/сестра",
+      "FM": "сестра/брат", "FF": "сестри"
     },
-    {
-        id: "EN", 
-        name: "ENG",
-        locatedIn: " in ",
-        born: {"M": "Born", "F": "Born"},
-        died: {"M": "Died", "F": "Died"},
-        parents: "Parents",
-        and: " and ",
-        buried: {"M": "Buried", "F": "Buried"},
-        occupation: "Occupation",
-        married: {"M": "Married ", "F": "Married "},
-        divorced: "Divorced ",
-        yearsOld: "years old",
-        yearsAgo: "years ago",
-        // Relationship calculator
-        samePerson: "Same person",
-        siblings: {"MM": "Brothers", "MF": "Brother/Sister", 
-        "FM": "Sister/Brother", "FF": "Sisters"},
-        cousins: {"MM": "cousins", "MF": "cousins", "FM": "cousins",
-        "FF": "кузинки"},
-        child: {"M": "son", "F": "daughter"},
-        parent: {"M": "father", "F": "mother"},
-        grandparent: {"M": "grandfather", "F": "grandmother"},
-        grandchild: {"M": "grandson", "F": "granddaughter"},
-        great: "great",
-        auntUncle: {"MM": "uncle", "MF": "uncle", "FM": "aunt", "FF": "aunt"},
-        nieceNephew: {"MM": "nephew", "MF": "nephew", "FM": "niece", "FF": "niece"},
-        removed: "removed",
-        relationshipCalculator: "Relationship Calculator",
-        person: "Person ",
-        noRelation: "not directly related",
-        are: " are ",
-        months: ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"],
+    cousins: {
+      "MM": "кузини", "MF": "кузини", "FM": "кузини",
+      "FF": "кузинки"
     },
+    child: {"M": "син", "F": "дочка"},
+    parent: {"M": "батько", "F": "мама"},
+    grandparent: {"M": "дідо", "F": "баба"},
+    grandchild: {"M": "внук", "F": "внучка"},
+    great: "пра",
+    auntUncle: {"MM": "стрийко", "MF": "вуйко", "FM": "стриянка", "FF": "тета"},
+    nieceNephew: {"MM": "братанець", "MF": "сестрінець", "FM": "братаниця", "FF": "сестріниця"},
+    removed: "віддалені",
+    relationshipCalculator: "Як ми споріднені?",
+    person: "Людина ",
+    noRelation: "не безпосередньо споріднені",
+    are: " є ",
+    months: ["січ.", "лют.", "бер.", "кві.", "тра.", "чер.", "лип.", "серп.", "вер.", "жов.", "лист.", "гру."],
+  },
+  {
+    id: "EN",
+    name: "ENG",
+    locatedIn: " in ",
+    born: {"M": "Born", "F": "Born"},
+    died: {"M": "Died", "F": "Died"},
+    parents: "Parents",
+    and: " and ",
+    buried: {"M": "Buried", "F": "Buried"},
+    occupation: "Occupation",
+    married: {"M": "Married ", "F": "Married "},
+    divorced: "Divorced ",
+    yearsOld: "years old",
+    yearsAgo: "years ago",
+    // Relationship calculator
+    samePerson: "Same person",
+    siblings: {
+      "MM": "Brothers", "MF": "Brother/Sister",
+      "FM": "Sister/Brother", "FF": "Sisters"
+    },
+    cousins: {
+      "MM": "cousins", "MF": "cousins", "FM": "cousins",
+      "FF": "кузинки"
+    },
+    child: {"M": "son", "F": "daughter"},
+    parent: {"M": "father", "F": "mother"},
+    grandparent: {"M": "grandfather", "F": "grandmother"},
+    grandchild: {"M": "grandson", "F": "granddaughter"},
+    great: "great",
+    auntUncle: {"MM": "uncle", "MF": "uncle", "FM": "aunt", "FF": "aunt"},
+    nieceNephew: {"MM": "nephew", "MF": "nephew", "FM": "niece", "FF": "niece"},
+    removed: "removed",
+    relationshipCalculator: "Relationship Calculator",
+    person: "Person ",
+    noRelation: "not directly related",
+    are: " are ",
+    months: ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"],
+  },
 ];
 
 function getLang() {
-    for (let lang of languages) {
-        if (lang["id"] == currentLanguage) {
-            return lang;
-        }
+  for (let lang of languages) {
+    if (lang["id"] == currentLanguage) {
+      return lang;
     }
-    throw new Error(`Language ${currentLanguage} not found`);
+  }
+  throw new Error(`Language ${currentLanguage} not found`);
 }
-
-
-// Trims whitespace
-String.prototype.trim = function() {
-	// Replaces any space characters at start, or at end
-    return String(this).replace(/^\s+|\s+$/g, '');
-}
-
 
 
 
 // Updates the scaling
 function updateScale(newScale: number) {
-	scale = newScale;
-	verticalMargin = baseVM * scale;
-	horizontalMargin = baseHM * scale;
-	nodeBorderMargin = baseBM * scale;
-	baseFont.setSize(baseFont.getBaseSize() * scale);
-	detailFont.setSize(detailFont.getBaseSize() * scale);
+  scale = newScale;
+  verticalMargin = baseVM * scale;
+  horizontalMargin = baseHM * scale;
+  nodeBorderMargin = baseBM * scale;
+  baseFont.setSize(baseFont.getBaseSize() * scale);
+  detailFont.setSize(detailFont.getBaseSize() * scale);
 }
-
-
-
-
-// Only add an item to a list if it doesn't exist in the list
-function addUnique(value: any, lst: any[]) {
-    for (let elem of lst) {
-        if (elem == value) {
-            return;
-        }
-    }
-    lst.push(value);
-}
-
-
 
 
 // Loads an image
 function loadImage(source: string) {
-    let image = new Image();
-    image.src = source;
-    return image
-}
-
-
-// Empties the given container element
-function makeEmpty(container: HTMLElement) {
-    while (container.firstChild) {
-        container.removeChild(container.firstChild);
-    }        
+  let image = new Image();
+  image.src = source;
+  return image
 }
 
 
 // Generates the info window with the following
-function showInfoWindow(content: {[key: string]: any}) {
-    let info = document.getElementById("textinfo") as HTMLElement;
-    makeEmpty(info);
+function showInfoWindow(content: HTMLElement) {
+  let info = document.getElementById("textinfo") as HTMLElement;
 
-    info.appendChild(content["text"]);
-    info.scrollTop = 0;
+  // Clear it of any prior info
+  while (info.firstChild) {
+    info.removeChild(info.firstChild);
+  }
 
-    fadeIn(document.getElementById("infowindow") as HTMLElement,
-        0.05, "block");
+  info.appendChild(content);
+  info.scrollTop = 0;
+
+  fadeIn(document.getElementById("infowindow") as HTMLElement,
+      0.05, "block");
 }
-
 
 
 // Gets the hash string
 function getHashString() {
-    let hash = window.location.hash;
-    if (hash[0] == "#") {
-        hash = hash.substr(1);
-    }
-    return decodeURIComponent(hash);
+  let hash = window.location.hash;
+  if (hash[0] == "#") {
+    hash = hash.substr(1);
+  }
+  return decodeURIComponent(hash);
 }
 
 // Parses the name for display
 function displayName(name: string): string {
-    return name.replace(/\//g,"");
+  return name.replace(/\//g, "");
 }
 
 // PArses only the first string
 function displayFirstName(name: string) {
-    return name.split("/")[0].trim();
+  return name.split("/")[0].trim();
 }
 
 // Parses the surname for display
 function displaySurname(name: string) {
-    let s = name.split("/", 2);
-    return s.length == 2 ? s[1].trim() : "";
-    // FOr some reason, this returned "" before in ALL CASES
-}
-
-function relationshipCalculator(person1: string, person2: string, data: any) {
-    const langArray: any = getLang();
-
-    const details = data["details"];
-    // Finds the least common ancestor
-    function leastCommonAncestor(p1: string, p2: string) {
-        let ancestors1 = details[p1]["ancestors"];
-        let ancestors2 = details[p2]["ancestors"];
-
-        // We include the people themselves
-        ancestors1.push([p1, 0]);
-        ancestors2.push([p2, 0]);
-
-        let commonAncestors = [];
-        for (let i = 0; i < ancestors1.length; i++) {
-            for (let j = 0; j < ancestors2.length; j++) {
-                if (ancestors1[i][0] == ancestors2[j][0]) {
-                    commonAncestors.push([ancestors1[i][0], ancestors1[i][1] + ancestors2[j][1]]);
-                }
-            }
-        }
-        
-        // Sort by the generational spacing
-        commonAncestors.sort(function(a, b){return a[1] - b[1]});
-
-        return commonAncestors[0]
-    }
-
-    // Finds how far away the given ancestor is
-    function findAncestorGap(person: string, ancestor: string) {
-        for (let a of details[person]["ancestors"]) {
-            if (a[0] == ancestor) {
-                return a[1];
-            }
-        }
-        return null;
-    }
-
-    // Parses the given number into the cousin number
-    function parseCousinNumber(i: number) {
-        if (currentLanguage == "UA") {
-            return i.toString() + "і ";
-        }
-        else {
-            let j = i % 10;
-            let k = i % 100;
-            if (j == 1 && k != 11) {
-                return i + "st ";
-            }
-            if (j == 2 && k != 12) {
-                return i + "nd ";
-            }
-            if (j == 3 && k != 13) {
-                return i + "rd ";
-            }
-            return i + "th ";
-        }
-    }
-
-    // Parses the given number into "times removed"
-    function parseRemovedNumber(i: number) {
-        if (currentLanguage == "UA") {
-            if (i == 1) {
-                return "1 раз ";
-            }
-            else {
-                return i + " разів ";
-            }
-        }
-        else {
-            if (i == 1) {
-                return "once ";
-            }
-            else if (i == 2) {
-                return "twice ";
-            }
-            else {
-                return i + " times ";
-            }
-        }
-    }
-
-    var lcm = leastCommonAncestor(person1, person2);
-
-    if (lcm == null) {
-        return langArray["noRelation"];
-    }
-
-    const generationA = findAncestorGap(person1, lcm[0]);
-    const generationB = findAncestorGap(person2, lcm[0]);
-
-    const sexA = data["structure"][person1]["sex"].toUpperCase();
-    const sexB = data["structure"][person2]["sex"].toUpperCase();
-    const sexes = sexA + sexB;
-
-    // On the same level here
-    if (generationA == generationB) {
-        if (generationA == 0) {
-            return langArray["samePerson"];
-        }
-        if (generationA == 1) {
-            return langArray["siblings"][sexes];
-        }
-        if (generationA >= 2) {
-            var number = parseCousinNumber(generationA-1);
-            return number + langArray["cousins"][sexes];
-        }
-
-    }
-
-    // We also need to find out what side the younger one is on
-    function getSiblingAncestor(personOne: string, personTwo: string) {
-        let parentsA = data["structure"][personOne]["parents"];
-        let parentChildren;
-        for (let parent of parentsA) {
-            parentChildren = data["structure"][parent]["children"];
-            if (parentChildren.includes(personOne)) {
-                break;
-            }
-        }
-
-        let rawAncestors = data["details"][personTwo]["ancestors"];
-        let ancestors = [];
-        for (let ra of rawAncestors) {
-            ancestors.push(ra[0]);
-        }
-
-
-        for (var j = 0; j < parentChildren.length; j++) {
-            if (ancestors.includes(parentChildren[j])) {
-                return data["structure"][parentChildren[j]]["sex"].toUpperCase();
-            }
-        }
-        return "F"; // Default fallback
-    }
-
-    // If person1 is less than person2 (ie. person1 is higher up)
-    if (generationA < generationB) {
-        if (generationA == 0) { 
-            // B is a direct descendant of A
-            if (generationB == 1) {
-                return langArray["parent"][sexA] + "/" + langArray["child"][sexB];
-            }
-            else if (generationB == 2) {
-                // grandchild
-                return langArray["grandparent"][sexA] + "/" + langArray["grandchild"][sexB];
-            }
-            else {
-                // great-grand
-                var prefix = "";
-                for (var i = generationB-2; i > 0; i--) {
-                    prefix += langArray["great"] + "-";
-                }
-                return prefix + langArray["grandparent"][sexA] + "/" + prefix + langArray["grandchild"][sexB];
-            }
-        }
-
-        else if (generationA == 1) {
-            // B is a descendant of A's sibling
-            // For Ukrainian: to determine стрійко vs. вуйко
-            var parentsB = data["structure"][person2]["parents"];
-            var parentSex = "F"; // Keep this as a default
-            for (var i = 0; i < parentsB.length; i++) {
-                var ancestorsB = []
-                for (var j = 0; j < data["details"][parentsB[i]]["ancestors"].length; j++) {
-                    ancestorsB.push(data["details"][parentsB[i]]["ancestors"][j][0]);
-                }
-                if (ancestorsB.includes(lcm[0])) {
-                    // the ancestor is on this parent's side
-                    parentSex = data["structure"][parentsB[i]]["sex"].toUpperCase();
-                }
-            }
-
-            var siblingSex = getSiblingAncestor(person1, person2);
-
-            if (generationB == 2) {
-                // B is the child of A's sibling
-                return langArray["auntUncle"][sexA + parentSex] + "/" + langArray["nieceNephew"][sexB + siblingSex];   
-            }
-            else {
-                var prefix = "";
-                for (var i = generationB-2; i > 0; i--) {
-                    prefix += langArray["great"] + "-";
-                }
-                return prefix + langArray["auntUncle"][sexA + parentSex] + "/" + prefix + langArray["nieceNephew"][sexB + siblingSex];
-            }
-        }
-
-        else {
-            // General cousin case
-            var number = parseCousinNumber(generationA-1);
-            var removedNumber = parseRemovedNumber(generationB - generationA);
-            var removed = ", " + removedNumber + langArray["removed"];
-            return number + langArray["cousins"][sexes] + removed;
-        }
-    }
-
-    // If person B is less than person A (basically the reverse of the above case)
-    if (generationA > generationB) {
-        if (generationB == 0) {
-            // parent, grandparent, etc
-            // Direct ancestor
-            if (generationA == 1) {
-                return langArray["child"][sexA] + "/" + langArray["parent"][sexB];
-            }
-            else if (generationA == 2) {
-                // grandchild
-                return langArray["grandchild"][sexA] + "/" + langArray["grandparent"][sexB];
-            }
-            else {
-                // great-grand
-                var prefix = "";
-                for (var i = generationA-2; i > 0; i--) {
-                    prefix += langArray["great"] + "-";
-                }
-                return prefix + langArray["grandchild"][sexA] + "/" + prefix + langArray["grandparent"][sexB];
-            }
-        }
-        else if (generationB == 1) {
-            // the sibling of a direct ancestor
-            // For Ukrainian: to determine стрійко vs. вуйко
-            var parentsA = data["structure"][person1]["parents"];
-            var parentSex = "F"; // Keep this as a default
-            for (var i = 0; i < parentsA.length; i++) {
-                var ancestorsA = []
-                for (var j = 0; j < data["details"][parentsA[i]]["ancestors"].length; j++) {
-                    ancestorsA.push(data["details"][parentsA[i]]["ancestors"][j][0]);
-                }
-                if (ancestorsA.includes(lcm[0])) {
-                    // the ancestor is on this parent's side
-                    parentSex = data["structure"][parentsA[i]]["sex"].toUpperCase();
-                }
-            }
-            var siblingSex = getSiblingAncestor(person1, person2);
-            if (generationA == 2) {
-                // Aunt/Uncle
-                return langArray["nieceNephew"][sexA + siblingSex] + "/" + langArray["auntUncle"][sexB + parentSex];   
-            }
-            else {
-                var prefix = "";
-                for (var i = generationA-2; i > 0; i--) {
-                    prefix += langArray["great"] + "-";
-                }
-                return prefix + langArray["nieceNephew"][sexA + siblingSex] + "/" + prefix + langArray["auntUncle"][sexB + parentSex];
-            }
-        }
-
-        else {
-            // General cousin case
-            var number = parseCousinNumber(generationB-1);
-            var removedNumber = parseRemovedNumber(generationA - generationB);
-            var removed = ", " + removedNumber + langArray["removed"];
-            return number + langArray["cousins"][sexes] + removed;
-        }
-    }
+  let s = name.split("/", 2);
+  return s.length == 2 ? s[1].trim() : "";
+  // FOr some reason, this returned "" before in ALL CASES
 }
 
 
+// Initializes all of the interface buttons
+function initInterfaceButtons(data: { [key: string]: any }, view: View) {
+  const rawStructure = data["structure_raw"];
 
-// Searches for the given person
-function personSearch(data: any, view: any) {
-    var rawStructure = data["structure_raw"];
-    
+  // Generates the info fi
+  function generateUtils(dataSrc: Array<Array<string>>, infoTitle: string) {
+    // generate index
+    function makeIndex() {
+      // Contains all of the content (ie. all of the rows) of this infowindow
+      let contentContainer = document.createElement('div');
+      contentContainer.className = "container";
 
-    // Todo fix data src
-    function generateUtils(dataSrc: any, titleName: string) {
-        // generate index
-        function makeIndex() {
-            var divContainer = document.createElement('div');
-            divContainer.className = "container";
+      // Contains one category
+      let categoryDiv: null | HTMLElement = null;
+      // Helps us determine if we need a new category
+      let previousItem = "";
 
-            var leftDiv: null | HTMLElement = null;
-            var previousItem = "";
 
-            // Handle linking to the person
-            function personLink(event: any) {
-                view.setFocus(event.currentTarget["link_person_id"]);
-            }
+      // Handles a single row of the info window
+      function createRow(rowInfo: string[]) {
+        let curItem = rowInfo[1];
+        let curId = rowInfo[0];
 
-            // Handles a specific person
-            function handle(i: any) {
-                var newItem = dataSrc[i][1];
-                var newRow = newItem != previousItem;
+        // Create a container to hold the name
+        let nameDiv = document.createElement('div');
+        // Create a link to the given person
+        let personNameLink = document.createElement("a");
+        personNameLink.style.cursor = "pointer";
 
-                // If we need to generate a new row
-                if (newRow) {
-                    var divRow = document.createElement('div');
-                    var divClass = (styleNumber == 0) ? "detailRow" : "detailRow1";
-                    styleNumber = (styleNumber == 0) ? 1 : 0; // Swap
-                    divRow.className = divClass;
+        // Parse this person's name
+        let personName = displayName(data["structure"][curId]["name"]);
 
-                    var divSurnames = document.createElement('div');
-                    divSurnames.className = "rowDate";
-                    divSurnames.appendChild(document.createTextNode(newItem));
+        // Set the link text
+        personNameLink.appendChild(document.createTextNode(personName));
+        // Make sure the link goes to the correct person
+        (personNameLink as any)["link_person_id"] = curId;
+        personNameLink.addEventListener("click",
+            (e: any) => view.setFocus(e.currentTarget["link_person_id"]));
 
-                    leftDiv = document.createElement('div');
-                    leftDiv.className = "rowContent";
+        // Append the link to the name container.
+        nameDiv.appendChild(personNameLink);
 
-                    divRow.appendChild(divSurnames);
-                    divRow.appendChild(leftDiv);
-                    divContainer.appendChild(divRow);
-                }
 
-                var name = document.createElement('div');
+        // Do we need a new category?
+        if (curItem != previousItem) {
+          // Create a new row container
+          let rowDiv = document.createElement('div');
+          let divClass = (styleNumber == 0) ? "detailRow" : "detailRow1";
+          styleNumber = (styleNumber == 0) ? 1 : 0; // Swap
+          rowDiv.className = divClass;
 
-                if (!newRow) {
-                    name.style.marginTop = "10px"; // Add a space between each name if not in a new row
-                }
+          let rowIndex = document.createElement('div');
+          rowIndex.className = "rowIndex";
+          rowIndex.appendChild(document.createTextNode(curItem));
 
-                var link: HTMLAnchorElement = document.createElement("a");
-                link.style.cursor = "pointer";
-                var person = data["structure"][dataSrc[i][0]];
-                var personName = displayName(person["name"]);
-                previousItem = newItem;
+          categoryDiv = document.createElement('div');
+          categoryDiv.className = "rowContent";
 
-                link.appendChild(document.createTextNode(personName));
-                (link as any)["link_person_id"] = dataSrc[i][0];
-                link.addEventListener("click", personLink);
-                name.appendChild(link);
-                (leftDiv as HTMLElement).appendChild(name);
-            }
-
-            var styleNumber = 0;
-            for (var i = 0; i < dataSrc.length; i++) {
-                handle(i);
-            }
-            return divContainer;
+          rowDiv.appendChild(rowIndex);
+          rowDiv.appendChild(categoryDiv);
+          contentContainer.appendChild(rowDiv);
+        } else {
+          // Add a space between each name if not in a new row
+          nameDiv.style.marginTop = "10px";
         }
 
-        var names = document.createElement('div');
-        names.className ='detailTitleDiv';
-        var container = document.createElement('div');
-        container.appendChild(names);
 
-        var name = document.createElement('div'); 
-        name.className='detailTitle';
-        names.appendChild(name);
-        name.appendChild(document.createTextNode(titleName));
+        previousItem = curItem;
+        (categoryDiv as HTMLElement).appendChild(nameDiv);
+      }
 
-        var indexContent = document.createElement('div');
-        indexContent.appendChild(makeIndex());
-        container.appendChild(indexContent);
-
-        showInfoWindow({"text": container});
+      let styleNumber = 0;
+      for (let rowInfo of dataSrc) {
+        createRow(rowInfo);
+      }
+      return contentContainer;
     }
 
-    // Index button
-    (document.getElementById("indexbutton") as HTMLElement).onclick = function(_) {
-        var namesArray = [];
+    let container = document.createElement('div');
 
-        // Generate the names array first
-        for (var j = 0; j < rawStructure.length; j++) {
-            var surname = displaySurname(rawStructure[j]["name"]);
-            var id = rawStructure[j]["id"];
-            namesArray.push([id, surname]);
-        }
+
+    let headerDiv = document.createElement('div');
+    headerDiv.className = 'detailTitleDiv';
+
+    let header = document.createElement('div');
+    header.className = 'detailTitle';
+    header.appendChild(document.createTextNode(infoTitle));
+
+    headerDiv.appendChild(header);
+    container.appendChild(headerDiv);
+    container.appendChild(makeIndex());
+
+    showInfoWindow(container);
+  }
+
+  // Index button
+  (document.getElementById("indexbutton") as HTMLElement).onclick =
+      function (_: MouseEvent) {
+        // We generate an 2D array of [id, surname] for each person
+        let namesArray = rawStructure.map(
+            (p: PersonStructure) => [p["id"], displaySurname(p["name"])]);
 
         return generateUtils(namesArray, "Index/Індех");
-    };
+      };
 
-    // Birthdays button
-    (document.getElementById("birthdaybutton") as HTMLElement).onclick = function(_) {
+  // Birthdays button
+  (document.getElementById("birthdaybutton") as HTMLElement).onclick =
+      function (_: MouseEvent) {
         return generateUtils(data["birthdays"], "Birthdays")
-    };
+      };
 
-    
-    // Burial button
-    (document.getElementById("burialbutton") as HTMLElement).onclick = function(_) {
+
+  // Burial button
+  (document.getElementById("burialbutton") as HTMLElement).onclick =
+      function (_: MouseEvent) {
         generateUtils(data["burials"], "Burials")
-    };
+      };
 
 
-    // HELP BUTTON
-    (document.getElementById("helpbutton") as HTMLElement).onclick = function(_) {
-    	showInfoWindow({"text": (document.getElementById("helpDivHidden") as HTMLElement).cloneNode(true)});
-    };
+  // HELP BUTTON
+  (document.getElementById("helpbutton") as HTMLElement).onclick =
+      function (_: MouseEvent) {
+        let helpDiv = (document.getElementById("helpDivHidden") as HTMLElement);
+        // We have to clone it when we show it
+        showInfoWindow(helpDiv.cloneNode(true) as HTMLElement);
+      };
 
-    // Change the languages
-    (document.getElementById("languagebutton") as HTMLElement).onclick = function(_) {
-        let newIndex = 0;
-        // Gets the next language
-        for (var i = 0; i < languages.length; i++) {
-            if (languages[i]["id"] == currentLanguage) {
-                if (i + 1 < languages.length) {
-                    newIndex = i + 1;
-                }
-                else {
-                    newIndex = 0;
-                }
-            }
-        }
+  // Change the languages
+  (document.getElementById("languagebutton") as HTMLElement).onclick = function (_) {
+    let newIndex = 0;
+
+    // Gets the next language
+    for (let i = 0; i < languages.length; i++) {
+      if (languages[i]["id"] == currentLanguage) {
+        newIndex = (i + 1 < languages.length) ? i + 1 : 0;
         currentLanguage = languages[newIndex]["id"];
+        break;
+      }
+    }
 
-        // Update the button
-        (document.getElementById("languagebutton") as HTMLElement).innerHTML = languages[newIndex]["name"];
+    // Update the button
+    (document.getElementById("languagebutton") as HTMLElement).innerHTML = languages[newIndex]["name"];
 
-        view.recreateTree(); // Redraw
-    };
-
-
-    // Zoom handling
-    (document.getElementById("zoomin") as HTMLElement).onclick = function(_) {
-        view.zoomIn();
-    };
-    (document.getElementById("zoomout") as HTMLElement).onclick = function(_) {
-        view.zoomOut();
-    };
- 
-
-    setSearchEvents(document.getElementById("searchtext") as HTMLInputElement,
-        document.getElementById("searchlist") as HTMLInputElement, data, view);
-}
+    view.recreateTree(); // Redraw
+  };
 
 
+  // Zoom handling
+  (document.getElementById("zoomin") as HTMLElement).onclick = (_) => view.zoomIn();
+  (document.getElementById("zoomout") as HTMLElement).onclick = (_) => view.zoomOut();
 
-// Executes a direct search (name must match person's name EXACTLY)
-function executeSearch(name: string, rawStructure: PersonStructure[]) {
-    return;
 
-    // todo fix - view is not defined here (do i even want to fix this?)
-
-    // var cleanName = name.toLowerCase().trim();
-    //
-    // if (cleanName == "") return; // Kill the empty case
-    //
-    // for (var i = 0; i < rawStructure.length; i++) {
-    //     if (displayName(rawStructure[i]["name"]).toLowerCase() == cleanName) {
-    //         // Only take direct matches
-    //         view.setFocus(rawStructure[i]["id"]);
-    //         return;
-    //     }
-    // }
-    //
-    // showError('"' + cleanName + '" could not be found in the tree (names must exactly match)');
+  initSearchBar(document.getElementById("searchtext") as HTMLInputElement,
+      document.getElementById("searchlist") as HTMLInputElement, data, view);
 }
 
 
 
 // Sets all the events for any search bar
-function setSearchEvents(searchText: HTMLInputElement, searchList: HTMLElement, data: any, view: any, link=true) {
-    var rawStructure = data["structure_raw"];
+function initSearchBar(searchInput: HTMLInputElement,
+                       searchResults: HTMLElement,
+                       data: { [key: string]: any }, view: View,
+                       link = true) {
 
-    // On focus, we automatically select all existing text
-    searchText.addEventListener("focus", 
-        function(event){
-            (event.currentTarget as HTMLInputElement).setSelectionRange(0,
-                (event.currentTarget as HTMLInputElement).value.length);
+  const rawStructure = data["structure_raw"];
+
+
+  /**
+   * Creates a result row for the given PersonStructure.
+   * @param person  The person for which we create a result instance.
+   */
+  function generateResultRow(person: PersonStructure) {
+    let rowDiv = document.createElement('div');
+    rowDiv.className = "searchresult";
+
+    // add life dates (if we have any)
+    let birth = person["birth"][0];
+    let death = person["death"][0];
+    let lifeRange = (birth || death) ? " (" + birth + "–" + death + ")" : "";
+
+    rowDiv.textContent = displayName(person["name"]) + lifeRange;
+
+    // Add link action to this row
+    rowDiv.addEventListener("mousedown", function(event: any) {
+      searchInput.value = displayName(person["name"]);
+      if (link) {
+        view.setFocus(event.currentTarget["search-result-id"]);
+      }
+      // Return the full name (used for the relationship calculator)
+      return searchInput.value;
     });
 
-    // On enter, try searching
-    searchText.addEventListener("keydown",
-        function(keyEvent) {
-            if (keyEvent.keyCode == 13) { // On enter
-                executeSearch(searchText.value, rawStructure);
-            }
-    });
+    // Set the ID attribute of the link (so we know where to go)
+    (rowDiv as any)["search-result-id"] = person["id"];
 
-    // If we're not searching, we don't show the results list
-    searchText.addEventListener("blur",
-        function(event){ 
-            searchList.style.display = "none"; // Hide when not in focus
-    });
+    return rowDiv;
+  }
 
-    // Event listener for each individual search result
-    function searchResultEL(event: any) {
-        searchText.value = displayName(data["structure"][event.currentTarget["data-search_id"]]["name"]);
-        if (link) {
-            view.setFocus(event.currentTarget["data-search_id"]);
+
+  // When the search box is selected, all the text is highlighted
+  searchInput.addEventListener("focus", (event: FocusEvent) => {
+    (event.currentTarget as HTMLInputElement).select()
+  });
+
+
+  // If the search box isn't selected, we hide the search results
+  searchInput.addEventListener("blur", (_: FocusEvent) => {
+    searchResults.style.display = "none";
+  });
+
+  // Handle what happens on user input
+  searchInput.addEventListener("input", (_: Event) => {
+    // Each time the input changes, we empty the list and start anew
+    while (searchResults.firstChild) {
+      searchResults.removeChild(searchResults.firstChild);
+    }
+
+    // Don't start searching unless the user has inputted 2+ characters
+    if (searchInput.value.length < 2) {
+      searchResults.style.display = "none";
+      return;
+    }
+
+    // Make the results visible
+    searchResults.style.display = "block";
+
+    const splitInput = searchInput.value.toLowerCase().split(" ");
+    // Do we have any hits for the search results?
+    let anyMatches = false;
+
+
+    for (let person of rawStructure) {
+      // Checks if the names match
+      let name = displayName(person["name"]).toLowerCase();
+      let match = splitInput.every(t => name.includes(t));
+
+      if (match) {
+        // We filter out any dummy placeholders from the search results
+        // Dummy nodes have an integer after the real person's ID.
+        // Real person: @XXXXX@, dummy link to real person: @XXXXX@X
+        if (person["id"].endsWith("@")) {
+          anyMatches = true;
+          searchResults.appendChild(generateResultRow(person));
         }
-        return searchText.value;
+      }
     }
 
-    // Clears the list of any children
-    function clearList(lst: HTMLElement) {
-        while (lst.firstChild) { // Empty the list and begin anew
-            lst.removeChild(lst.firstChild); 
-        }
+    if (!anyMatches) {
+      searchResults.appendChild(document.createTextNode("No results"));
     }
-
-    // Checks if the names match
-    function namesMatch(query: string[], name: string) {
-        return !query.some(q => name.indexOf(q) < 0);
-    }
-
-    // SHows the result
-    function showResult(person: PersonStructure) {
-        var result = document.createElement('div');
-        result.className = "searchresult";
-
-        // add life dates (if we have any)
-        var birth = person["birth"][0];
-        var death = person["death"][0];
-        var range = (birth || death) ? " (" + birth + "–" + death + ")" : "";
-
-
-        result.textContent = displayName(person["name"]) + range;
-        result.addEventListener("mousedown", searchResultEL);
-
-        (result as any)["data-search_id"] = person["id"];
-
-        return result;
-    }
-
-    searchText.addEventListener("input",
-        function(event) {
-            clearList(searchList);
-
-            if (searchText.value.length < 3) return; // Don't start searching unless 3+ characters
-
-            var splitText = searchText.value.toLowerCase().split(" ");
-            var anyMatches = false;
-
-
-            for (var i = 0; i < rawStructure.length; i++) {
-                var match = namesMatch(splitText, displayName(rawStructure[i]["name"]).toLowerCase());
-
-
-                if (match) {
-                    // This filters out any duplicates from the search results
-                    // (in the case of incest), since we duplicated the id's and added an integer after
-                    // the "@". Any IDs with @XXXXX@X are not unique, and shouldn't be counted
-                    if (rawStructure[i]["id"].endsWith("@")) {
-                        anyMatches = true;
-                        searchList.style.display = "block";
-                        searchList.appendChild(showResult(rawStructure[i]));
-                    }
-                }
-            }
-            
-            if (!anyMatches) {
-                searchList.style.display="none";  
-            }
-    })
+  })
 }
 
 
-function dateToIso(dateStr: string) {
-    let strArr = dateStr.split(" ");
+/**
+ * Converts a date in an ISO format to a locale string.
+ * @param dateStr The date string in the (near) ISO format.
+ * @param months  The months names of the locale.
+ */
+function dateToLocale(dateStr: string, months: string[]) {
+  let approximate = dateStr.includes("ABT");
+  let approxStr = approximate ? "ABT " : "";
 
-    if (strArr.length < 3 || strArr.indexOf("ABT") != -1) {
-        throw new Error("Date cannot be parsed");
-    }
-    
+  // Remove the ABT approximation
+  dateStr = dateStr.replace('ABT ', '');
 
-    // Get the index from the english-language array
-    let month: number = languages[1]["months"].indexOf(strArr[1]) + 1;
-    // If it's valid, we keep it. If not, we fall back to the string
-    month = (month >= 1 && month <= 12) ? month : parseInt(strArr[1]);
+  let dateArr = dateStr.split("-");
 
-    function pad(num: number|string, len: number) {
-        let numStr = num.toString();
-        while (numStr.length < len) {
-            numStr = "0" + numStr;
-        }
-        return numStr;
-    }
+  // We have the year, month, and day
+  if (dateArr.length === 3) {
+    let month = months[parseInt(dateArr[1]) - 1];
+    return `${approxStr}${dateArr[2]} ${month} ${dateArr[0]}`;
+  }
+  // We just have the year - return it;
+  else if (dateArr.length === 1) {
+    return dateArr[0];
+  }
 
-    return `${strArr[2]}-${pad(month, 2)}-${pad(strArr[0], 2)}`;
+  console.log("Could not parse date: " + dateStr);
+  return dateStr;
 }
 
 
-function isoToLocale(isoDateStr: string, months: string[]) {
-    let strArr = isoDateStr.split("-");
-    let month = months[parseInt(strArr[1]) - 1];
+/**
+ * Calculates the relationship between two people.
+ * @param person1 The first person
+ * @param person2 The second person
+ * @param data    The family data
+ */
+function relationshipCalculator(person1: string, person2: string, data: any): string {
+  const langArray: { [key: string]: any } = getLang();
+  const details = data["details"];
 
-    return `${strArr[2]} ${month} ${strArr[0]}`;
+  /**
+   * Finds the least common ancestor of two given people
+   * @param p1  The first person
+   * @param p2  The second person
+   */
+  function leastCommonAncestor(p1: string, p2: string) {
+    let ancestors1 = details[p1]["ancestors"];
+    let ancestors2 = details[p2]["ancestors"];
+
+    // We include the initial people in the ancestor lists as well
+    //    Needed in case one person IS the common ancestor
+    //    (ie. father and son, father is the LC ancestor)
+    ancestors1.push([p1, 0]);
+    ancestors2.push([p2, 0]);
+
+    let commonAncestors = [];
+    for (let a1 of ancestors1) {
+      for (let a2 of ancestors2) {
+        if (a1[0] === a2[0]) {
+          commonAncestors.push([a1[0], a1[1] + a2[1]]);
+        }
+      }
+    }
+
+    // Sort by the generational spacing (ascending order)
+    commonAncestors.sort(function (a, b) {
+      return a[1] - b[1]
+    });
+
+    return commonAncestors.length > 0 ? commonAncestors[0] : null;
+  }
+
+  /**
+   * Finds how far away the given ancestor is
+   * @param person    The base person
+   * @param ancestor  Their ancestor
+   */
+  function distanceToAncestor(person: string, ancestor: string) {
+    for (let a of details[person]["ancestors"]) {
+      if (a[0] === ancestor) {
+        return a[1];
+      }
+    }
+
+    throw new Error(`${ancestor} is not an ancestor of ${person}`)
+  }
+
+  /**
+   * Parses the given number into the cousin number.
+   * @param i The cousin number
+   */
+  function parseCousinNumber(i: number) {
+    if (currentLanguage == "UA") {
+      return i.toString() + "і ";
+    }
+    else {
+      // An array of the number, as a string, reversed
+      // ie. 14 -> ["4", "1"]
+      let numArray = (i.toString()).split("").reverse();
+
+      // If the number is in the teens, this doesn't apply
+      // Isn't English wonderful?!?
+      if (numArray[1] != "1") {
+        switch (numArray[0]) {
+          case "1": return `${i}st`;
+          case "2": return `${i}nd`;
+          case "3": return `${i}rt`;
+        }
+      }
+      return `${i}th`;
+    }
+  }
+
+  /**
+   * Parses the given number into "times removed"
+   * @param i The cousin number
+   */
+  function parseRemovedNumber(i: number) {
+    if (currentLanguage == "UA") {
+      return (i === 1) ? "1 раз " : `${i} разів `;
+    }
+    else {
+      return (i === 1) ? "once " : ((i === 2) ? "twice " : `${i} times `);
+    }
+  }
+
+  let lcAncestor = leastCommonAncestor(person1, person2);
+
+  // If we don't have a shared ancestor, don't bother going any further
+  if (lcAncestor === null) {
+    return langArray["noRelation"];
+  }
+
+  const generationA = distanceToAncestor(person1, lcAncestor[0]);
+  const generationB = distanceToAncestor(person2, lcAncestor[0]);
+
+  const sexA = data["structure"][person1]["sex"].toUpperCase();
+  const sexB = data["structure"][person2]["sex"].toUpperCase();
+  // The order here is relevant (especially for Ukrainian)
+  const sexes = sexA + sexB;
+
+  // If the two people are on the same level
+  if (generationA === generationB) {
+    if (generationA === 0) {
+      return langArray["samePerson"];
+    }
+    if (generationA === 1) {
+      return langArray["siblings"][sexes];
+    }
+    if (generationA >= 2) {
+      return parseCousinNumber(generationA - 1) + langArray["cousins"][sexes];
+    }
+  }
+
+  /**
+   * Handles the case where one person is the sibling of the other person's direct ancestor
+   * @param p1 The first person
+   * @param p2 The second person
+   */
+  function getSiblingAncestor(p1: string, p2: string) {
+    let parents1 = data["structure"][p1]["parents"];
+    let parents1children;
+
+    // Get the batch of children, of which p1 is a part of (handles multiple marriage cases)
+    for (let parent of parents1) {
+      parents1children = data["structure"][parent]["children"];
+      if (parents1children.includes(p1)) {
+        break;
+      }
+    }
+
+    // Creates an array of all the IDs of p2's ancestors
+    let ancestors2 = data["details"][p2]["ancestors"].map((a: string[]) => a[0]);
+
+
+    for (let child of parents1children) {
+      if (ancestors2.includes(child)) {
+        return data["structure"][child]["sex"].toUpperCase();
+      }
+    }
+    return "F"; // Default fallback
+  }
+
+
+  // If person1 is less than person2 (ie. person1 is higher up)
+  if (generationA < generationB) {
+    // B is a direct descendant of A
+    if (generationA === 0) {
+      // Parent/child
+      if (generationB == 1) {
+        return langArray["parent"][sexA] + "/" + langArray["child"][sexB];
+      }
+      // Grandparent/grandchild
+      else if (generationB == 2) {
+        return langArray["grandparent"][sexA] + "/" + langArray["grandchild"][sexB];
+      }
+      // Great-grand...
+      else {
+        let prefix = "";
+        for (let i = generationB - 2; i > 0; i--) {
+          prefix += langArray["great"] + "-";
+        }
+        return prefix + langArray["grandparent"][sexA] + "/" + prefix + langArray["grandchild"][sexB];
+      }
+    }
+
+    // B is a descendant of A's sibling
+    else if (generationA == 1) {
+      // For Ukrainian: to determine стрійко vs. вуйко
+      let parents2 = data["structure"][person2]["parents"];
+      let parentSex = "F"; // Keep this as a default
+
+      // Iterate over p2's parents
+      for (let parent2 of parents2) {
+        let ancestorsB = data["details"][parent2]["ancestors"].map((a: string[]) => a[0]);
+        // Check if the ancestor is on this parent's side
+        if (ancestorsB.includes(lcAncestor[0])) {
+          parentSex = data["structure"][parent2]["sex"].toUpperCase();
+        }
+      }
+
+      let siblingSex = getSiblingAncestor(person1, person2);
+
+      if (generationB === 2) {
+        // B is the child of A's sibling
+        return langArray["auntUncle"][sexA + parentSex] + "/" + langArray["nieceNephew"][sexB + siblingSex];
+      }
+      else {
+        let prefix = "";
+        for (let i = generationB - 2; i > 0; i--) {
+          prefix += langArray["great"] + "-";
+        }
+        return prefix + langArray["auntUncle"][sexA + parentSex] + "/" + prefix + langArray["nieceNephew"][sexB + siblingSex];
+      }
+    }
+
+    // General cousin case
+    else {
+      let number = parseCousinNumber(generationA - 1);
+      let removedNumber = parseRemovedNumber(generationB - generationA);
+      let removed = ", " + removedNumber + langArray["removed"];
+      return number + langArray["cousins"][sexes] + removed;
+    }
+  }
+
+  // If person B is less than person A
+  // We just reverse this case, call the function again, and reverse the results
+  if (generationA > generationB) {
+    let splitStr = relationshipCalculator(person2, person1, data).split("/");
+    // Reverse the order
+    return `${splitStr[1]}/${splitStr[0]}`;
+  }
+
+  return "Relationship could not be calculated";
 }

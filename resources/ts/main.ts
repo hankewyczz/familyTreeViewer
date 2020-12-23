@@ -132,8 +132,8 @@ function getDetails(canvasView: any, data: any, curPerson: PersonDetails) {
 
         container.appendChild(relCalcContainer);
 
-        showInfoWindow({"text": container});
-        setSearchEvents((document.getElementById("searchtextP2") as HTMLInputElement),
+        showInfoWindow(container);
+        initSearchBar((document.getElementById("searchtextP2") as HTMLInputElement),
             (document.getElementById("searchlistP2") as HTMLElement), data, canvasView, false);
     }
 
@@ -217,7 +217,7 @@ function getDetails(canvasView: any, data: any, curPerson: PersonDetails) {
             // Creates a field with a date and string
             function field(date: string, str: string|HTMLElement) {
                 var dateDiv = document.createElement('div');
-                dateDiv.className = 'rowDate';
+                dateDiv.className = 'rowIndex';
                 dateDiv.appendChild(document.createTextNode(date));
                 eventDiv.appendChild(dateDiv);
 
@@ -270,25 +270,22 @@ function getDetails(canvasView: any, data: any, curPerson: PersonDetails) {
                     birthInfo.appendChild(document.createTextNode((langArray["born"] as any)[sex] + birthLocation));
 
 
-                    
-                    try {
-                        let birthDateIso = dateToIso(birthDate);
-                        dateStr = isoToLocale(birthDateIso, langArray["months"]);
 
-                        if ((birthDate != "") && (birthDate != null)) {
-                            let bd = new Date(birthDateIso);
+                    birthDate = birthDate.replace("ABT ", "");
 
-                            let ageToday = new Date(Date.now() - bd.valueOf());
-                            let yearsOld = Math.abs(ageToday.getUTCFullYear() - 1970);
 
-                            // MS * Secs * Mins * Hours * Days
-                            birthInfo.appendChild(
-                                document.createTextNode(` (${yearsOld.toString()} ${langArray["yearsAgo"]})`));
-                        }
-                    } 
-                    catch (e) {
-                        dateStr = birthDate;
+                    if ((birthDate != "") && (birthDate != null)) {
+                        let bd = new Date(birthDate);
+
+                        let ageToday = new Date(Date.now() - bd.valueOf());
+                        let yearsOld = Math.abs(ageToday.getUTCFullYear() - 1970);
+
+                        // MS * Secs * Mins * Hours * Days
+                        birthInfo.appendChild(
+                            document.createTextNode(` (${yearsOld.toString()} ${langArray["yearsAgo"]})`));
                     }
+
+                    dateStr = dateToLocale(birthDate, langArray["months"]);
 
                     
                     field(dateStr, birthInfo);
@@ -310,12 +307,7 @@ function getDetails(canvasView: any, data: any, curPerson: PersonDetails) {
                         ageAtDeathStr = " (" + ageAtDeath.toString() + " " + langArray["yearsOld"] + ")";
                     }
 
-                    try {
-                        dateStr = isoToLocale(dateToIso(deathDate), langArray["months"]);
-                    }
-                    catch (e) {
-                        dateStr = deathDate;
-                    }
+                    dateStr = dateToLocale(deathDate, langArray["months"]);
 
                     field(dateStr, (langArray["died"] as any)[sex] + deathLocation + deathType + ageAtDeathStr);
                     break;
@@ -396,7 +388,7 @@ function getDetails(canvasView: any, data: any, curPerson: PersonDetails) {
 
     container.appendChild(makeEventsPane());
 
-    return {"text":container};
+    return container;
 }
 
 
@@ -425,7 +417,7 @@ function showHelp() {
 
         clearInterval(helpInterval); // Kill the interval
         // Show the info window for help
-        showInfoWindow({"text": (document.getElementById("helpDivHidden") as HTMLElement).cloneNode(true)});
+        showInfoWindow((document.getElementById("helpDivHidden") as HTMLElement).cloneNode(true) as HTMLElement);
     }, 200);
 }
 
@@ -445,7 +437,7 @@ function main() {
         if (data == null) { showError("Data could not be loaded", true); return; }
 
         var canvasView = new View(data);
-        personSearch(data, canvasView);
+        initInterfaceButtons(data, canvasView);
 
         var initialPerson = "@I0000@";
         if (!(initialPerson in data["structure"])) {

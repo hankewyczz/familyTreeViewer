@@ -353,7 +353,9 @@ class PersonNodeGroup implements INode {
                 // We check if this child of the Group is also a child of this Node
                 if (structure[node.getId()].children.includes(child.getId())) {
                     // If it is, then the child is visible - add it to the node
-                    addUnique(child, node.descendents);
+                    if (!node.descendents.includes(child)) {
+                        node.descendents.push(child);
+                    }
                 }
             }
         }
