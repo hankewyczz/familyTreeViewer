@@ -1,25 +1,32 @@
 // todo canvasview
-function simpleLine(canvasView: any, x1: number, y1: number, x2: number, y2: number,
+function simpleLine(canvasView: View, x1: number, y1: number, x2: number, y2: number,
                     width: number, color: string) {
+
+    if (canvasView.context === null) {
+        return;
+    }
     canvasView.context.strokeStyle = color;
     canvasView.context.lineWidth = width;
 
     canvasView.context.beginPath();
-    canvasView.context.moveTo(x1 + canvasView.scrollx, y1 + canvasView.scrolly);
-    canvasView.context.lineTo(x2 + canvasView.scrollx, y2 + canvasView.scrolly);
+    canvasView.context.moveTo(x1 + canvasView.x, y1 + canvasView.y);
+    canvasView.context.lineTo(x2 + canvasView.x, y2 + canvasView.y);
     canvasView.context.stroke();
 }
 
 
 
-function drawParentLine(canvasView: any, parent: INode, child: INode) {
+function drawParentLine(canvasView: View, parent: INode, child: INode) {
+    if (canvasView.context === null) {
+        return;
+    }
     const childConnector = child.getParentConnectorPoint();
-    const childX = childConnector[0] + canvasView.scrollx;
-    const childY = childConnector[1] + canvasView.scrolly;
+    const childX = childConnector[0] + canvasView.x;
+    const childY = childConnector[1] + canvasView.y;
 
     const parentConnector = parent.getChildConnectorPoint();
-    const parentX = parentConnector[0] + canvasView.scrollx;
-    const parentY = parentConnector[1] + canvasView.scrolly;
+    const parentX = parentConnector[0] + canvasView.x;
+    const parentY = parentConnector[1] + canvasView.y;
 
 
     canvasView.context.strokeStyle = "#777";

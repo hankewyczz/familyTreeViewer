@@ -9,6 +9,7 @@ let nodeBorderMargin = baseBM * scale;
 const generationLimit = 6;
 const mouseClickRadius = 70;
 const xmlRTimeout = 20000;
+const bgColor: {[key: string]: string} = {"m": "#ACE2F2", "f": "#F8AFD7", "": "#d3d3d3"}; // background colors
 
 let currentLanguage = "UA";
 const languages = [
@@ -107,13 +108,10 @@ function updateScale(newScale: number) {
 	verticalMargin = baseVM * scale;
 	horizontalMargin = baseHM * scale;
 	nodeBorderMargin = baseBM * scale;
+	baseFont.setSize(baseFont.getBaseSize() * scale);
+	detailFont.setSize(detailFont.getBaseSize() * scale);
 }
 
-
-// Checks the visibility of an element
-function isVisible(element: HTMLElement) {
-    return element.offsetWidth > 0 || element.offsetHeight > 0;
-}
 
 
 

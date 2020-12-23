@@ -28,7 +28,7 @@ function fadeIn(elem: HTMLElement, fadeStep=0.05, displayType="inline-block") {
       if (!((opacity += fadeStep) > 1)) {
         elem.style.opacity = String(opacity);
         // Animate the fading
-        requestAnimFrame(fade); 
+        window.requestAnimationFrame(fade);
       }   
       else {
         elem.style.opacity = "1";
@@ -47,7 +47,7 @@ function fadeOut(elem: HTMLElement, fadeStep=0.05){
     if (nextStep > 0) {
       elem.style.opacity = String(nextStep);
       // animate the fading
-      requestAnimFrame(fade);
+      window.requestAnimationFrame(fade);
     }
     else {
       // hide the element

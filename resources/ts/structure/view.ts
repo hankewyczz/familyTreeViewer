@@ -1,132 +1,136 @@
 // Handles the canvasView
 class View {
-  data: any;
+  data: { [key: string]: { [key: string]: any } };
   structure: { [key: string]: PersonStructure };
   details: { [key: string]: PersonDetails };
 
   tree: Tree | null;
-  dragTimer: any | null;
-  canvas: any | null;
-  context: any | null;
-  focusId: any | null;
+  canvas: HTMLCanvasElement | null;
+  context: CanvasRenderingContext2D | null;
+  focusId: string | null;
 
-  scrollx: number;
-  scrolly: number;
-  targetx: number;
-  targety: number;
-  lastclickposx: number;
-  lastclickposy: number;
-  lastscrollposy: number;
-  lastscrollposx: number;
+  x: number;
+  y: number;
+  target_x: number;
+  target_y: number;
+
+  prev_x: number;
+  prev_y: number;
+  prev_target_x: number;
+  prev_target_y: number;
+
 
   dragging: boolean;
-  ismousedown: boolean;
+  dragTimer: boolean;
+  isMouseDown: boolean;
 
-  animEase: number;
+  private static animEase: number = 0.5;
 
   constructor(data: any) {
     this.data = data;
     this.structure = data["structure"];
     this.details = data["details"];
     this.tree = null;
-    this.dragTimer = null;
     this.canvas = null;
     this.context = null;
     this.focusId = null;
 
-    this.scrollx = 0;
-    this.scrolly = 0;
-    this.targetx = 0;
-    this.targety = 0;
-    this.lastclickposx = 0;
-    this.lastclickposy = 0;
-    this.lastscrollposy = 0;
-    this.lastscrollposx = 0;
+    this.x = 0;
+    this.y = 0;
+    this.target_x = 0;
+    this.target_y = 0;
+
+    this.prev_target_x = 0;
+    this.prev_target_y = 0;
+    this.prev_y = 0;
+    this.prev_x = 0;
 
     this.dragging = false;
-    this.ismousedown = false;
-
-    // The amount by which to ease the animation
-    this.animEase = 0.5;
+    this.dragTimer = false;
+    this.isMouseDown = false;
   }
 
 
   // Gets the top ancestor possible (up to X generations)
   //todo generation limit
-  getTopAncestor(personid: string, generations = 4) {
+  getTopAncestor(person_id: string) {
     let structure = this.structure;
+    // How many generations UP are we willing to go?
+    const generations = 4;
 
     // Gets all the ancestors up to the given
-    function getAncestorsInGen(person: string, gen: number): any {
-      var result: any[] = [];
-
+    function getAncestorsInGen(person: string, gen: number): string[] {
       // we're not going further, just return this person
       if (gen == 0) {
         return [person];
       }
 
+      let resultArr: string[] = [];
+
       if (person in structure) {
         // Gets the gens of each parent as well
-        var parents = structure[person]["parents"];
-        for (var j = parents.length - 1; j >= 0; j--) {
-          result = result.concat(getAncestorsInGen(parents[j], gen - 1));
+        // We go over the REVERSED array. This isn't necessary - it just looks better for my
+        //    personal family tree.
+        for (let parent of [...structure[person]["parents"]].reverse()) {
+          resultArr = resultArr.concat(getAncestorsInGen(parent, gen - 1));
         }
       }
-      return result;
+      return resultArr;
     }
 
-    var result = null;
     // Checks how many generations we have to go thru
-    for (var i = generations; i >= 0; i--) {
-      var generationResult = getAncestorsInGen(personid, i);
+    for (let i = generations; i > 0; i--) {
+      let generationResult = getAncestorsInGen(person_id, i);
       if (generationResult.length > 0) {
-        result = generationResult[0]; // Basically, this returns the male ancestor who is
-        // the max generations (< generation) away from the given person
-        break;
+        // We return the ancestor who is the furthest away from our person
+        return generationResult[0];
       }
     }
-    return result;
+    // If we don't find anyone, we return this person
+    return person_id;
   }
 
 
   // initializes the canvas
   initCanvas() {
-    this.canvas = document.getElementById("canvas");
+    this.canvas = document.getElementById("canvas") as HTMLCanvasElement;
     this.context = this.canvas.getContext("2d");
   }
+
+
+
 
   ////////////////////////
   // MOUSE AND POSITION //
   ////////////////////////
 
   // Helper function for mousePosition and touchPosition
-  parseEventPosition(event: any): number[] {
-    var boundingRect = this.canvas.getBoundingClientRect();
-    var x = (event.clientX - boundingRect.left) * (this.canvas.width / boundingRect.width);
-    var y = (event.clientY - boundingRect.top) * (this.canvas.height / boundingRect.height);
+  parseEventPosition(event: MouseEvent | Touch): number[] {
+    if (this.canvas === null) {
+      throw new Error("Canvas is null");
+    }
+    let boundingRect = this.canvas.getBoundingClientRect();
+    let x = (event.clientX - boundingRect.left) * (this.canvas.width / boundingRect.width);
+    let y = (event.clientY - boundingRect.top) * (this.canvas.height / boundingRect.height);
 
     return [x, y];
   }
 
-
-  // gets the true mouse position
-  getMousePosition(event: any) {
-    return this.parseEventPosition(event);
-  }
-
   // Gets the touch position (for mobile devices)
-  getTouchPosition(event: any) {
+  getTouchPosition(event: TouchEvent) {
     // If this is the last touch
     if (event.touches.length == 0) {
-      return [this.lastclickposx, this.lastclickposy];
+      return [this.prev_target_x, this.prev_target_y];
     }
     return this.parseEventPosition(event.touches[0]);
   }
 
   // Animation for the dragging
   draggingAnim() {
-    var elem: any = this;
-    if (elem.dragTimer != null) {
+    let elem: View = this;
+
+    // If we're already in one, we don't want to start a new one
+    if (elem.dragTimer) {
       return;
     }
 
@@ -135,63 +139,60 @@ class View {
 
     function dragAnim() {
       // get new X, Y coordinates
-      elem.scrollx += elem.animEase * (elem.targetx - elem.scrollx);
-      elem.scrolly += elem.animEase * (elem.targety - elem.scrolly);
+      elem.x += View.animEase * (elem.target_x - elem.x);
+      elem.y += View.animEase * (elem.target_y - elem.y);
 
-      // If not dragging + we're within 0.1 of the targetx and targety:
-      if ((!elem.dragging) && (Math.abs(elem.scrollx - elem.targetx) < 0.1)
-          && (Math.abs(elem.scrolly - elem.targety) < 0.1)) {
-        elem.scrollx = elem.targetx;
-        elem.scrolly = elem.targety;
-        elem.dragTimer = null;
+      // If not dragging + we're within 0.1 of the target:
+      if ((!elem.dragging) && (Math.abs(elem.x - elem.target_x) < 0.1)
+          && (Math.abs(elem.y - elem.target_y) < 0.1)) {
+        elem.x = elem.target_x;
+        elem.y = elem.target_y;
+        elem.dragTimer = false;
       }
+
       elem.redraw();  // Redraw
-      if (elem.dragTimer != null) {
-        requestAnimFrame(dragAnim); // If the dragTimer isn't null, we keep going & animate
+
+      if (elem.dragTimer) {
+        window.requestAnimationFrame(dragAnim); // If the dragTimer isn't null, we keep going & animate
       }
     }
 
-    requestAnimFrame(dragAnim); // Initialize
+
+    window.requestAnimationFrame(dragAnim); // Initialize
   }
+
+
 
   //////////////////////
   //  TREE FUNCTIONS  //
   //////////////////////
 
-  // Generate the tree
-  makeTree(nodeid: string) {
-    var ancestor = this.getTopAncestor(nodeid);
-    // Handle ancestor errors
-    if (ancestor == null) {
-      showError("No ancestor (" + nodeid + ") was found", true);
-      return null;
-    }
-    return new Tree(this.structure, this.details, ancestor);
-  }
-
+  // Recreates the tree, re-sets the focus
   recreateTree() {
-    this.setFocus(this.focusId);
-  } // we just set focus to current node, redraw tree
+    if (this.focusId === null) {
+      throw new Error("No ID is focused");
+    }
+    this.setFocus(this.focusId, true);
+  }
 
   // Gets the true screen center
   findScreenCenter() {
-    var left = 0;
-    var top = 0;
-    var right = this.canvas.width;
-    var bottom = this.canvas.height;
+    if (this.canvas === null) {
+      throw new Error("Canvas is null");
+    }
+    let right = this.canvas.width;
+    let bottom = this.canvas.height;
 
     // We take the infowindow into account here
-    var infoWindow = (document.getElementById("infowindow") as HTMLElement);
-    if (isVisible(infoWindow)) {
-      // Check for mobile (infoWindow will never be this wide normally)
-      if (infoWindow.offsetWidth >= this.canvas.width * 0.8) {
-        bottom -= infoWindow.offsetHeight;
-      } else { // normal case
-        right -= infoWindow.offsetWidth;
-      }
+    let infoWindow = (document.getElementById("infowindow") as HTMLElement);
+    // Check for mobile (infoWindow will never be this wide normally)
+    if (infoWindow.offsetWidth >= this.canvas.width * 0.8) {
+      bottom -= infoWindow.offsetHeight;
+    } else { // normal case
+      right -= infoWindow.offsetWidth;
     }
 
-    return {"x": left + ((right - left) / 2), "y": top + ((bottom - top) / 2)};
+    return {"x": (right / 2), "y": (bottom / 2)};
   }
 
   setAncestors(node: any) {
@@ -199,7 +200,7 @@ class View {
       return;
     }
 
-    for (let ancestor of node.ancestors) {
+    for (let ancestor of node.flatAncestors) {
       if (ancestor === null || this.tree === null) {
         continue;
       }
@@ -208,91 +209,66 @@ class View {
         ancestorNode.ancestorFocus = true;
       }
     }
-
   }
 
-  setFocus(node: string) {
-
-
-    console.log(node);
-    this.tree = this.makeTree(node);
-
-    if (this.tree == null) {
-      return;
-    }
-
-
-    let theNode = this.tree.lookupNodeById(node) as PersonNode;
-    if (theNode.redirects) {
-      node = theNode.redirectsTo;
-      this.setFocus(node);
-      return;
-    }
-
-    this.setAncestors(theNode); // highlight ancestors
-    this.focusId = node; // Focus on the given node
-    window.location.hash = node; // Change window hash
-
-    this.tree.position(this);
-
+  setFocus(node: string, centered: boolean = false) {
     const center = this.findScreenCenter();
-
-
-    this.scrollx = this.targetx = center.x - theNode.getX() - (theNode.getWidth() / 2);
-    this.scrolly = this.targety = center.y - theNode.getY() - (theNode.getHeight() / 2);
-
-    theNode.inFocus = true;
-    this.canvas.focus();
-    this.redraw();
-
-    if (isVisible(document.getElementById("infowindow") as HTMLElement)) {
-      this.showDetailedView(node); // If the info window is open, update it
-    }
-
+    this.setFocusPosition(node, center.x, center.y, centered);
   }
 
-  setFocusPosition(node: string, x: number, y: number) {
-    this.tree = this.makeTree(node);
-    if (this.tree == null) {
+  setFocusPosition(node: string, x: number, y: number, centered: boolean = false) {
+    this.tree = new Tree(this.structure, this.details, this.getTopAncestor(node));
+
+    if (this.tree === null || this.canvas === null) {
       return;
     }
 
     this.tree.position(this);
-    let theNode = this.tree.lookupNodeById(node) as PersonNode;
+
+    let theNode = this.tree.lookupNodeById(node);
+
+    if (theNode === null) {
+      return;
+    }
 
 
     if (theNode.redirects) {
-      node = theNode.redirectsTo;
-      this.setFocus(node);
+      this.setFocus(theNode.redirectsTo);
       return;
     }
+
     this.setAncestors(theNode);
 
     this.focusId = node;
     window.location.hash = node;
 
-    this.scrollx = x - theNode.getX();
-    this.scrolly = y - theNode.getY();
+    this.x = x - theNode.getX();
+    this.y = y - theNode.getY();
 
     theNode.inFocus = true;
     this.canvas.focus();
     this.redraw();
 
-    if (isVisible(document.getElementById("infowindow") as HTMLElement)) {
-      this.showDetailedView(node);
+    this.showDetailedView(node);
+
+    if (centered) {
+      this.target_x = this.x;
+      this.target_y = this.y;
+    }
+    else {
+      const center = this.findScreenCenter();
+      this.target_x = center.x - theNode.getX() - (theNode.getWidth() / 2);
+      this.target_y = center.y - theNode.getY();
     }
 
-    const center = this.findScreenCenter();
-    this.targetx = center.x - theNode.getX() - (theNode.getWidth() / 2);
-    this.targety = center.y - theNode.getY() - (theNode.getHeight() / 2);
+
     this.draggingAnim();
   }
 
 
-  isHit(mousePosition: number[]) {
-
+  hitTest(mousePosition: number[]) {
     if (this.tree !== null) {
-      let nodeHit = this.tree.isHit(this, mousePosition[0], mousePosition[1]);
+      let nodeHit = this.tree.hitTest(this, mousePosition[0], mousePosition[1]);
 
       if (nodeHit !== null) {
         return nodeHit;
@@ -303,7 +279,7 @@ class View {
 
 
   mouseUp(_: any, mousePosition: number[]) {
-    var wasDragging = this.dragging;
+    let wasDragging = this.dragging;
     this.stopDragging(); // stop dragging
 
     if (wasDragging) {
@@ -311,73 +287,52 @@ class View {
     }
 
     // Hit-test for current mouse position
-    let hitTest1 = this.isHit(mousePosition);
+    let hitTest1 = this.hitTest(mousePosition);
 
     // Hit-test for the last click
-    let hitTest2 = this.isHit([this.lastclickposx, this.lastclickposy]);
+    let hitTest2 = this.hitTest([this.prev_target_x, this.prev_target_y]);
 
 
-    if (hitTest1 === null || hitTest2 === null) {
-      return;
-    }
-
-
-    if (hitTest1 != hitTest2) {
+    if ((hitTest1 === null || hitTest2 === null) || hitTest1 != hitTest2) {
       return; // Both nodes need to be the same (ie. our click and mouseUp must be on the same node)
     }
 
-    this.setFocusPosition(hitTest1.getId(), hitTest1.getX() + this.scrollx, hitTest1.getY() + this.scrolly);
+    this.setFocusPosition(hitTest1.getId(), hitTest1.getX() + this.x, hitTest1.getY() + this.y);
   }
 
 
   // DETAILS
-  lookupDetails(personId: string, callback: any) {
-    if (personId in this.details) {
-      callback(this.details[personId]);
-      return;
-    }
-  }
-
   showDetailedView(personId: string) {
-    var thisEl = this;
-
-    this.lookupDetails(personId,
-        function (thisDetails: any) {
-          if (thisDetails == null) {
-            showError("Person lookup failed", true);
-          } else {
-            showInfoWindow(getDetails(thisEl, thisEl.data, thisDetails));
-          }
-        });
+    if (personId in this.details) {
+      showInfoWindow(getDetails(this, this.data, this.details[personId]));
+    }
+    else {
+      showError("Person lookup failed", true);
+    }
   }
 
 
   // Mouse Functions
   stopDragging() {
     this.dragging = false;
-    this.ismousedown = false;
+    this.isMouseDown = false;
     this.adjustVisibleArea();
   }
 
   // On mousemove
   mouseMove(buttons: any, mousePosition: number[]) {
-    // if (window.event) {
-    //   buttons = window.event.button || buttons;
-    // }
-
     if (buttons == 0) {
       this.stopDragging();
     } // if no longer holding
 
-    let x = mousePosition[0] - this.lastclickposx;
-    let y = mousePosition[1] - this.lastclickposy;
+    let x = mousePosition[0] - this.prev_target_x;
+    let y = mousePosition[1] - this.prev_target_y;
 
     if (this.dragging) {
-      this.targetx = this.lastscrollposx + x;
-      this.targety = this.lastscrollposy + y;
+      this.target_x = this.prev_x + x;
+      this.target_y = this.prev_y + y;
       this.draggingAnim();
-    }
-    else if (this.ismousedown) {
+    } else if (this.isMouseDown) {
       if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) > mouseClickRadius) {
         this.dragging = true;
       }
@@ -386,206 +341,235 @@ class View {
 
   // On mousedown
   mouseDown(buttons: any, mousePosition: number[]) {
-    this.lastclickposx = mousePosition[0];
-    this.lastclickposy = mousePosition[1];
-    this.lastscrollposx = this.scrollx;
-    this.lastscrollposy = this.scrolly;
+    this.prev_target_x = mousePosition[0];
+    this.prev_target_y = mousePosition[1];
+    this.prev_x = this.x;
+    this.prev_y = this.y;
 
-    let hitTest = this.isHit(mousePosition);
+
+
+    let hitTest = this.hitTest(mousePosition);
     if (hitTest === null && !this.dragging) { // Only start dragging if it isn't a node
       this.dragging = true;
     }
-    this.ismousedown = true;
+    this.isMouseDown = true;
+
   }
 
 
   setCanvasSize() {
+    if (this.canvas === null) {
+      throw new Error("Canvas is null");
+    }
+
     this.canvas.width = Math.min(window.outerWidth, window.innerWidth);
     this.canvas.height = Math.min(window.outerHeight, window.innerHeight);
   }
 
 
   /// SCALING
-  changeScale(newScale: number) {
+  updateScale(newScale: number) {
     if (newScale > 2 || newScale < 0.2) {
       return;
     }
-    scale = newScale;
-    updateScale(scale); // takes care of our default variables
-    [baseFont, detailFont].map(f => f.setSize(f.getBaseSize() * scale));
-
+    updateScale(newScale); // takes care of our default variables
     this.recreateTree();
   }
 
   zoomIn() {
-    var newScale = scale + 0.1;
-    this.changeScale(newScale);
+    this.updateScale(scale + .1);
   }
 
   zoomOut() {
-    var newScale = scale - 0.1;
-    this.changeScale(newScale);
+    this.updateScale(scale - 0.1);
   }
 
   zeroOut() {
-    this.changeScale(1);
+    this.updateScale(1);
   }
 
 
-  init(intialPerson: string) {
-    var curView = this;
-
-    // Intitialize
+  init(initialPerson: string) {
+    let curView: View = this;
+    // Initialize
     this.initCanvas();
-    this.setCanvasSize();
-    this.setFocus(intialPerson);
 
-    // Event listeners
-    this.canvas.addEventListener("mousedown", function (mEvent: MouseEvent) {
-      curView.mouseDown(mEvent.buttons, curView.getMousePosition(mEvent));
-    }, false);
-
-    this.canvas.addEventListener("mouseup", function (mEvent: MouseEvent) {
-      curView.mouseUp(mEvent.buttons, curView.getMousePosition(mEvent));
-    }, false);
-
-    this.canvas.addEventListener("mousemove", function (mEvent: MouseEvent) {
-      curView.mouseMove(mEvent.buttons, curView.getMousePosition(mEvent));
-    }, false);
-
-    this.canvas.addEventListener("touchstart", function (mEvent: MouseEvent) {
-      curView.mouseDown(1, curView.getTouchPosition(mEvent));
-      mEvent.preventDefault(); // just to be safe
-      mEvent.stopPropagation();
-    }, false);
-
-    this.canvas.addEventListener("touchend", function (mEvent: MouseEvent) {
-      curView.mouseUp(1, curView.getTouchPosition(mEvent));
-      mEvent.preventDefault();
-      mEvent.stopPropagation();
-    }, false);
-
-    this.canvas.addEventListener("touchmove", function (mEvent: MouseEvent) {
-      curView.mouseMove(1, curView.getTouchPosition(mEvent));
-      mEvent.stopPropagation();
-      mEvent.preventDefault();
-    }, false);
-
-    // KEY EVENT LISTENERS //
-    // Finds the next relation in the groups given
-    function upDown(relations: any, groupRelations: any) {
-      if (relations.length > 0) {
-        return relations[0]; // If we can go up/down, target is the first one
-      } else if (groupRelations && groupRelations.length > 0) {
-        return groupRelations[0]; // If they're grouped, the group has them
-      }
+    if (this.canvas === null) {
+      throw new Error("Canvas is null");
     }
 
-    function moveSiblings(lowerBound: number, upperBound: number, change: any) {
-      var target = null;
-      if (curView.tree === null) {
+    this.setCanvasSize();
+    this.setFocus(initialPerson);
+
+    // Event listeners
+    this.canvas.addEventListener("mousedown",
+        (e: MouseEvent) => this.mouseDown(e.buttons, this.parseEventPosition(e)),
+        false);
+
+    this.canvas.addEventListener("mouseup",
+        (e: MouseEvent) => this.mouseUp(e.buttons, this.parseEventPosition(e)),
+        false);
+
+    this.canvas.addEventListener("mousemove",
+        (e: MouseEvent) => this.mouseMove(e.buttons, this.parseEventPosition(e)),
+        false);
+
+    this.canvas.addEventListener("touchstart", (e: TouchEvent) => {
+      this.mouseDown(1, this.getTouchPosition(e));
+      e.preventDefault(); // just to be safe
+      e.stopPropagation();
+    }, false);
+
+    this.canvas.addEventListener("touchend", (e: TouchEvent) => {
+      this.mouseUp(1, this.getTouchPosition(e));
+      e.preventDefault();
+      e.stopPropagation();
+    }, false);
+
+    this.canvas.addEventListener("touchmove", (e: TouchEvent) => {
+      this.mouseMove(1, this.getTouchPosition(e));
+      e.stopPropagation();
+      e.preventDefault();
+    }, false);
+
+
+
+
+    // KEY EVENT LISTENERS //
+    // Finds the next of either ancestors or descendents
+    function nextRelation(individual: INode[], group: INode[]|null): INode | null {
+      // If we have an individual group, we start there
+      if (individual.length > 0) {
+        return individual[0];
+      }
+
+      if (group !== null && group.length > 0) {
+        return group[0];
+      }
+
+      return null;
+    }
+
+    function nextAncestor(node: PersonNode) {
+      let group = node.group ? node.group.ancestors : null;
+      return nextRelation(node.ancestors, group);
+    }
+
+    function nextDescendent(node: PersonNode) {
+      let group = node.group ? node.group.descendents : null;
+      return nextRelation(node.descendents, group);
+    }
+
+
+
+
+    function moveSiblings(change: number) {
+      if (curView.tree === null || curView.focusId === null) {
         return;
       }
-      var node = curView.tree.lookupNodeById(curView.focusId) as PersonNode;
-      var groupUp = node.group ? node.group.ancestorsUp : null;
-      var parentNode = upDown(node.ancestorsUp, groupUp) || null;
+      let node = curView.tree.lookupNodeById(curView.focusId) as PersonNode;
+      let parentNode = nextAncestor(node);
 
 
-      if (parentNode) {
-        var siblings = parentNode.descendentsDown;
-        var index = siblings.indexOf(node);
+      if (parentNode !== null) {
+        let siblings = parentNode.descendents;
 
-        if (index < 0 && node.group) { // Group case
+        // Individual case
+        let index = siblings.indexOf(node);
+        // Group case
+        if (index < 0 && node.group) {
           index = siblings.indexOf(node.group);
         }
-        if (index > lowerBound && index < (siblings.length + upperBound)) {
-          target = siblings[index + change]; // Get the sibling
+
+        index += change;
+
+        if (index >= 0 && index < siblings.length) {
+          return siblings[index]; // Get the sibling
         }
       }
-      return target;
+      return null;
     }
 
     function keyEventListeners(keyEvent: KeyboardEvent) {
-      var target = null;
+      let target = null;
 
-      // Don't mess w/ any system shortcuts (we use metaKey in case of macs)
+      // Don't mess w/ any system shortcuts
       if (keyEvent.ctrlKey || keyEvent.altKey || keyEvent.metaKey) {
         return;
       }
 
-      switch (keyEvent.keyCode) {
-        case 189:
-        case 173: // MINUS (and the seperate FireFox minus keycode)
+      let node: PersonNode | null;
+      switch (keyEvent.key) {
+        case "-":
           curView.zoomOut();
           keyEvent.preventDefault();
           break;
 
-        case 187:
-        case 61: // PLUS (and FireFox's plus)
+        case "=":
+        case "+":
           curView.zoomIn();
           keyEvent.preventDefault();
           break;
 
-        case 48: // Zero
+        case "0": // Zero
           curView.zeroOut();
           keyEvent.preventDefault();
           break
 
-        case 38:
-        case 87: // up arrow and W
-          if (curView.tree === null) {
+        case "ArrowUp": // Up arrow
+        case "Up":
+          if (curView.tree === null || curView.focusId === null) {
             break;
           }
-          var node = curView.tree.lookupNodeById(curView.focusId);
+          node = curView.tree.lookupNodeById(curView.focusId);
           if (node === null) {
             break;
           }
-          var groupUp = node.group ? node.group.ancestorsUp : null;
-          target = upDown(node.ancestorsUp, groupUp);
+
+          target = nextAncestor(node);
           keyEvent.preventDefault();
           break;
 
-        case 40:
-        case 83: // Down arrow and S key
-          if (curView.tree === null) {
+        case "ArrowDown": // Down arrow
+        case "Down":
+          if (curView.tree === null || curView.focusId === null) {
             break;
           }
-          var node = curView.tree.lookupNodeById(curView.focusId);
+          node = curView.tree.lookupNodeById(curView.focusId);
           if (node === null) {
             break;
           }
-          var groupDown = node.group ? node.group.descendentsDown : null;
-          target = upDown(node.descendentsDown, groupDown);
+
+          target = nextDescendent(node);
           keyEvent.preventDefault();
           break;
 
-        case 37:
-        case 65: // Left arrow and A key
-          target = moveSiblings(0, 0, -1);
+        case "ArrowLeft": // Left arrow
+        case "Left":
+          target = moveSiblings(-1);
           keyEvent.preventDefault();
           break;
 
-        case 39:
-        case 68: //  Right arrow and D key
-          target = moveSiblings(-1, -1, 1);
+        case "ArrowRight": // Right arrow
+        case "Right":
+          target = moveSiblings(1);
           keyEvent.preventDefault();
           break;
 
-          keyEvent.preventDefault();
-          break;
-
-        case 9: // Tab
+        case "Tab": // Tab
           // Switch spouses
-          if (curView.tree === null) {
+          if (curView.tree === null || curView.focusId === null) {
             break;
           }
-          var node = curView.tree.lookupNodeById(curView.focusId);
+          node = curView.tree.lookupNodeById(curView.focusId);
+
           if (node === null) {
             break;
           }
+
           if (node.group) {
-            var spouses = node.group.getMembers();
-            var currentIndex = spouses.indexOf(node);
+            const spouses = node.group.getMembers();
+            const currentIndex = spouses.indexOf(node);
             if (currentIndex + 1 < spouses.length) {
               target = spouses[currentIndex + 1];
             }
@@ -596,8 +580,8 @@ class View {
       }
 
       if (target != null) {
-        let x = target.getX() + curView.scrollx;
-        let y = target.getY() + curView.scrolly
+        let x = target.getX() + curView.x;
+        let y = target.getY() + curView.y
         curView.setFocusPosition(target.getId(), x, y);
       }
     }
@@ -614,9 +598,9 @@ class View {
     }, false);
 
     window.addEventListener("hashchange", function (_) {
-      var hash = getHashString();
-      if (hash == "") {
-        hash = intialPerson;
+      let hash = getHashString();
+      if (hash === "") {
+        hash = initialPerson;
       }
       if (curView.focusId == hash) {
         return;
@@ -626,32 +610,32 @@ class View {
   }
 
   adjustVisibleArea() {
-    var changed = false;
+    let changed = false;
     if (this.tree === null) {
       return;
     }
-    let boundaries: number[] | null = this.tree.getBoundaries();
+    let boundaries = this.tree.getBoundaries();
 
-    if (boundaries === null) {
+    if (boundaries === null || this.canvas === null) {
       return;
     }
 
 
-    if (boundaries[2] + this.scrollx < 0) {
-      this.targetx = (this.canvas.width / 2) - boundaries[2];
+    if (boundaries[2] + this.x < 0) {
+      this.target_x = (this.canvas.width / 2) - boundaries[2];
       changed = true;
     }
 
-    if (boundaries[3] + this.scrolly < 0) {
-      this.targety = (this.canvas.height / 2) - boundaries[3];
+    if (boundaries[3] + this.y < 0) {
+      this.target_y = (this.canvas.height / 2) - boundaries[3];
       changed = true;
     }
-    if (boundaries[0] + this.scrollx > this.canvas.width) {
-      this.targetx = (this.canvas.width / 2) + boundaries[0];
+    if (boundaries[0] + this.x > this.canvas.width) {
+      this.target_x = (this.canvas.width / 2) + boundaries[0];
       changed = true;
     }
-    if (boundaries[1] + this.scrolly > this.canvas.height) {
-      this.targety = (this.canvas.height / 2) - boundaries[1];
+    if (boundaries[1] + this.y > this.canvas.height) {
+      this.target_y = (this.canvas.height / 2) - boundaries[1];
       changed = true;
     }
 
@@ -661,9 +645,12 @@ class View {
   }
 
   redraw() {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    if (this.canvas === null || this.context === null) {
+      return;
+    }
 
     if (this.tree != null) {
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.tree.draw(this);
     }
   }
