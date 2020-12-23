@@ -34,11 +34,11 @@ interface INode {
 
 
 // Creates the text for each node
-function makeNodeText(person: PersonStructure): (string|TextAttr)[] {
+function makeNodeText(person: PersonStructure): StyledText[] {
     // Splits between the forenames and surnames
     let names = person["name"].split("/", 2);
     // Joins them with a linebreak in between the two
-    let result = [baseFont, names.join("\n")];
+    let result = [new StyledText(names, baseFont)];
 
     // If we have birth/death data, we append it to the result
     const sex: string = person["sex"].toUpperCase();
@@ -49,7 +49,10 @@ function makeNodeText(person: PersonStructure): (string|TextAttr)[] {
         let datePlaceStr = datePlace[0];
         // If we have a location, add it
         datePlaceStr += (datePlace[1]) ? `,${langArray["locatedIn"]}${datePlace[1]}` : "";
-        return (datePlaceStr == "") ? null : [detailFont, `\n${eventWord} ${datePlaceStr}`];
+        if (datePlaceStr === "") {
+            return null;
+        }
+        return new StyledText([`${eventWord} ${datePlaceStr}`], detailFont);
     }
 
     let eventStrs = [parseDatePlace(person["birth"], langArray["born"][sex]),
@@ -70,7 +73,7 @@ function makeNodeText(person: PersonStructure): (string|TextAttr)[] {
 class PersonNode implements INode {
     person: PersonStructure;
     details: PersonDetails;
-    text: (string | TextAttr)[];
+    text: StyledText[];
     private prevDimensions: null | number[];
     sidePadding: number;
 
@@ -187,6 +190,10 @@ class PersonNode implements INode {
             }
 
             let dimensions = renderText(this.text, canvasView, this.x, this.y, false);
+
+            if (typeof dimensions === 'undefined') {
+                throw new Error("Could not determine dimensions");
+            }
             let width = dimensions[0] + (this.sidePadding * 2);
             let height = dimensions[1];
             this.prevDimensions = [width, height];
@@ -239,7 +246,7 @@ class PersonNode implements INode {
         // Draws the rectangle
         canvasView.context.fillStyle = bgColor[this.person["sex"]];
         canvasView.context.fillRect(rectX, rectY, width, height);
-        renderText(this.text, canvasView, x + this.sidePadding, y, true);
+        renderText(this.text, canvasView, x + this.sidePadding, y);
 
         // Defaults
         let lineWidth = (this.inFocus || this.ancestorFocus) ? 3 : 1;
@@ -282,7 +289,7 @@ class PersonNode implements INode {
 
     drawLines(canvasView: View) {
         for (let desc of this.descendents) {
-            drawParentLine(canvasView, this, desc);
+            drawLineToChild(canvasView, this, desc);
         }
     }
 }
@@ -449,7 +456,7 @@ class PersonNodeGroup implements INode {
         let y = this.getY() + (this.minHeight / 2); // Min-height make sure we work w/ the smallest one (ie. we fit all)
         let x2 = this.getX() + this.getWidth();
 
-        simpleLine(canvasView, this.getX(), y, x2, y, lineWidth, "#777");
+        drawLine(canvasView, this.getX(), y, x2, y, lineWidth, "#777");
 
         for (let node of this.nodes) {
             node.draw(canvasView);

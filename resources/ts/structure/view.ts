@@ -52,7 +52,6 @@ class View {
 
 
   // Gets the top ancestor possible (up to X generations)
-  //todo generation limit
   getTopAncestor(person_id: string) {
     let structure = this.structure;
     // How many generations UP are we willing to go?
