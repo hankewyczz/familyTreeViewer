@@ -4,16 +4,16 @@
  *    construct a PersonNode).
  */
 interface PersonStructure {
-  id:       string;
-  name:     string;
-  sex:      string;
-  parents:  string[];
-  spouses:  any[];
-  children: any[];
-  parentsHidden:  boolean;
-  childrenHidden: boolean;
-  birth:    string[];
-  death:    string[];
+	id: string;
+	name: string;
+	sex: string;
+	parents: string[];
+	spouses: any[];
+	children: any[];
+	parentsHidden: boolean;
+	childrenHidden: boolean;
+	birth: string[];
+	death: string[];
 }
 
 /**
@@ -21,12 +21,12 @@ interface PersonStructure {
  * Represents a person's details: their life events,
  */
 interface PersonDetails {
-  id:             string;
-  pics:           string[];
-  names:          string[];
-  notes:          string[];
-  events:         Array<string[]>;
-  redirects:      boolean;
-  redirectsTo:    string;
-  ancestors:      Array<Array<number | string>>;
+	id: string;
+	pics: string[];
+	names: string[];
+	notes: string[];
+	events: Array<string[]>;
+	redirects: boolean;
+	redirectsTo: string;
+	ancestors: Array<Array<number | string>>;
 }
