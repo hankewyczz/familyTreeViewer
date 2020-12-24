@@ -1,54 +1,70 @@
 # familyTreeViewer [![BCH compliance](https://bettercodehub.com/edge/badge/zackh105/familyTreeViewer?branch=master)](https://bettercodehub.com/)
 familyTreeViewer is a simple web-based family tree viewer. 
-It takes a [GEDCOM](https://www.familysearch.org/developers/docs/guides/gedcom) file as input, and returns a JavaScript-based site dynamically displaying the family tree and its details. 
+It takes a [GEDCOM](https://www.familysearch.org/developers/docs/guides/gedcom)
+ file as input, and returns a JavaScript-based site dynamically displaying the 
+ family tree and its details. 
 
 # Usage
-The GEDCOM file is parsed using `makeData.py`, found under `utils`. The default file path is `familyTree.ged` - however, different filenames can be passed using `--file`.
+The GEDCOM file is parsed using `makeData.py`, found under `utils`. 
+The default file path is `familyTree.ged` - however, different 
+filenames can be passed using `--file`.
 
-The Python script generates four JSON files, `structure.json`, `details.json`, `birthdays.json`, and `burials.json`.
+The Python script generates four JSON files, 
+`structure.json`, `details.json`, `birthdays.json`, and `burials.json`.
 
-* `structure.json` contains structural data - parents, children, spouses, sex, etc.
+* `structure.json` contains structural data - 
+parents, children, spouses, sex, etc.
 * `details.json` contains personal data - life events and pictures
-* `birthdays.json` contains all of the birthdays, sorted
-* `burials.json` contains all of the burials and their locations, sorted
+* `birthdays.json` contains all the birthdays, sorted
+* `burials.json` contains all the burials and their locations, sorted
 
 ## Viewing
-Once the data is parsed and generated, the family tree can now be viewed interactivly at `index.html`. All necessary resources are contained within the `resources` folder, excluding the fonts and FontAwesome (hosted by Google and Cloudflare, respectively).
+Once the data is parsed and generated, the family tree can now be viewed 
+interactively at `index.html`. 
+All necessary resources are contained within the `resources` folder, 
+excluding the fonts and FontAwesome 
+(hosted by Google and Cloudflare, respectively).
 
 The site is static, which makes it ideal for hosting on a small, static website (maybe GitHub pages?). 
 
 ## Support
-**Generally speaking**, this project supports most **modern** browsers, desktop and mobile. This means that IE11 is a strech at best, and any older IE versions are all but guaranteed not to work (if you want IE support, take it up with [Bill Gates](https://www.gatesnotes.com/)). 
+The TypeScript is compiled to ES2015. 
+Chrome 51+, Firefox 54+, Safari 10+, and Edge 15+ all support this standard.
+In short - if your browser has ever been updated since 2015, it probably 
+supports this. 
 
-# Intra-Familial Marriage (Incest)
-Initially, this project had no support for any incestuous relationships. Any cases would break the tree structure, since a person had to be in two places at once. Imagine a first-cousin marriage. The people would have to be in 2 places at once - under their parents as a descendant, and next to their spouse. Now, I could fix this by moving the trees together, but this wouldn't work in more complicated scenarios (imagine inter-generational incest).
 
-Most cases of incest (at least in my case) were from the 18th/19th centuries. Typically, one branch of the family lost the family name (eg. a female from Family A marries into Family B, and the resulting family no longer has Family A's name). Considering that most of them died in the same village they were born in, it's not hard to imagine how these marriages could've accidentally come around. But I digress.
 
-![Example](https://i.imgur.com/PZSMISW.png).
+# Intra-Familial Marriage
+Any cases of incestuous marriage would break the tree structure, 
+since a person had to be in two places at once. 
+Imagine a first-cousin marriage. 
+The people would have to be in 2 places at once - 
+under their parents as a descendant, and next to their spouse. 
 
-As can be seen in the example above, I duplicate the spousal relationship, keep the kids under one branch, and link the spouses together (if you click on the duplicate spouse, it goes to the original one). 
+
+![Example](https://i.imgur.com/PZSMISW.png)
+
+As can be seen in the example above, I duplicate the spousal relationship, 
+keep the kids under one branch, and link the spouses together 
+(if you click on the duplicate spouse, it goes to the original one). 
 
 
 
 # Example
 
-![Example (English Monarcy)](https://i.imgur.com/mXuwDfL.png)
-This example family tree was generated using a GEDCOM file of the [English and British Kings and Queens](https://chronoplexsoftware.com/myfamilytree/samples/).
+![Example (English Monarchy)](https://i.imgur.com/mXuwDfL.png)
 
-For testing, two good sources are the [English Monarchy](https://chronoplexsoftware.com/myfamilytree/samples/) and the [Kennedy family](https://chronoplexsoftware.com/myfamilytree/samples/)
+For testing, two good sources are the [English Monarchy](https://chronoplexsoftware.com/myfamilytree/samples/) 
+(shown above) and the [Kennedy family](https://chronoplexsoftware.com/myfamilytree/samples/)
 
 
 # Issues
 
-Generally speaking, the majority of issues will stem from parser issues (at least in my tests). The GEDCOM files used were mainly generated using [GRAMPS](https://gramps-project.org/blog/). 
-
-Note: I have yet to have any problems with GEDCOM files generated by GRAMPS. 
-
-Even if a file is a valid GEDCOM file, maybe it won't work due to peculiarities in the generation - the empty case handling might be different (as it was with the English Monarchy example **[Fixed]**), formatting may differ, maybe the parser library just can't handle it. 
-
-This project is intended for relatively straight-forward family trees. It can handle size (my personal one has 500+), and all the typical events - divorce, remarriage, multiple spouses, single parent, etc.
+This project is intended for relatively straight-forward family trees. 
+It can handle size (my personal one has 2500+), 
+and all the typical events - divorce, remarriage, multiple spouses, single parent, etc.
 
 ### Credits
-* The image viewer was based off of [img_box](https://github.com/krittanon-w/IMG-BOX)
+* The image viewer is [img_box](https://github.com/krittanon-w/IMG-BOX)
 * The tree structure algorithm was helped by [this algorithm](https://rachel53461.wordpress.com/2014/04/20/algorithm-for-drawing-trees/) and [this code](https://github.com/jepst/treeViewer)

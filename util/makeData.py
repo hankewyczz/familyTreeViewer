@@ -87,6 +87,8 @@ def main():
             "parents": personObj.parents,
             "spouses": personObj.spouses,
             "children": personObj.children,
+            "parentsHidden": personObj.parentsHidden,
+            "childrenHidden": personObj.childrenHidden,
             "birth": personObj.simpleBirthData,
             "death": personObj.simpleDeathData,
         }
@@ -112,8 +114,6 @@ def main():
                       ) +
                       personObj.deathData +  # Death event
                       personObj.burialData,  # Burial data
-            "parentsHidden": personObj.parentsHidden,
-            "childrenHidden": personObj.childrenHidden,
             "redirects": personObj.redirects,
             "redirectsTo": personObj.redirectsTo,
             "ancestors": personObj.ancestors,
