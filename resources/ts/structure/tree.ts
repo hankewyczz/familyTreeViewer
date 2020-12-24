@@ -54,7 +54,12 @@ class Tree {
         this.flatNodes = flattenTree(this.nodes);
     }
 
-    // Generates the nodes for the tree structure
+    /**
+     * Generates the nodes for the tree structure
+     * @param person        The person from which we generate the node
+     * @param generation    The generation number of this person (relative to the initial person)
+     * @private
+     */
     private makeNode(person: string, generation: number): INode {
         // If we've already created this node, we just return it
         if (person in this.savedNodes) {
@@ -102,7 +107,11 @@ class Tree {
     }
 
 
-    // Equalize the vertical spacing, so that each generation is on the same level
+    /**
+     * Equalize the vertical spacing, so that each generation is on the same level
+     * @param canvasView    The CanvasView on which we do the work
+     * @private
+     */
     private verticalSpacing(canvasView: CanvasView) {
         // We get the max height per generation, so they're all aligned
         let maxHeights: {[key: number]: number} = {};
@@ -130,11 +139,21 @@ class Tree {
         }
     }
 
+    /**
+     * Checks if the given node is a leaf.
+     * @param node  The node to check
+     * @private
+     */
     private static isNodeLeaf(node: INode): boolean {
         // If we have no descendants, its a leaf
         return node.descendents.length === 0;
     }
 
+    /**
+     * Checks if the given node is the leftmost node.
+     * @param node  The node to check
+     * @private
+     */
     private static isNodeLeftmost(node: INode): boolean {
         // If we have no direct ancestors, it must be the top (and technically leftmost)
         if (node.ancestors.length === 0) {
@@ -144,6 +163,11 @@ class Tree {
         return node.ancestors[0].descendents[0] == node;
     }
 
+    /**
+     * Gets the previous sibling (if any)
+     * @param node  The node of which we want the previous sibling
+     * @private
+     */
     private static getPrevSibling(node: INode): (INode | void) {
         if (node.ancestors.length > 0) {
             let position = node.ancestors[0].descendents.indexOf(node);
@@ -151,6 +175,11 @@ class Tree {
         }
     }
 
+    /**
+     * Calculates the left contour of a node and its descendents.
+     * @param node  The starting node for calculating contour.
+     * @private
+     */
     private getLeftContour(node: INode): {[key: number]: number} {
         let values: {[key: number]: number} = {};
 
@@ -175,6 +204,11 @@ class Tree {
         return values;
     }
 
+    /**
+     * Calculates the right contour of a node and its descendents.
+     * @param node  The starting node for calculating contour.
+     * @private
+     */
     private getRightContour(node: INode): {[key: number]: number} {
         let values: {[key: number]: number} = {};
 
@@ -196,7 +230,11 @@ class Tree {
         return values;
     }
 
-    // Check for subtree conflicts, and recalculate
+    /**
+     * Check for subtree conflicts, and recalculate
+     * @param node  The node for which we check conflicts (checks this node + all left neighbors).
+     * @private
+     */
     private checkForConflicts(node: INode) {
         // Distance between subtrees (eg. cousins)
         let subtreeSpacing = 30 * scale;
@@ -240,7 +278,11 @@ class Tree {
         }
     }
 
-    // Calculate the initial X position of a node
+    /**
+     * Calculate the initial X position of a node
+     * @param node  The node for which we do the calculation.
+     * @private
+     */
     private calculateInitialX(node: INode) {
         node.descendents.map(n => this.calculateInitialX(n));
 
@@ -280,6 +322,12 @@ class Tree {
         }
     }
 
+    /**
+     * Calculate the final position of a node
+     * @param node              The node for which we do the calculation.
+     * @param shift_distance    How far this given node should be shifted from the original position.
+     * @private
+     */
     private calculateFinalPos(node: INode, shift_distance: number) {
         node.setX(node.getX() + shift_distance); // Update the X
         shift_distance += node.shift_distance;
@@ -302,12 +350,17 @@ class Tree {
         this.boundaries = [x1, y1, x2, y2];
     }
 
-
-
+    /**
+     * Gets the boundaries of this tree.
+     */
     getBoundaries() {
         return this.boundaries;
     }
 
+    /**
+     * Finds a node from this tree by its ID.
+     * @param person_id The ID to query
+     */
     lookupNodeById(person_id: string): null | PersonNode { // Gets us the node by ID if it exists
         if (person_id in this.savedNodes) {
             return this.savedNodes[person_id].getInteriorNodeById(person_id);
@@ -315,12 +368,22 @@ class Tree {
         return null;
     }
 
+    /**
+     * Positions this tree for rendering.
+     * @param canvasView    The CanvasView on which to position this tree
+     */
     position(canvasView: CanvasView) {
         this.verticalSpacing(canvasView);
         this.calculateInitialX(this.nodes);
         this.calculateFinalPos(this.nodes, 0);
     }
 
+    /**
+     * Checks if the given coordinates hit any element of this tree.
+     * @param canvasView    The CanvasView on which we test the coordinates
+     * @param x             The x-coordinate to be tested
+     * @param y             The y-coordinate to be tested
+     */
     hitTest(canvasView: CanvasView, x: number, y: number) {
         for (let node of this.flatNodes) {
             let nodeHit = node.hitTest(canvasView, x, y);
@@ -332,6 +395,10 @@ class Tree {
         return null;
     }
 
+    /**
+     * Draws this tree.
+     * @param canvasView
+     */
     draw(canvasView: CanvasView) {
         if (!this.isPositioned) {
             this.position(canvasView);
@@ -340,7 +407,7 @@ class Tree {
 
         function helpDraw(node: INode) {
             node.draw(canvasView);
-            node.drawLines(canvasView);
+            node.drawLinesToChildren(canvasView);
             for (let desc of node.descendents) {
                 helpDraw(desc)
             }

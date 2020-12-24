@@ -62,6 +62,8 @@ function showRelationshipCalculator(person: PersonDetails, data: {[key: string]:
    * @param personName  The name of the person to match.
    */
   function findPerson(personName: string) {
+    personName = personName.replaceAll("/", "");
+
     for (let person of data["structure_raw"]) {
       if (displayName(person["name"]) === personName) {
         return person;

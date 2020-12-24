@@ -74,8 +74,8 @@ class TextAttributes {
 
 
 // Our font-styles
-const baseFont = new TextAttributes("sans-serif", "#000", 14);
-const detailFont = new TextAttributes("sans-serif", "#444", 11);
+const baseFont = new TextAttributes("sans-serif", "#000000", 15);
+const detailFont = new TextAttributes("sans-serif", "#444444", 12);
 
 
 /**

@@ -457,6 +457,13 @@ function dateToLocale(dateStr: string, months: string[]) {
 
 // Displays an error message on the screen (not in debugger)
 function showError(message: string, fatal: boolean = false) {
+  if (fatal) {
+    console.error(message);
+  }
+  else {
+    console.warn(message);
+  }
+
   // gets the message element
   let messageElement = document.getElementById("message") as HTMLElement;
   // Sets value to the message
@@ -464,11 +471,13 @@ function showError(message: string, fatal: boolean = false) {
 
   // Fades the message in
   messageElement.style.opacity = "1";
+  messageElement.style.display = "block";
 
   // If the message isn't fatal, we fade out after 5 seconds
   if (!fatal) {
     setTimeout(function(){
       messageElement.style.opacity = "0";
+      messageElement.style.display = "none";
     }, 5000);
   }
 }
