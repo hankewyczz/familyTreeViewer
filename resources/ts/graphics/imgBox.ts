@@ -1,26 +1,35 @@
-// SOURCE:
-// https://gist.github.com/scf37/b9eed984a705243c27527a2036f09c0f
+/**
+ * Used to display images in a simple full-screen viewer.
+ * SOURCE: https://gist.github.com/scf37/b9eed984a705243c27527a2036f09c0f
+  */
 
-let options = {
+
+const options = {
     bgColor: 'rgba(0,0,0,0.9)', // background color
-    fadeDurationMs: 500, // Fading durations
-    zIndex: 9999, // Z index - just to cover everything
+    fadeDurationMs: 500,        // Fading durations
+    zIndex: 9999,               // Z index - just to cover everything
 };
 
-// Show the given image
+/**
+ * Show given image on full screen
+ *
+ * @param source image url or img tag
+ */
 function imgBox(source: any) {
-    let container = initContainer();
-    let imgUrl = typeof source === 'string' ? source : source.src;
-    let bodyOverflow = document.body.style.overflow;
+    const container = initContainer();
+    const imgUrl = typeof source === 'string' ? source : source.src;
+    const bodyOverflow = document.body.style.overflow;
 
-    let image = new Image();
+    const image = new Image();
     image.src = imgUrl;
     image.style.maxWidth = '90%';
     image.style.maxHeight = '90%';
     image.style.margin = 'auto';
     container.appendChild(image);
+
     // Hide scrolling
     document.body.style.overflow = 'hidden';
+
     container.style.display = 'flex';
 
     window.setTimeout(() => container.style.opacity = 1, 0);
@@ -37,6 +46,7 @@ function imgBox(source: any) {
 
     container.addEventListener('click', onClick)
 }
+
 
 let imgboxContainer: any;
 

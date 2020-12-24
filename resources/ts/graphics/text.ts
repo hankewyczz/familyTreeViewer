@@ -29,8 +29,6 @@ class TextAttributes {
   // Style
   font: string;
   color: string;
-  // Cached height
-  prevHeight: number;
 
 
   /**
@@ -44,30 +42,6 @@ class TextAttributes {
     this.baseSize = baseSize;
     this.font = font;
     this.color = color;
-    this.prevHeight = 0;
-  }
-
-  /**
-   * Calculates the true size of text in this font on the canvas.
-   */
-  calcTextHeight(): number {
-    let body = document.getElementsByTagName("body")[0];
-    let tempDiv = document.createElement("div");
-    let tempText = document.createTextNode("DUMMY TEXT");
-
-    tempDiv.appendChild(tempText);
-    // Set the text-style attributes of this div
-    tempDiv.setAttribute("style", `font: ${this.attributeString()}`);
-
-    body.appendChild(tempDiv);
-    let height = tempDiv.offsetHeight;
-    body.removeChild(tempDiv);
-
-    // Now that we've done the work, we null tempDiv to remove the reference
-    // @ts-ignore (tempDiv isn't of type null, but I'm discarding of it)
-    tempDiv = null;
-
-    return height;
   }
 
   /**
@@ -75,25 +49,15 @@ class TextAttributes {
    * @param scale The scale factor by which we scale the size.
    */
   scaleSize(scale: number) {
-    this.size = this.baseSize * scale;
-    this.prevHeight = 0; // We have to recalculate the height
+    this.size = Math.trunc(this.baseSize * scale);
   }
 
   /**
    * Gets the line-height of text in with these attributes
    */
   getHeight() {
-    if (this.prevHeight <= 0) { // In this case, we haven't calculated it yet
-      this.prevHeight = this.calcTextHeight();
-    }
-    return this.prevHeight;
-  }
-
-  /**
-   * Returns the attributes of this TextAttr in a CSS-styled string.
-   */
-  attributeString() {
-    return `${this.size}px ${this.font}`;
+    // Hacky approximation of line-height; JS doesn't have a widely-supported proper way of doing this.
+    return Math.trunc(this.size * 1.1);
   }
 
   /**
@@ -102,16 +66,16 @@ class TextAttributes {
    */
   apply(view: CanvasView) {
     if (view.context !== null) {
-      view.context.font = this.attributeString();
+      view.context.font = `${this.size}px ${this.font}`;
       view.context.fillStyle = this.color;
     }
   }
 }
 
 
-//// FONTS
-const baseFont = new TextAttributes("sans-serif", "#000", 13);
-const detailFont = new TextAttributes("sans-serif", "#333", 11);
+// Our font-styles
+const baseFont = new TextAttributes("sans-serif", "#000", 14);
+const detailFont = new TextAttributes("sans-serif", "#444", 11);
 
 
 /**
@@ -126,6 +90,7 @@ const detailFont = new TextAttributes("sans-serif", "#333", 11);
  */
 function renderText(texts: StyledText[], view: CanvasView, _x: number, _y: number,
                     display: boolean = true): number[] | void {
+
   if (view.context === null) {
     return;
   }
@@ -137,7 +102,7 @@ function renderText(texts: StyledText[], view: CanvasView, _x: number, _y: numbe
   let cur_y = _y;
 
 
-  texts.map(t => {
+  for (let t of texts) {
     // Apply the attributes of this StyledText
     t.attributes.apply(view);
 
@@ -148,7 +113,7 @@ function renderText(texts: StyledText[], view: CanvasView, _x: number, _y: numbe
       }
 
       // Only draw it if it should be displayed
-      if (display)  {
+      if (display) {
         view.context.fillText(text, _x, cur_y);
       }
 
@@ -159,10 +124,10 @@ function renderText(texts: StyledText[], view: CanvasView, _x: number, _y: numbe
 
       // Create a line-break between each one
       cur_y += lineHeight;
-      lineHeight = 0;  // Reset the line-height
+      // Reset the line-height
+      lineHeight = 0;
     }
-
-  })
+  }
 
   // Returns the width and height of the resulting text
   return [maxWidth, (cur_y + lineHeight) - _y];

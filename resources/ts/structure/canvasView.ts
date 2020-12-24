@@ -241,8 +241,16 @@ class CanvasView {
     this.focusId = node;
     window.location.hash = node;
 
-    this.x = x - theNode.getX();
-    this.y = y - theNode.getY();
+    const center = this.findScreenCenter();
+
+    if (centered) {
+      this.x = center.x - theNode.getX() - (theNode.getWidth() / 2);
+      this.y = center.y - theNode.getY() - (theNode.getHeight() / 2);
+    }
+    else {
+      this.x = x - theNode.getX();
+      this.y = y - theNode.getY();
+    }
 
     theNode.inFocus = true;
     this.canvas.focus();
@@ -250,16 +258,9 @@ class CanvasView {
 
     this.showDetailedView(node);
 
-    if (centered) {
-      this.target_x = this.x;
-      this.target_y = this.y;
-    }
-    else {
-      const center = this.findScreenCenter();
-      this.target_x = center.x - theNode.getX() - (theNode.getWidth() / 2);
-      this.target_y = center.y - theNode.getY();
-    }
 
+    this.target_x = center.x - theNode.getX() - (theNode.getWidth() / 2);
+    this.target_y = center.y - theNode.getY() - (theNode.getHeight() / 2);
 
     this.draggingAnim();
   }

@@ -432,7 +432,6 @@ function initSearchBar(searchInput: HTMLInputElement,
  * @param months  The months names of the locale.
  */
 function dateToLocale(dateStr: string, months: string[]) {
-  console.log(dateStr);
   let approximate = dateStr.includes("ABT");
   let approxStr = approximate ? "ABT " : "";
 
