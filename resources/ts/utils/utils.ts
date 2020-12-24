@@ -8,9 +8,15 @@ let horizontalMargin = baseHM * scale;
 let nodeBorderMargin = baseBM * scale;
 const generationLimit = 6;
 const mouseClickRadius = 50;
-const xmlRTimeout = 20000;
 const bgColor: { [key: string]: string } = {"m": "#ACE2F2", "f": "#F8AFD7", "": "#d3d3d3"}; // background colors
 
+
+const imageIcons = {
+  downArrow: loadImage('resources/images/downarrow.png'),
+  upArrow: loadImage('resources/images/uparrow.png'),
+  doubleArrow: loadImage('resources/images/doublearrow.png'),
+  notes: loadImage('resources/images/notes.png'),
+}
 
 
 let currentLanguage = "UA";
@@ -167,7 +173,7 @@ function displaySurname(name: string) {
 
 
 // Initializes all of the interface buttons
-function initInterfaceButtons(data: { [key: string]: any }, view: View) {
+function initInterfaceButtons(data: { [key: string]: any }, view: CanvasView) {
   const rawStructure = data["structure_raw"];
 
   // Generates the info fi
@@ -327,7 +333,7 @@ function initInterfaceButtons(data: { [key: string]: any }, view: View) {
 // Sets all the events for any search bar
 function initSearchBar(searchInput: HTMLInputElement,
                        searchResults: HTMLElement,
-                       data: { [key: string]: any }, view: View,
+                       data: { [key: string]: any }, view: CanvasView,
                        link = true) {
 
   const rawStructure = data["structure_raw"];
@@ -426,6 +432,7 @@ function initSearchBar(searchInput: HTMLInputElement,
  * @param months  The months names of the locale.
  */
 function dateToLocale(dateStr: string, months: string[]) {
+  console.log(dateStr);
   let approximate = dateStr.includes("ABT");
   let approxStr = approximate ? "ABT " : "";
 
@@ -441,7 +448,7 @@ function dateToLocale(dateStr: string, months: string[]) {
   }
   // We just have the year - return it;
   else if (dateArr.length === 1) {
-    return dateArr[0];
+    return approxStr + dateArr[0];
   }
 
   console.log("Could not parse date: " + dateStr);

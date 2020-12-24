@@ -8,7 +8,7 @@
  * @param width The width of the line
  * @param color The color of the line
  */
-function drawLine(canvasView: View,
+function drawLine(canvasView: CanvasView,
                   x1: number, y1: number, x2: number, y2: number,
                   width: number, color: string) {
 
@@ -32,7 +32,7 @@ function drawLine(canvasView: View,
  * @param parent        The parent node
  * @param child         The child node
  */
-function drawLineToChild(canvasView: View, parent: INode, child: INode) {
+function drawLineToChild(canvasView: CanvasView, parent: INode, child: INode) {
     if (canvasView.context === null) {
         return;
     }

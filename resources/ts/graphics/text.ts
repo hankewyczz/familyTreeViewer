@@ -100,7 +100,7 @@ class TextAttributes {
    * Applies the text-style to the given View.
    * @param view  The View to which we apply these text attributes
    */
-  apply(view: View) {
+  apply(view: CanvasView) {
     if (view.context !== null) {
       view.context.font = this.attributeString();
       view.context.fillStyle = this.color;
@@ -124,7 +124,7 @@ const detailFont = new TextAttributes("sans-serif", "#333", 11);
  *                    The default is true; if false, the text is likely only begin used for
  *                    measurements.
  */
-function renderText(texts: StyledText[], view: View, _x: number, _y: number,
+function renderText(texts: StyledText[], view: CanvasView, _x: number, _y: number,
                     display: boolean = true): number[] | void {
   if (view.context === null) {
     return;

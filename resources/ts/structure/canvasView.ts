@@ -1,5 +1,5 @@
 // Handles the canvasView
-class View {
+class CanvasView {
   data: { [key: string]: { [key: string]: any } };
   structure: { [key: string]: PersonStructure };
   details: { [key: string]: PersonDetails };
@@ -126,7 +126,7 @@ class View {
 
   // Animation for the dragging
   draggingAnim() {
-    let elem: View = this;
+    let elem: CanvasView = this;
 
     // If we're already in one, we don't want to start a new one
     if (elem.dragTimer) {
@@ -138,8 +138,8 @@ class View {
 
     function dragAnim() {
       // get new X, Y coordinates
-      elem.x += View.animEase * (elem.target_x - elem.x);
-      elem.y += View.animEase * (elem.target_y - elem.y);
+      elem.x += CanvasView.animEase * (elem.target_x - elem.x);
+      elem.y += CanvasView.animEase * (elem.target_y - elem.y);
 
       // If not dragging + we're within 0.1 of the target:
       if ((!elem.dragging) && (Math.abs(elem.x - elem.target_x) < 0.1)
@@ -303,7 +303,7 @@ class View {
   // DETAILS
   showDetailedView(personId: string) {
     if (personId in this.details) {
-      showInfoWindow(getDetails(this, this.data, this.details[personId]));
+      showInfoWindow(showPersonDetails(this, this.data, this.details[personId]));
     }
     else {
       showError("Person lookup failed", true);
@@ -389,7 +389,7 @@ class View {
 
 
   init(initialPerson: string) {
-    let curView: View = this;
+    let curView: CanvasView = this;
     // Initialize
     this.initCanvas();
 

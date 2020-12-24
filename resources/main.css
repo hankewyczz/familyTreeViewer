@@ -70,6 +70,11 @@ a {
     background-color: #2D89EF;
 }
 
+.eventPicture {
+    width: 90%;
+    margin-top: 5%;
+    cursor: pointer;
+}
 
 #textinfo {
     background-color: #fefefe;
@@ -118,14 +123,17 @@ a {
     width: 100%;
     max-width: 100%;
     margin-bottom: 2px;
-    border-bottom: solid 2px #2D89EF;
-    color: #fff;
+    border-bottom: solid 2px #28E;
     color: #6c6c6c;
 }
 
 .detailRow1 {
     background: #eee;
-    color: #6c6c6c;
+}
+
+.pictureRow {
+    display: table;
+    text-align: center
 }
 
 .rowIndex {
@@ -149,12 +157,6 @@ a {
     padding-right: 5px
     border-collapse: collapse;
     border-left: solid 1px #2D89EF;
-}
-
-.rowPicture {
-    display: table-cell;
-    width: 80%;
-    padding: 5px;
 }
 
 /* For familial loading */
@@ -240,7 +242,7 @@ a {
     cursor: pointer;
 }
 
-#searchtext, #searchtextP1, #searchtextP2 {
+#searchtext, #searchtextRel {
     border: 1px solid #bbb;
     color: #888;
     background-color: #fff;
@@ -275,16 +277,25 @@ a {
     color: #FFF;
 }
 
-#searchlist, #searchlistP1, #searchlistP2 {
+#searchlist, #searchlistRel {
     height: 200px;
     display: none;
     position: absolute;
     background-color: #FFF;
     border: 2px solid #2D89EF;
-    width: 150%;
-    overflow: auto;
-    overflow-x: hidden;
     padding: 2px;
+    overflow: auto;
+}
+
+#searchlist {
+    width: 150%;
+    overflow-x: hidden;
+}
+
+#searchlistRel {
+    width: 100%;
+    overflow-x: scroll;
+    cursor: pointer;
 }
 
 
@@ -312,3 +323,5 @@ a {
 #languagebutton {
     margin-right: 5px;
 }
+
+

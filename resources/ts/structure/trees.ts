@@ -103,7 +103,7 @@ class Tree {
 
 
     // Equalize the vertical spacing, so that each generation is on the same level
-    private verticalSpacing(canvasView: View) {
+    private verticalSpacing(canvasView: CanvasView) {
         // We get the max height per generation, so they're all aligned
         let maxHeights: {[key: number]: number} = {};
         for (let node of this.flatNodes) {
@@ -315,13 +315,13 @@ class Tree {
         return null;
     }
 
-    position(canvasView: View) {
+    position(canvasView: CanvasView) {
         this.verticalSpacing(canvasView);
         this.calculateInitialX(this.nodes);
         this.calculateFinalPos(this.nodes, 0);
     }
 
-    hitTest(canvasView: View, x: number, y: number) {
+    hitTest(canvasView: CanvasView, x: number, y: number) {
         for (let node of this.flatNodes) {
             let nodeHit = node.hitTest(canvasView, x, y);
 
@@ -332,7 +332,7 @@ class Tree {
         return null;
     }
 
-    draw(canvasView: View) {
+    draw(canvasView: CanvasView) {
         if (!this.isPositioned) {
             this.position(canvasView);
             this.isPositioned = true;

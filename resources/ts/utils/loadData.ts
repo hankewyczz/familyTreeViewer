@@ -1,55 +1,26 @@
-/* Utils for loading data */
-
-
-// todo fix callback
-// Grabs a json file
-function getJsonData(address: string, callback: any, timeout = xmlRTimeout) {
-  let xmlR = new XMLHttpRequest();
-  let calledYet = false;
-
-  function onStateChange() {
-    if (xmlR.status && xmlR.status == 200 && xmlR.readyState == 4) { // "OK" and completed
-      let returnVal;
-      try {
-        returnVal = JSON.parse(xmlR.responseText);
-      } catch (e) {
-        console.log("Could not parse responseText: " + e);
-      }
-      if (!calledYet && returnVal) {
-        calledYet = true;
-        callback(returnVal);
-      }
-    }
-  }
-
-  // We try again at the timeout
-  setTimeout(function () {
-    if (!calledYet) {
-      calledYet = true;
-      callback(null);
-    }
-  }, timeout);
-
-  // Add the event listener
-  xmlR.addEventListener("readystatechange", onStateChange);
-  xmlR.open("GET", address, true);
-
-  if (xmlR.overrideMimeType) { // If we have a mimeType, override it
-    xmlR.overrideMimeType("application/json");
-  }
-
-  xmlR.send(); // close out
+/**
+ * Grabs the contents of a JSON file, and then executes the given callback.
+ * @param address   The address of the file
+ * @param callback  The callback function to execute
+ */
+async function getJsonData(address: string, callback: any) {
+  return fetch(address).then(r => r.json()).then(r => callback(r));
 }
 
-// todo fix callback
-// Loads all the data we need
-function loadData(callback: any) {
+
+/**
+ * Loads all the JSON data (and parses it).
+ * @param callback  The callback to execute with the parsed data
+ */
+async function loadData(callback: any) {
   /* We append this every time to ensure that the JSON files aren't kept in the cache.
   Fixes an issue where, for some reason, JSON files wouldn't reflect an update.
   For example, they'd call a person which no longer existed (since only some of the files would
   update?, or not reflect changes). */
   const rand = Math.random().toString(36).substr(2, 5);
-  const file = "data/structure.json?" + rand;
+
+  // All the files we need
+  const structureFile = "data/structure.json?" + rand;
   const detailsFile = "data/details.json?" + rand;
   const burialsFile = "data/burials.json?" + rand;
   const birthdaysFile = "data/birthdays.json?" + rand;
@@ -57,44 +28,35 @@ function loadData(callback: any) {
   // Initialize data dict
   let data: { [key: string]: any } = {};
 
-  (function () { // we wrap it so we don't run into timing errors w/ getJsonData
-    getJsonData(file, function (returnVal: any) {
-      if (returnVal == null) {
-        callback(null);
-      }
 
-      data["structure_raw"] = returnVal;
-      data["structure"] = {};
-      (data["structure_raw"] as PersonStructure[]).map(p => data["structure"][p["id"]] = p);
-      console.log("Loaded structure.json");
-      loadDetails();
-    }, xmlRTimeout);
-  })(); // Execute immediately
+  // Get the structure file
+  let structureData = getJsonData(structureFile, (content: PersonStructure[]) => {
+    data["structure"] = {};
+    content.map(p => data["structure"][p["id"]] = p);
+    data["structure_raw"] = content;
+    console.log("Loaded structure.json");
+  });
 
-  // Get details
-  function loadDetails() {
-    getJsonData(detailsFile, function (returnVal: any) {
-      data["details"] = returnVal;
-      console.log("Loaded details.json");
-      loadBurials();
-    }, xmlRTimeout)
-  }
+  // Get the details file
+  let detailsData = getJsonData(detailsFile, (content: { [key: string]: PersonDetails }) => {
+    data["details"] = content;
+    console.log("Loaded details.json");
+  })
 
-  // Get burials
-  function loadBurials() {
-    getJsonData(burialsFile, function (returnVal: any) {
-      data["burials"] = returnVal;
-      console.log("Loaded burials.json");
-      loadBirthdays();
-    }, xmlRTimeout)
-  }
+  // Get the burials file
+  let burialsData = getJsonData(burialsFile, (content: string[]) => {
+    data["burials"] = content;
+    console.log("Loaded burials.json");
+  })
 
   // Get birthdays
-  function loadBirthdays() {
-    getJsonData(birthdaysFile, function (returnVal: any) {
-      data["birthdays"] = returnVal;
-      console.log("Loaded birthdays.json");
-      callback(data);
-    }, xmlRTimeout)
-  }
+  let birthdaysData = getJsonData(birthdaysFile, (returnVal: any) => {
+    data["birthdays"] = returnVal;
+    console.log("Loaded birthdays.json");
+
+  })
+
+  // Run our callback as soon as all of our data has loaded
+  await Promise.all([structureData, detailsData, burialsData, birthdaysData])
+  .then(() => callback(data));
 }

@@ -326,7 +326,7 @@ class Person:
             if date == '' and place == '':
                 continue
             else:
-                events.append([date, self.getSpouse(family), place, event_type.upper()])
+                events.append([SimpleDate(date).toString(), self.getSpouse(family), place, event_type.upper()])
 
         return events
 

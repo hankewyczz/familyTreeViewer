@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-  	"outDir": "../build",
+  	//"outDir": "../build",
+    "outFile": "../build/build.js",
     "target": "ES2015",
-    "module": "commonjs",
+    "module": "amd",
     "strict": true,
     "lib": ["esnext", "dom"],
     "esModuleInterop": true,

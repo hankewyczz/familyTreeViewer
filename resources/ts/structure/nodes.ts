@@ -24,11 +24,11 @@ interface INode {
     // Dimensions
     getWidth: () => number;
     getHeight: () => number;
-    calcDimensions: (canvasView?: View) => number[];
+    calcDimensions: (canvasView?: CanvasView) => number[];
     // Other
-    hitTest: (canvasView: View, x: number, y: number) => PersonNode | null;
-    draw: (canvasView: View) => void;
-    drawLines: (canvasView: View) => void;
+    hitTest: (canvasView: CanvasView, x: number, y: number) => PersonNode | null;
+    draw: (canvasView: CanvasView) => void;
+    drawLines: (canvasView: CanvasView) => void;
 }
 
 
@@ -183,7 +183,7 @@ class PersonNode implements INode {
         return this.calcDimensions()[1];
     }
 
-    calcDimensions(canvasView?: View): number[] {
+    calcDimensions(canvasView?: CanvasView): number[] {
         if (this.prevDimensions == null) {
             if (typeof canvasView === 'undefined') {
                 throw new Error("Cannot determine dimensions without a given canvas view");
@@ -203,7 +203,7 @@ class PersonNode implements INode {
     }
 
     // Get the rectangle bounding this PersonNode
-    getRect(canvasView: View) {
+    getRect(canvasView: CanvasView) {
         let dimensions = this.calcDimensions(canvasView);
 
         return [this.x + canvasView.x - nodeBorderMargin, // X
@@ -212,7 +212,7 @@ class PersonNode implements INode {
             dimensions[1] + nodeBorderMargin * 2]; // Height
     }
 
-    hitTest(canvasView: View, x: number, y: number) {
+    hitTest(canvasView: CanvasView, x: number, y: number) {
         let rect = this.getRect(canvasView);
         let left = rect[0];       // left bound
         let top = rect[1];       // top bound
@@ -223,7 +223,7 @@ class PersonNode implements INode {
         return (isHit) ? this : null;
     }
 
-    draw(canvasView: View) {
+    draw(canvasView: CanvasView) {
         let x = this.getX() + canvasView.x;
         let y = this.getY() + canvasView.y;
 
@@ -287,7 +287,7 @@ class PersonNode implements INode {
         }
     }
 
-    drawLines(canvasView: View) {
+    drawLines(canvasView: CanvasView) {
         for (let desc of this.descendents) {
             drawLineToChild(canvasView, this, desc);
         }
@@ -417,7 +417,7 @@ class PersonNodeGroup implements INode {
         return this.calcDimensions()[1];
     }
 
-    calcDimensions(canvasView?: View) {
+    calcDimensions(canvasView?: CanvasView) {
         if (this.prevDimensions == null) {
             for (let node of this.nodes) {
                 node.calcDimensions(canvasView);
@@ -440,7 +440,7 @@ class PersonNodeGroup implements INode {
         return this.prevDimensions;
     }
 
-    hitTest(canvasView: View, x: number, y: number) {
+    hitTest(canvasView: CanvasView, x: number, y: number) {
         for (let node of this.nodes) {
             let nodeHit = node.hitTest(canvasView, x, y);
 
@@ -451,7 +451,7 @@ class PersonNodeGroup implements INode {
         return null;
     }
 
-    draw(canvasView: View) {
+    draw(canvasView: CanvasView) {
         let lineWidth = 10 * scale; // Spouse line
         let y = this.getY() + (this.minHeight / 2); // Min-height make sure we work w/ the smallest one (ie. we fit all)
         let x2 = this.getX() + this.getWidth();
@@ -463,7 +463,7 @@ class PersonNodeGroup implements INode {
         }
     }
 
-    drawLines(canvasView: View) {
+    drawLines(canvasView: CanvasView) {
         this.nodes[0].drawLines(canvasView);
 
         for (let i = 2; i < this.nodes.length; i++) { // For multiple spouses
