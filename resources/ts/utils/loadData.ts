@@ -1,18 +1,60 @@
+class Data {
+  structure: {[key: string]: PersonStructure};
+  structure_raw: PersonStructure[];
+  details: { [key: string]: PersonDetails};
+  burials: string[][];
+  birthdays: string[][];
+
+  constructor (structure: PersonStructure[], details: { [key: string]: PersonDetails },
+               birthdays: string[][], burials: string[][]) {
+    this.structure = {};
+    this.structure_raw = structure;
+    structure.map((p: PersonStructure) => this.structure[p["id"]] = p);
+    this.details = details;
+    this.burials = burials;
+    this.birthdays = birthdays;
+  }
+
+  /**
+   * Finds the PersonStructure with the given name (if any).
+   * @param name  The name to search for.
+   */
+  findPersonByName(name: string) {
+    name = name.replaceAll("/", "");
+
+    for (let person of this.structure_raw) {
+      if (displayName(person["name"]) === name) {
+        return person;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Finds the PersonStructure with the given ID
+   * @param id  The ID to search for.
+   */
+  findPersonById(id: string) {
+    return (id in this.structure) ? this.structure[id] : null;
+  }
+}
+
+
 /**
  * Grabs the contents of a JSON file, and then executes the given callback.
  * @param address   The address of the file
- * @param callback  The callback function to execute
  */
-async function getJsonData(address: string, callback: any) {
-  return fetch(address).then(r => r.json()).then(r => callback(r));
+async function getJsonData(address: string) {
+  let ret = fetch(address).then(r => r.json());
+  console.log(`Fetching ${address}`);
+  return ret;
 }
 
 
 /**
  * Loads all the JSON data (and parses it).
- * @param callback  The callback to execute with the parsed data
  */
-async function loadData(callback: any) {
+async function loadData() {
   /* We append this every time to ensure that the JSON files aren't kept in the cache.
   Fixes an issue where, for some reason, JSON files wouldn't reflect an update.
   For example, they'd call a person which no longer existed (since only some of the files would
@@ -25,38 +67,19 @@ async function loadData(callback: any) {
   const burialsFile = "data/burials.json?" + rand;
   const birthdaysFile = "data/birthdays.json?" + rand;
 
-  // Initialize data dict
-  let data: { [key: string]: any } = {};
-
-
   // Get the structure file
-  let structureData = getJsonData(structureFile, (content: PersonStructure[]) => {
-    data["structure"] = {};
-    content.map(p => data["structure"][p["id"]] = p);
-    data["structure_raw"] = content;
-    console.log("Loaded structure.json");
-  });
+  let structureData: PersonStructure[] = await getJsonData(structureFile);
 
   // Get the details file
-  let detailsData = getJsonData(detailsFile, (content: { [key: string]: PersonDetails }) => {
-    data["details"] = content;
-    console.log("Loaded details.json");
-  })
+  let detailsData:  { [key: string]: PersonDetails } = await getJsonData(detailsFile);
 
   // Get the burials file
-  let burialsData = getJsonData(burialsFile, (content: string[]) => {
-    data["burials"] = content;
-    console.log("Loaded burials.json");
-  })
+  let burialsData: string[][] = await getJsonData(burialsFile);
 
   // Get birthdays
-  let birthdaysData = getJsonData(birthdaysFile, (returnVal: any) => {
-    data["birthdays"] = returnVal;
-    console.log("Loaded birthdays.json");
+  let birthdaysData: string[][] = await getJsonData(birthdaysFile);
 
-  })
-
-  // Run our callback as soon as all of our data has loaded
-  await Promise.all([structureData, detailsData, burialsData, birthdaysData])
-  .then(() => callback(data));
+  // Return data as soon as all of our work has finished
+  return await Promise.all([structureData, detailsData, burialsData, birthdaysData])
+                      .then(() => new Data(structureData, detailsData, burialsData, birthdaysData));
 }

@@ -4,7 +4,7 @@
  * @param data          The data object
  * @param view          Our main view object
  */
-function showRelationshipCalculator(person: PersonDetails, data: {[key: string]: any}, view: CanvasView) {
+function showRelationshipCalculator(person: PersonDetails, data: Data, view: CanvasView) {
   const langArray: {[key: string]: any} = getLang();
 
   // Create the main container, and the header
@@ -57,26 +57,10 @@ function showRelationshipCalculator(person: PersonDetails, data: {[key: string]:
   searchButton.appendChild(document.createTextNode("Calculate"));
 
 
-  /**
-   * Finds the person matching the given name.
-   * @param personName  The name of the person to match.
-   */
-  function findPerson(personName: string) {
-    personName = personName.replaceAll("/", "");
-
-    for (let person of data["structure_raw"]) {
-      if (displayName(person["name"]) === personName) {
-        return person;
-      }
-    }
-    return null;
-  }
-
-
   // Handle the action when we finally click Calculate
   searchButton.onclick = function (_: MouseEvent) {
-    const person1 = findPerson(person.names[0]);
-    const person2 = findPerson((document.getElementById("searchtextRel") as HTMLInputElement).value);
+    const person1 = data.findPersonById(person.id);
+    const person2 = data.findPersonByName((document.getElementById("searchtextRel") as HTMLInputElement).value);
 
     if (person1 === null || person2 === null) {
       showError("People matching the given names could not be found");
@@ -104,7 +88,7 @@ function showRelationshipCalculator(person: PersonDetails, data: {[key: string]:
 
   container.appendChild(calculatorContainer);
 
-  showInfoWindow(container);
+  showInInfoWindow(container);
   initSearchBar((document.getElementById("searchtextRel") as HTMLInputElement),
       (document.getElementById("searchlistRel") as HTMLElement), data, view, false);
 }
@@ -116,7 +100,7 @@ function showRelationshipCalculator(person: PersonDetails, data: {[key: string]:
  * @param data        The data object
  * @param curPerson   The person whose life details we generate here.
  */
-function showPersonDetails(canvasView: CanvasView, data: any, curPerson: PersonDetails) {
+function showPersonDetails(canvasView: CanvasView, data: Data, curPerson: PersonDetails) {
   let container = document.createElement('div');
   container.style.display = "table";
   container.style.borderCollapse = "collapse";
@@ -173,7 +157,7 @@ function showPersonDetails(canvasView: CanvasView, data: any, curPerson: PersonD
   /*
   Now we create the events pane, containing this person's life details.
    */
-  const sex = data["structure"][curPerson["id"]]["sex"].toUpperCase();
+  const sex = data.structure[curPerson["id"]]["sex"].toUpperCase();
 
   // Initialize the data container
   let eventsDivContainer = document.createElement('div');
@@ -243,28 +227,6 @@ function showPersonDetails(canvasView: CanvasView, data: any, curPerson: PersonD
       dataDiv.appendChild(content);
       eventDiv.appendChild(dataDiv);
     }
-
-    /**
-     * Creates a link, which when clicked redirects to another person.
-     * @param personId    The person to whom we link
-     */
-    function makePersonLink(personId: string) {
-      let personLink = document.createElement('a');
-      personLink.style.cursor = "pointer";
-
-      let linkContent = document.createTextNode(displayName(data["structure"][personId].name));
-      personLink.appendChild(linkContent);
-      (personLink as any)["linked_person_id"] = personId;
-
-      personLink.addEventListener("click", (event) => {
-        canvasView.setFocus((event.currentTarget as any)["linked_person_id"]);
-      });
-
-      return personLink;
-    }
-
-
-
 
     // Now, we start the work
 
@@ -354,7 +316,7 @@ function showPersonDetails(canvasView: CanvasView, data: any, curPerson: PersonD
 
         const marriageInfo = document.createElement('span');
         marriageInfo.appendChild(document.createTextNode(langArray["married"][sex]));
-        marriageInfo.appendChild(makePersonLink(event[1]));
+        marriageInfo.appendChild(canvasView.makePersonLink(event[1]));
         marriageInfo.appendChild(document.createTextNode(marriageLocation));
 
         field(event[0], marriageInfo);
@@ -365,7 +327,7 @@ function showPersonDetails(canvasView: CanvasView, data: any, curPerson: PersonD
 
         const divorceInfo = document.createElement('span');
         divorceInfo.appendChild(document.createTextNode(langArray["divorced"]));
-        divorceInfo.appendChild(makePersonLink(event[1]));
+        divorceInfo.appendChild(canvasView.makePersonLink(event[1]));
         divorceInfo.appendChild(document.createTextNode(divorceLocation));
 
         field(event[0], divorceInfo);

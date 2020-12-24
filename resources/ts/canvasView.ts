@@ -1,6 +1,6 @@
 // Handles the canvasView
 class CanvasView {
-  data: { [key: string]: { [key: string]: any } };
+  data: Data;
   structure: { [key: string]: PersonStructure };
   details: { [key: string]: PersonDetails };
 
@@ -304,7 +304,7 @@ class CanvasView {
   // DETAILS
   showDetailedView(personId: string) {
     if (personId in this.details) {
-      showInfoWindow(showPersonDetails(this, this.data, this.details[personId]));
+      showInInfoWindow(showPersonDetails(this, this.data, this.details[personId]));
     }
     else {
       showError("Person lookup failed", true);
@@ -653,5 +653,23 @@ class CanvasView {
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.tree.draw(this);
     }
+  }
+
+
+  makePersonLink(id: string) {
+    // Create a link to the given person
+    const personNameLink = document.createElement("a");
+    personNameLink.style.cursor = "pointer";
+
+    const personName = displayName(this.data.structure[id].name);
+
+    // Set the link text
+    personNameLink.appendChild(document.createTextNode(personName));
+    // Make sure the link goes to the correct person
+    (personNameLink as any)["link_person_id"] = id;
+    personNameLink.addEventListener("click",
+        (e: any) => this.setFocus(e.currentTarget["link_person_id"]));
+
+    return personNameLink;
   }
 }

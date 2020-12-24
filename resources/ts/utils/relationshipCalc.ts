@@ -4,9 +4,9 @@
  * @param person2 The second person
  * @param data    The family data
  */
-function relationshipCalculator(person1: string, person2: string, data: any): string {
+function relationshipCalculator(person1: string, person2: string, data: Data): string {
   const langArray: { [key: string]: any } = getLang();
-  const details = data["details"];
+  const details = data.details;
 
   /**
    * Finds the least common ancestor of two given people
@@ -27,6 +27,8 @@ function relationshipCalculator(person1: string, person2: string, data: any): st
     for (let a1 of ancestors1) {
       for (let a2 of ancestors2) {
         if (a1[0] === a2[0]) {
+          // We know that a[1] and a2[1] are always numbers (due to the order), but TS doesn't
+          // @ts-ignore
           commonAncestors.push([a1[0], a1[1] + a2[1]]);
         }
       }
@@ -45,10 +47,10 @@ function relationshipCalculator(person1: string, person2: string, data: any): st
    * @param person    The base person
    * @param ancestor  Their ancestor
    */
-  function distanceToAncestor(person: string, ancestor: string) {
+  function distanceToAncestor(person: string, ancestor: string): number {
     for (let a of details[person]["ancestors"]) {
       if (a[0] === ancestor) {
-        return a[1];
+        return a[1] as number;
       }
     }
 
@@ -104,8 +106,8 @@ function relationshipCalculator(person1: string, person2: string, data: any): st
   const generationA = distanceToAncestor(person1, lcAncestor[0]);
   const generationB = distanceToAncestor(person2, lcAncestor[0]);
 
-  const sexA = data["structure"][person1]["sex"].toUpperCase();
-  const sexB = data["structure"][person2]["sex"].toUpperCase();
+  const sexA = data.structure[person1]["sex"].toUpperCase();
+  const sexB = data.structure[person2]["sex"].toUpperCase();
   // The order here is relevant (especially for Ukrainian)
   const sexes = sexA + sexB;
 
@@ -124,28 +126,31 @@ function relationshipCalculator(person1: string, person2: string, data: any): st
 
   /**
    * Handles the case where one person is the sibling of the other person's direct ancestor
+   * Returns the sex of the least common relation (ie. person1's sibling, and person2's parent/grandparent)
+   *    This is necessary for the Ukrainian language parsing. For example, there are two terms for
+   *    "uncle" - one for "father's brother", and another for "mother's brother".
    * @param p1 The first person
    * @param p2 The second person
    */
   function getSiblingAncestor(p1: string, p2: string) {
-    let parents1 = data["structure"][p1]["parents"];
-    let parents1children;
+    let parents1 = data.structure[p1]["parents"];
+    let parents1children = [];
 
     // Get the batch of children, of which p1 is a part of (handles multiple marriage cases)
     for (let parent of parents1) {
-      parents1children = data["structure"][parent]["children"];
+      parents1children = data.structure[parent]["children"];
       if (parents1children.includes(p1)) {
         break;
       }
     }
 
     // Creates an array of all the IDs of p2's ancestors
-    let ancestors2 = data["details"][p2]["ancestors"].map((a: string[]) => a[0]);
+    let ancestors2 = data.details[p2]["ancestors"].map((a: (string|number)[]) => a[0]);
 
 
     for (let child of parents1children) {
       if (ancestors2.includes(child)) {
-        return data["structure"][child]["sex"].toUpperCase();
+        return data.structure[child]["sex"].toUpperCase();
       }
     }
     return "F"; // Default fallback
@@ -177,15 +182,15 @@ function relationshipCalculator(person1: string, person2: string, data: any): st
     // B is a descendant of A's sibling
     else if (generationA == 1) {
       // For Ukrainian: to determine стрійко vs. вуйко
-      let parents2 = data["structure"][person2]["parents"];
+      let parents2 = data.structure[person2]["parents"];
       let parentSex = "F"; // Keep this as a default
 
       // Iterate over p2's parents
       for (let parent2 of parents2) {
-        let ancestorsB = data["details"][parent2]["ancestors"].map((a: string[]) => a[0]);
+        let ancestorsB = data.details[parent2]["ancestors"].map((a: (string|number)[]) => a[0]);
         // Check if the ancestor is on this parent's side
         if (ancestorsB.includes(lcAncestor[0])) {
-          parentSex = data["structure"][parent2]["sex"].toUpperCase();
+          parentSex = data.structure[parent2]["sex"].toUpperCase();
         }
       }
 
