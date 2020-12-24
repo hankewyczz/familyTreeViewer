@@ -6,7 +6,7 @@ bower_components
 *.iml
 
 # Ignore built ts files
-dist/**/*
+build
 
 __pycache__
 .git/

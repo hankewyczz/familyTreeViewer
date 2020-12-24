@@ -24,11 +24,11 @@ a {
 }
 
 /* We make an exception for the info area and the search bar */
-#searchtext, .infoarea, #searchtextP1, #searchtextP2 {
+#searchtext, .infoarea {
     user-select: text;
-    -webkit-user-select: text; 
-    -moz-user-select: text; 
-    -ms-user-select: text; 
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
     cursor: text;
 }
 
@@ -47,8 +47,8 @@ a {
     display: none;
     border: 4px solid #FFFF39;
     margin: 20px 0 0 10px;
-    padding: 20px;
-    padding-left: 70px; /* We override padding-left to make space for the icon */
+    /* We override padding-left to make space for the icon */
+    padding: 20px 20px 20px 70px;
     /* Icon */
     background-repeat: no-repeat;
     background-position: 10px center;
@@ -63,6 +63,7 @@ a {
     position: absolute;
     top: 10px; 
     right: 10px;
+    min-width: 20%;
     max-width: 25%;
     height: 50%;
     padding: 0;
@@ -70,10 +71,14 @@ a {
     background-color: #2D89EF;
 }
 
+.eventPicture {
+    width: 90%;
+    margin-top: 5%;
+    cursor: pointer;
+}
 
 #textinfo {
     background-color: #fefefe;
-    display:block;
     position:relative;
     height: 100%;
     width: 100%;
@@ -118,22 +123,24 @@ a {
     width: 100%;
     max-width: 100%;
     margin-bottom: 2px;
-    border-bottom: solid 2px #2D89EF;
-    color: #fff;
+    border-bottom: solid 2px #28E;
     color: #6c6c6c;
 }
 
 .detailRow1 {
     background: #eee;
-    color: #6c6c6c;
 }
 
-.rowDate {
+.pictureRow {
+    display: table;
+    text-align: center
+}
+
+.rowIndex {
     font-size: 80%;
     width: 90%;
     font-weight: bold;
     vertical-align: top;
-    display: table-cell;
     padding: 3px 10px 5px 3px;
     display: inline-block;
 }
@@ -146,15 +153,9 @@ a {
     text-align: left;
     padding-left: 7px;
     padding-bottom: 5px;
-    padding-right: 5px
+    padding-right: 5px;
     border-collapse: collapse;
     border-left: solid 1px #2D89EF;
-}
-
-.rowPicture {
-    display: table-cell;
-    width: 80%;
-    padding: 5px;
 }
 
 /* For familial loading */
@@ -174,7 +175,7 @@ a {
     margin-top: -25px;
     margin-left: -100px;
     width: 200px;
-    height: 75; 
+    height: 75px;
     font-size: 150%;
     text-align: center;
     font-weight: bold;
@@ -200,11 +201,6 @@ a {
     .button {
          padding: 4px 5px;
     }
-}
-
-@-ms-viewport{
-    zoom: 1.0;
-    width: device-width;
 }
 
 
@@ -240,7 +236,7 @@ a {
     cursor: pointer;
 }
 
-#searchtext, #searchtextP1, #searchtextP2 {
+#searchtext, #searchtextRel {
     border: 1px solid #bbb;
     color: #888;
     background-color: #fff;
@@ -275,16 +271,25 @@ a {
     color: #FFF;
 }
 
-#searchlist, #searchlistP1, #searchlistP2 {
+#searchlist, #searchlistRel {
     height: 200px;
     display: none;
     position: absolute;
     background-color: #FFF;
     border: 2px solid #2D89EF;
-    width: 150%;
-    overflow: auto;
-    overflow-x: hidden;
     padding: 2px;
+    overflow: auto;
+}
+
+#searchlist {
+    width: 150%;
+    overflow-x: hidden;
+}
+
+#searchlistRel {
+    width: 100%;
+    overflow-x: scroll;
+    cursor: pointer;
 }
 
 
@@ -312,3 +317,5 @@ a {
 #languagebutton {
     margin-right: 5px;
 }
+
+
