@@ -316,7 +316,10 @@ function showPersonDetails(canvasView: CanvasView, data: Data, curPerson: Person
 
         const marriageInfo = document.createElement('span');
         marriageInfo.appendChild(document.createTextNode(langArray["married"][sex]));
-        marriageInfo.appendChild(canvasView.makePersonLink(event[1]));
+        const personLink = canvasView.makePersonLink(event[1]);
+        if (personLink !== null) {
+          marriageInfo.appendChild(personLink);
+        }
         marriageInfo.appendChild(document.createTextNode(marriageLocation));
 
         field(event[0], marriageInfo);
@@ -327,7 +330,10 @@ function showPersonDetails(canvasView: CanvasView, data: Data, curPerson: Person
 
         const divorceInfo = document.createElement('span');
         divorceInfo.appendChild(document.createTextNode(langArray["divorced"]));
-        divorceInfo.appendChild(canvasView.makePersonLink(event[1]));
+        const divorceeLink = canvasView.makePersonLink(event[1]);
+        if (divorceeLink !== null) {
+          divorceInfo.appendChild(divorceeLink);
+        }
         divorceInfo.appendChild(document.createTextNode(divorceLocation));
 
         field(event[0], divorceInfo);

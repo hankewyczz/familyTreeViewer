@@ -216,7 +216,10 @@ function initInterfaceButtons(data: Data, view: CanvasView) {
 			let nameDiv = document.createElement('div');
 
 			// Append the link to the name container.
-			nameDiv.appendChild(view.makePersonLink(curId));
+			const personLink = view.makePersonLink(curId);
+			if (personLink !== null) {
+				nameDiv.appendChild(personLink);
+			}
 
 
 			// Do we need a new category?
