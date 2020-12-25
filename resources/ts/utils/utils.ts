@@ -95,7 +95,7 @@ const languages = [
 		person: "Person ",
 		noRelation: "not directly related",
 		are: " are ",
-		months: ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"],
+		months: ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."],
 	},
 ];
 
@@ -189,7 +189,7 @@ function displaySurname(name: string) {
  * @param view	Our CanvasView
  */
 function initInterfaceButtons(data: Data, view: CanvasView) {
-	const rawStructure = data["structure_raw"];
+	const rawStructure = data.structure_raw;
 
 	/**
 	 * Generates the info window with some given information.
@@ -285,14 +285,16 @@ function initInterfaceButtons(data: Data, view: CanvasView) {
 	// Birthdays button
 	(document.getElementById("birthdaybutton") as HTMLElement).onclick =
 			function (_: MouseEvent) {
-				return generateInfoWindow(data["birthdays"], "Birthdays")
+				const months = getLang()["months"];
+				const bdayData = data.birthdays.map(a => [a[0], dateToLocale(a[1], months)]);
+				return generateInfoWindow(bdayData, "Birthdays")
 			};
 
 
 	// Burial button
 	(document.getElementById("burialbutton") as HTMLElement).onclick =
 			function (_: MouseEvent) {
-				generateInfoWindow(data["burials"], "Burials")
+				generateInfoWindow(data.burials, "Burials")
 			};
 
 	// HELP BUTTON
@@ -346,7 +348,7 @@ function initSearchBar(searchInput: HTMLInputElement,
 											 data: Data, view: CanvasView,
 											 link = true) {
 
-	const rawStructure = data["structure_raw"];
+	const rawStructure = data.structure_raw;
 
 
 	/**
@@ -454,6 +456,10 @@ function dateToLocale(dateStr: string, months: string[]) {
 	if (dateArr.length === 3) {
 		let month = months[parseInt(dateArr[1]) - 1];
 		return `${approxStr}${dateArr[2]} ${month} ${dateArr[0]}`;
+	}
+	else if (dateArr.length === 2) {
+		let month = months[parseInt(dateArr[0]) - 1];
+		return `${approxStr}${dateArr[1]} ${month}`;
 	}
 	// We just have the year - return it;
 	else if (dateArr.length === 1) {
