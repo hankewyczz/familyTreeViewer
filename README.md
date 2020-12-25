@@ -1,4 +1,4 @@
-# familyTreeViewer [![BCH compliance](https://bettercodehub.com/edge/badge/zackh105/familyTreeViewer?branch=master)](https://bettercodehub.com/)
+# familyTreeViewer
 familyTreeViewer is a simple web-based family tree viewer. 
 It takes a [GEDCOM](https://www.familysearch.org/developers/docs/guides/gedcom)
  file as input, and returns a JavaScript-based site dynamically displaying the 
