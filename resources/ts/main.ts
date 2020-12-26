@@ -18,7 +18,7 @@ function parseHash(initPerson: string) {
 	let initialPerson = initPerson;
 	let hash = getHashString();
 
-	if (hash !== null) {
+	if (hash !== "") {
 		if (hash.toLowerCase() === "help") {
 			// If the hash requires help:
 			let helpInterval = setInterval(function () {

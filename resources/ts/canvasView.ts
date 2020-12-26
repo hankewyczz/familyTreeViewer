@@ -464,6 +464,7 @@ class CanvasView {
 	 * @param initialPerson The person around whom the tree is centered.
 	 */
 	init(initialPerson: string) {
+		console.log(initialPerson)
 		let curView: CanvasView = this;
 		// Initialize
 		this.initCanvas();
