@@ -207,6 +207,7 @@ a {
 /* BUTTONS */
 /**/
 .button {
+    margin-top: 10px;
     border: 1px solid #bbb;
     color: #777;
     background-color: #eee;
@@ -247,15 +248,16 @@ a {
 
 #navbar {
     background-color: #2D89EF;
-    padding: 10px;
+    /* No top padding - the buttons handle this themselves */
+    padding: 0 10px 10px;
     position: absolute;
-    top:10px; 
-    left:10px;
+    top: 10px;
+    left: 10px;
+    text-align: center;
 }
 
 #search-container {
     width: 175px;
-    margin-top: 10px;
     margin-right: 15px;
     display: inline-block;
 }

@@ -329,6 +329,8 @@ function initInterfaceButtons(data: Data, view: CanvasView) {
 	(document.getElementById("zoomin") as HTMLElement).onclick = (_) => view.zoomIn();
 	(document.getElementById("zoomout") as HTMLElement).onclick = (_) => view.zoomOut();
 
+	(document.getElementById("printbutton") as HTMLElement).onclick = (_) => printTree(view);
+
 
 	initSearchBar(document.getElementById("search-input") as HTMLInputElement,
 			document.getElementById("search-results") as HTMLInputElement, data, view);

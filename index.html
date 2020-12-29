@@ -30,19 +30,26 @@
         <canvas id="canvas" tabindex="1"></canvas>
 
         <div id="navbar">
-            <div class="button" id="helpbutton">Help/Поміч</div>
+            <div class="button" id="helpbutton">Help</div>
             <div class="button" id="indexbutton">Index</div>
             <div class="button" id="burialbutton">Burials</div>
-            <div class="button" id="birthdaybutton">Birthdays</div><br>
+            <div class="button" id="birthdaybutton">Birthdays</div>
+            <br>
+
 
             <div id="search-container" class="search">
-                <input type="text" id="search-input" autocomplete="off" placeholder="Пошук (Search)">
+                <input type="text" id="search-input" autocomplete="off"
+                       placeholder="Пошук (Search)">
                 <div id="search-results"></div>
             </div>
 
-            <div class="button" id="languagebutton">УКР</div>
             <div class="button circle-button" id="zoomin"><i class="fas fa-search-plus"></i></div>
             <div class="button circle-button" id="zoomout"><i class="fas fa-search-minus"></i></div>
+            <br>
+
+            <div class="button" id="printbutton">Print Family Tree</div>
+            <div class="button" id="languagebutton">УКР</div>
+
 
             <br/>
             <div id="message"></div>
@@ -62,19 +69,26 @@
                 <div class="detailTitle">Help</div>
             </div>
             <div class="detailRowcontainer" id="detailRowcontainer">
-                <div class="detailRow" style="display: table; text-align: center; padding-bottom: 5px">
+                <div class="detailRow"
+                     style="display: table; text-align: center; padding-bottom: 5px">
                     <h3 style="margin: 5px 0">General</h3>
-                    <p class="helpText">This family tree viewer is web and mobile compatible. It works on most <strong>
-                    modern</strong> browsers (if you're using Internet Explorer, good luck).</p>
+                    <p class="helpText">This family tree viewer is web and mobile compatible. It
+                        works on most <strong>
+                            modern</strong> browsers (if you're using Internet Explorer, good luck).
+                    </p>
                     <br>
-                    <p class="helpText" style="margin-bottom: 10px">To move, just use your mouse to drag the tree. To see more detailed information,
-                     just click on a person. However, some family members are hidden. This will be marked with an arrow,
-                    which will look something like this:</p>
-                    <img src="resources/images/uparrow.png" />&nbsp;&nbsp;<img src="resources/images/downarrow.png" />&nbsp;
-                    <img src="resources/images/doublearrow.png" />
+                    <p class="helpText" style="margin-bottom: 10px">To move, just use your mouse to
+                        drag the tree. To see more detailed information,
+                        just click on a person. However, some family members are hidden. This will
+                        be marked with an arrow,
+                        which will look something like this:</p>
+                    <img src="resources/images/uparrow.png" alt="Up arrow"/>&nbsp;&nbsp;<img
+                    src="resources/images/downarrow.png" alt="Down arrow"/>&nbsp;
+                    <img src="resources/images/doublearrow.png" alt="Double arrow"/>
                     <br>
-                    <p class="helpText">You can click on people with these arrows, and the hidden tree (parents or children)
-                     will expand</p>
+                    <p class="helpText">You can click on people with these arrows, and the hidden
+                        tree (parents or children)
+                        will expand</p>
                 </div>
                 <div class="detailRow" style="display: table; text-align: center; padding-bottom: 5px">
                     <h3 style="margin: 5px 0">Menu</h3>
