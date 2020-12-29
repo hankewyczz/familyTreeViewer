@@ -142,7 +142,7 @@ function loadImage(source: string) {
  * @param content  The content of the info window
  */
 function showInInfoWindow(content: HTMLElement) {
-	let info = document.getElementById("textinfo") as HTMLElement;
+	let info = document.getElementById("info-window") as HTMLElement;
 
 	// Clear it of any prior info
 	while (info.firstChild) {
@@ -152,7 +152,7 @@ function showInInfoWindow(content: HTMLElement) {
 	info.appendChild(content);
 	info.scrollTop = 0;
 
-	(document.getElementById("infowindow") as HTMLElement).style.opacity = "1";
+	(document.getElementById("info-window-container") as HTMLElement).style.opacity = "1";
 }
 
 
@@ -330,8 +330,8 @@ function initInterfaceButtons(data: Data, view: CanvasView) {
 	(document.getElementById("zoomout") as HTMLElement).onclick = (_) => view.zoomOut();
 
 
-	initSearchBar(document.getElementById("searchtext") as HTMLInputElement,
-			document.getElementById("searchlist") as HTMLInputElement, data, view);
+	initSearchBar(document.getElementById("search-input") as HTMLInputElement,
+			document.getElementById("search-results") as HTMLInputElement, data, view);
 }
 
 
@@ -458,8 +458,15 @@ function dateToLocale(dateStr: string, months: string[]) {
 		return `${approxStr}${dateArr[2]} ${month} ${dateArr[0]}`;
 	}
 	else if (dateArr.length === 2) {
-		let month = months[parseInt(dateArr[0]) - 1];
-		return `${approxStr}${dateArr[1]} ${month}`;
+		// If we only have 2, it's either yyyy-mm or mm-dd
+		if (dateArr[0].length === 4) {
+			let month = months[parseInt(dateArr[1]) - 1];
+			return `${approxStr}${month} ${dateArr[0]}`;
+		}
+		else {
+			let month = months[parseInt(dateArr[0]) - 1];
+			return `${approxStr}${dateArr[1]} ${month}`;
+		}
 	}
 	// We just have the year - return it;
 	else if (dateArr.length === 1) {

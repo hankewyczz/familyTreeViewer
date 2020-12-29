@@ -5,10 +5,7 @@
         <meta name="robots" content="noindex,nofollow">
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
-        <!-- 
-        Scripts
-         -->
-            <!-- Utilities -->
+        <!-- Scripts -->
         <script src="resources/build/build.js" type="text/javascript"></script>
 
 
@@ -30,7 +27,7 @@
         </noscript>
 
 
-        <canvas id="canvas" width="1000" height="1000" tabindex="1"></canvas>
+        <canvas id="canvas" tabindex="1"></canvas>
 
         <div id="navbar">
             <div class="button" id="helpbutton">Help/Поміч</div>
@@ -38,10 +35,11 @@
             <div class="button" id="burialbutton">Burials</div>
             <div class="button" id="birthdaybutton">Birthdays</div><br>
 
-            <div id="searchArea" class="search">
-                <input type="text" id="searchtext" class="searchTerm" autocomplete="off" placeholder="Пошук (Search)">
-                <div id="searchlist"></div>
+            <div id="search-container" class="search">
+                <input type="text" id="search-input" autocomplete="off" placeholder="Пошук (Search)">
+                <div id="search-results"></div>
             </div>
+
             <div class="button" id="languagebutton">УКР</div>
             <div class="button circle-button" id="zoomin"><i class="fas fa-search-plus"></i></div>
             <div class="button circle-button" id="zoomout"><i class="fas fa-search-minus"></i></div>
@@ -51,10 +49,10 @@
         </div>
 
 
-        <div id="infowindow" class="common-window">
-            <div id="textinfo" class="viewarea infoarea"></div>
+        <div id="info-window-container">
+            <div id="info-window"></div>
         </div>
-        <div id="loadingwindow" class="panel-class">
+        <div id="loading-window">
             <div>Loading, please wait</div>
         </div>
 

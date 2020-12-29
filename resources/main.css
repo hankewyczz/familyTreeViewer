@@ -16,7 +16,6 @@ html, body {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    cursor: default;
 }
 
 a {
@@ -24,7 +23,7 @@ a {
 }
 
 /* We make an exception for the info area and the search bar */
-#searchtext, .infoarea {
+#search-input, .infoarea {
     user-select: text;
     -webkit-user-select: text;
     -moz-user-select: text;
@@ -58,7 +57,7 @@ a {
 }
 
 
-#infowindow {
+#info-window-container {
     display: block;
     position: absolute;
     top: 10px; 
@@ -77,7 +76,7 @@ a {
     cursor: pointer;
 }
 
-#textinfo {
+#info-window {
     background-color: #fefefe;
     position:relative;
     height: 100%;
@@ -89,16 +88,16 @@ a {
     display: block;
 }
 
-#textinfo::-webkit-scrollbar {
+#info-window::-webkit-scrollbar {
     width: 10px;
     background-color: #F5F5F5;
 }
 
-#textinfo::-webkit-scrollbar:hover {
+#info-window::-webkit-scrollbar:hover {
     cursor: pointer;
 }
 
-#textinfo::-webkit-scrollbar-thumb {
+#info-window::-webkit-scrollbar-thumb {
     background-color: #aaa;
 }
 
@@ -166,7 +165,7 @@ a {
     background-color: #EEE;
 }
 
-#loadingwindow {
+#loading-window {
     display: block;
     position: absolute;
     top: 50%;
@@ -186,7 +185,7 @@ a {
 
 
 @media (max-width:925px) {
-    #infowindow {
+    #info-window-container {
         bottom: 0;
         left: 0;
         right: 0;
@@ -195,7 +194,7 @@ a {
         max-height: 50%;
         max-width: initial; 
     }
-    .panel-class{
+    #loading-window {
         padding: 1px 2px;
     }
     .button {
@@ -236,7 +235,7 @@ a {
     cursor: pointer;
 }
 
-#searchtext, #searchtextRel {
+#search-input, #search-input-rel {
     border: 1px solid #bbb;
     color: #888;
     background-color: #fff;
@@ -254,7 +253,7 @@ a {
     left:10px;
 }
 
-#searchArea {
+#search-container {
     width: 175px;
     margin-top: 10px;
     margin-right: 15px;
@@ -271,7 +270,7 @@ a {
     color: #FFF;
 }
 
-#searchlist, #searchlistRel {
+#search-results, #search-results-rel {
     height: 200px;
     display: none;
     position: absolute;
@@ -281,12 +280,12 @@ a {
     overflow: auto;
 }
 
-#searchlist {
+#search-results {
     width: 150%;
     overflow-x: hidden;
 }
 
-#searchlistRel {
+#search-results-rel {
     width: 100%;
     overflow-x: scroll;
     cursor: pointer;

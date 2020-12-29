@@ -53,7 +53,7 @@ async function main() {
 	// Success!
 	console.log("%cAll data loaded", "text-decoration: underline;");
 	// Hide the loading message when loaded
-	(document.getElementById("loadingwindow") as HTMLElement).style.display = "none";
+	(document.getElementById("loading-window") as HTMLElement).style.display = "none";
 
 	// Initialize the CanvasView
 	const canvasView = new CanvasView(data);

@@ -37,13 +37,13 @@ function showRelationshipCalculator(person: PersonDetails, data: Data, view: Can
 	// Search input
 	let searchInput = document.createElement('input');
 	searchInput.type = "text";
-	searchInput.id = "searchtextRel";
+	searchInput.id = "search-input-rel";
 	searchInput.className = "searchTerm";
 	searchInput.autocomplete = "off";
 	searchInput.placeholder = "Пошук (Search)";
 
 	let searchList = document.createElement('div');
-	searchList.id = "searchlistRel";
+	searchList.id = "search-results-rel";
 
 	searchArea.appendChild(searchInput);
 	searchArea.appendChild(searchList);
@@ -59,7 +59,7 @@ function showRelationshipCalculator(person: PersonDetails, data: Data, view: Can
 	// Handle the action when we finally click Calculate
 	searchButton.onclick = function (_: MouseEvent) {
 		const person1 = data.findPersonById(person.id);
-		const person2 = data.findPersonByName((document.getElementById("searchtextRel") as HTMLInputElement).value);
+		const person2 = data.findPersonByName((document.getElementById("search-input-rel") as HTMLInputElement).value);
 
 		if (person1 === null || person2 === null) {
 			showError("People matching the given names could not be found");
@@ -88,8 +88,8 @@ function showRelationshipCalculator(person: PersonDetails, data: Data, view: Can
 	container.appendChild(calculatorContainer);
 
 	showInInfoWindow(container);
-	initSearchBar((document.getElementById("searchtextRel") as HTMLInputElement),
-			(document.getElementById("searchlistRel") as HTMLElement), data, view, false);
+	initSearchBar((document.getElementById("search-input-rel") as HTMLInputElement),
+			(document.getElementById("search-results-rel") as HTMLElement), data, view, false);
 }
 
 

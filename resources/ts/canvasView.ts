@@ -206,7 +206,7 @@ class CanvasView {
 		let bottom = this.canvas.height;
 
 		// We take the infowindow into account here
-		let infoWindow = (document.getElementById("infowindow") as HTMLElement);
+		let infoWindow = (document.getElementById("info-window-container") as HTMLElement);
 		// Check for mobile (infoWindow will never be this wide normally)
 		if (infoWindow.offsetWidth >= this.canvas.width * 0.8) {
 			bottom -= infoWindow.offsetHeight;
