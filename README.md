@@ -1,19 +1,20 @@
 # familyTreeViewer
 familyTreeViewer is a simple web-based family tree viewer. 
 It takes a [GEDCOM](https://www.familysearch.org/developers/docs/guides/gedcom)
- file as input, and returns a JavaScript-based site dynamically displaying the 
+ file as input, and returns a JavaScript-based site which dynamically displays the 
  family tree and its details. 
 
 # Usage
-The GEDCOM file is parsed using `makeData.py`, found under `utils`. 
-The default file path is `familyTree.ged` - however, different 
-filenames can be passed using `--file`.
+The GEDCOM file is parsed using `main.py`, found under `utils`. 
+The default file path of the GEDCOM file is `familyTree.ged` - however, different 
+filenames can be passed using `--file` (or `-f`).
+
+Example usage: `main.py -f gedcom-files/my-family-tree.ged`
 
 The Python script generates four JSON files, 
 `structure.json`, `details.json`, `birthdays.json`, and `burials.json`.
 
-* `structure.json` contains structural data - 
-parents, children, spouses, sex, etc.
+* `structure.json` contains structural data - parents, children, spouses, sex, etc.
 * `details.json` contains personal data - life events and pictures
 * `birthdays.json` contains all the birthdays, sorted
 * `burials.json` contains all the burials and their locations, sorted
@@ -28,10 +29,7 @@ excluding the fonts and FontAwesome
 The site is static, which makes it ideal for hosting on a small, static website (maybe GitHub pages?). 
 
 ## Support
-The TypeScript is compiled to ES2015. 
-Chrome 51+, Firefox 54+, Safari 10+, and Edge 15+ all support this standard.
-In short - if your browser has ever been updated since 2015, it probably 
-supports this. 
+The TypeScript is compiled to ES2015 - Chrome 51+, Firefox 54+, Safari 10+, and Edge 15+ all support this standard.
 
 
 
@@ -43,9 +41,7 @@ The people would have to be in 2 places at once -
 under their parents as a descendant, and next to their spouse. 
 
 
-![Example](https://i.imgur.com/PZSMISW.png)
-
-As can be seen in the example above, I duplicate the spousal relationship, 
+To mitigate this issue, I duplicate the spousal relationship, 
 keep the kids under one branch, and link the spouses together 
 (if you click on the duplicate spouse, it goes to the original one). 
 
@@ -53,10 +49,10 @@ keep the kids under one branch, and link the spouses together
 
 # Example
 
-![Example (English Monarchy)](https://i.imgur.com/mXuwDfL.png)
+![Example (Kennedy Family)](https://i.imgur.com/0BKSYhI.png)
 
-For testing, two good sources are the [English Monarchy](https://chronoplexsoftware.com/myfamilytree/samples/) 
-(shown above) and the [Kennedy family](https://chronoplexsoftware.com/myfamilytree/samples/)
+For testing, two good sources are the [English Monarchy](https://chronoplexsoftware.com/myfamilytree/samples/)
+ and the [Kennedy family](https://chronoplexsoftware.com/myfamilytree/samples/) (shown above)
 
 
 # Issues
