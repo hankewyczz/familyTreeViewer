@@ -64,3 +64,6 @@ and all the typical events - divorce, remarriage, multiple spouses, single paren
 ### Credits
 * The image viewer is [img_box](https://github.com/krittanon-w/IMG-BOX)
 * The tree structure algorithm was helped by [this algorithm](https://rachel53461.wordpress.com/2014/04/20/algorithm-for-drawing-trees/) and [this code](https://github.com/jepst/treeViewer)
+
+
+The archives at https://collections.arolsen-archives.org/en/search/ are absolutely AMAZING for finding records from DP camps. 
