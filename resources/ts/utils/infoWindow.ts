@@ -248,12 +248,17 @@ function showPersonDetails(canvasView: CanvasView, data: Data, curPerson: Person
 
 
 				if (birthDate !== "") {
-					let birthDateObj = new Date(birthDate.replace("ABT ", ""));
-					let ageToday = new Date(Date.now() - birthDateObj.valueOf());
-					let yearsOld = Math.abs(ageToday.getUTCFullYear() - 1970);
+					let birthDateObj = Date.parse(birthDate.replace("ABT ", ""));
 
-					let yearsOldStr = ` (${yearsOld.toString()} ${langArray["yearsAgo"]})`;
-					birthInfo.appendChild(document.createTextNode(yearsOldStr));
+					// We only proceed if the birth date could be properly parsed
+					// For some reason, iOS can't parse the dates correctly, so we just ignore them
+					if (!Object.is(NaN, birthDateObj)) {
+						let ageToday = new Date(Date.now() - birthDateObj.valueOf());
+						let yearsOld = Math.abs(ageToday.getUTCFullYear() - 1970);
+
+						let yearsOldStr = ` (${yearsOld.toString()} ${langArray["yearsAgo"]})`;
+						birthInfo.appendChild(document.createTextNode(yearsOldStr));
+					}
 				}
 
 				field(birthDate, birthInfo);
@@ -274,11 +279,17 @@ function showPersonDetails(canvasView: CanvasView, data: Data, curPerson: Person
 				if (birthDate !== "" && deathDate !== "") {
 					let deathDateObj = new Date(deathDate.replace("ABT ", ""));
 					let birthDateObj = new Date(birthDate);
-					let ageApart = new Date(deathDateObj.valueOf() - birthDateObj.valueOf());
-					let ageAtDeath = Math.abs(ageApart.getUTCFullYear() - 1970);
 
-					ageAtDeathStr = ` (${ageAtDeath.toString()} ${langArray["yearsOld"]})`;
-					deathInfo.appendChild(document.createTextNode(ageAtDeathStr));
+					// Only proceed if both are valid numbers
+					if (!Object.is(NaN, birthDateObj) && !Object.is(NaN, deathDateObj)) {
+						let ageApart = new Date(deathDateObj.valueOf() - birthDateObj.valueOf());
+						let ageAtDeath = Math.abs(ageApart.getUTCFullYear() - 1970);
+
+						if (!Object.is(NaN, ageAtDeath)) {
+							ageAtDeathStr = ` (${ageAtDeath.toString()} ${langArray["yearsOld"]})`;
+							deathInfo.appendChild(document.createTextNode(ageAtDeathStr));
+						}
+					}
 				}
 
 				field(deathDate, deathInfo);

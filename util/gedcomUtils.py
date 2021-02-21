@@ -5,7 +5,7 @@ from dateutil import parser
 from typing import List, Optional
 
 # Where should we redirect the images to?
-IMAGES_FOLDER = "resources/photos/"
+IMAGES_FOLDER = os.path.normpath("resources/photos/")
 
 
 ############################
@@ -284,8 +284,10 @@ class Person:
         # Iterates over all of the objects associated with this person
         for obj in [getObj(obj, objects) for obj in getTags(self.indiv, "OBJE")]:
             # Get the FILE tag from the object
-            imageFileName = getTag(obj, "FILE").split("\\")[-1]
-            picLst.append(os.path.join(IMAGES_FOLDER, imageFileName))
+            imageFileName = getTag(obj, "FILE")
+            imageFileName = IMAGES_FOLDER + imageFileName.split("photos", 1)[-1]
+            print(imageFileName)
+            picLst.append(imageFileName)
 
         self.pics = picLst
 
