@@ -71,7 +71,4 @@ async function main() {
 	(document.getElementById("numPeople") as HTMLElement).innerHTML =
 			`<strong>${data.structure_raw.length}</strong> people in this tree`;
 	console.log("%cReady!", "font-weight:bold; font-size: 1.5em;")
-
 }
-
-

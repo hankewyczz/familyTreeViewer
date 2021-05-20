@@ -248,7 +248,8 @@ function showPersonDetails(canvasView: CanvasView, data: Data, curPerson: Person
 
 
 				if (birthDate !== "") {
-					let birthDateObj = Date.parse(birthDate.replace("ABT ", ""));
+
+					let birthDateObj = Date.parse(birthDate.replaceAll("ABT ", "").replaceAll("-", "/"));
 
 					// We only proceed if the birth date could be properly parsed
 					// For some reason, iOS can't parse the dates correctly, so we just ignore them
@@ -277,7 +278,7 @@ function showPersonDetails(canvasView: CanvasView, data: Data, curPerson: Person
 
 				let ageAtDeathStr = "";
 				if (birthDate !== "" && deathDate !== "") {
-					let deathDateObj = new Date(deathDate.replace("ABT ", ""));
+					let deathDateObj = new Date(deathDate.replaceAll("ABT ", "").replaceAll("-", "/"));
 					let birthDateObj = new Date(birthDate);
 
 					// Only proceed if both are valid numbers
