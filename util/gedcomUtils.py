@@ -5,6 +5,9 @@ from dateutil import parser
 from typing import List, Optional
 
 # Where should we redirect the images to?
+from gedcom.element.element import Element
+from gedcom.element.family import FamilyElement
+
 IMAGES_FOLDER = os.path.normpath("resources/photos/")
 
 
@@ -126,7 +129,7 @@ def getTag(element, tag):
 
 
 # Gets the given tags
-def getTags(element, tag, value=True):
+def getTags(element: Element, tag, value=True):
     if element is None:
         return []
 
@@ -156,6 +159,7 @@ class Person:
         self.parents: List[str] = []
         self.spouses: List[str] = []
         self.sFamilies: List = []
+        self.cFamilies = []
         self.children: List[str] = []
         self.ancestors = []
 
@@ -190,7 +194,8 @@ class Person:
             self.getBurialData()
 
             # Family
-            self.getSpousalFamilies(families)
+            self.sFamilies = self.getFamilies(families, "FAMS")
+            self.cFamilies = self.getFamilies(families, "FAMC")
             self.getParents(families)
             self.getSpouses()
             self.getChildren()
@@ -257,9 +262,9 @@ class Person:
         self.parents = filterNull(getTag(family, "HUSB"), getTag(family, "WIFE"))
 
     # Gets all the families in which this person is a spouse
-    def getSpousalFamilies(self, families):
+    def getFamilies(self, families, familyType) -> List[FamilyElement]:
         # Gets the FAMS (spousal families), and converts them into objects
-        self.sFamilies = [getObj(family, families) for family in getTags(self.indiv, "FAMS")]
+        return [getObj(family, families) for family in getTags(self.indiv, familyType)]
 
     # Gets the spouse of the given family
     def getSpouse(self, family):
@@ -281,12 +286,19 @@ class Person:
     def getPics(self, objects):
         # gets the pictures from all of the objects
         picLst: List[str] = []
+
+        allPicObjects = []
+        objectsToFetch = self.sFamilies + self.cFamilies + [self.indiv]
+
+        for parentObj in objectsToFetch:
+            for obj in getTags(parentObj, "OBJE"):
+                allPicObjects.append(getObj(obj, objects))
+
         # Iterates over all of the objects associated with this person
-        for obj in [getObj(obj, objects) for obj in getTags(self.indiv, "OBJE")]:
+        for obj in allPicObjects:
             # Get the FILE tag from the object
             imageFileName = getTag(obj, "FILE")
             imageFileName = IMAGES_FOLDER + imageFileName.split("photos", 1)[-1]
-            print(imageFileName)
             picLst.append(imageFileName)
 
         self.pics = picLst
@@ -296,7 +308,7 @@ class Person:
         # Gets all the objects for this given person
         rawNotes = [getObj(note, notes) for note in getTags(self.indiv, "NOTE")]
 
-        # gets the pictures from all of the objects
+        # gets the notes from all of the objects
         result: List[str] = []
         for note in rawNotes:
             # Paragraph formatting

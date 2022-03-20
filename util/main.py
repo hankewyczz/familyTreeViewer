@@ -2,22 +2,30 @@ import argparse
 import json
 import os
 import re
+from typing import List
 
 from dateutil import parser as date_parser
+from gedcom.element.family import FamilyElement
+from gedcom.element.object import ObjectElement
 from gedcom.parser import Parser
+from gedcom.element.individual import IndividualElement
 import icu
 
 import gedcomUtils as gu
 
 # Goes through all the elements, sorts them into their appropriate lists
 def generateArrays(gedcomParser):
-    individuals, objects, families, notes = [], [], [], []
+    individuals: List[IndividualElement] = []
+    objects = []
+    families = []
+    notes = []
+
     for element in gedcomParser.get_root_child_elements():
-        if element.get_tag() == "INDI":
+        if isinstance(element, IndividualElement):
             individuals.append(element)
-        elif element.get_tag() == "OBJE":
+        elif isinstance(element, ObjectElement):
             objects.append(element)
-        elif element.get_tag() == "FAM":
+        elif isinstance(element, FamilyElement):
             families.append(element)
         elif element.get_tag() == "NOTE":
             notes.append(element)

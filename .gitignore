@@ -12,6 +12,7 @@ __pycache__
 .git/
 
 util/__pycache__/
+util/sources
 util/backups
 util/familyTree.ged
 util/familyTreeBak.ged

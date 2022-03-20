@@ -70,6 +70,7 @@ class Tree {
 		let newNode: INode;
 
 		// If this person has no spouses, they are not part of a PersonNodeGroup.
+		console.log(person);
 		if (this.structure[person].spouses.length === 0) {
 			newNode = new PersonNode(this.structure[person], this.details[person]);
 			this.savedNodes[person] = newNode;
